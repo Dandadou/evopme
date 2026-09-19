@@ -9,10 +9,10 @@
   <link rel="stylesheet" href="/assets/cookies.css">
   <style>
     :root{--evoot:#08d3c2;--evoot-dark:#020a0b;--evoot-panel:rgba(9,31,33,.72)}
-    .evoot-page{--orange:var(--evoot);background:var(--evoot-dark);font-family:"Trebuchet MS",Arial,sans-serif}
+    .evoot-page{--orange:var(--evoot);background:var(--evoot-dark);font-family:"Segoe UI Variable","Segoe UI",Arial,sans-serif}
     .evoot-page:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:linear-gradient(rgba(8,211,194,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(8,211,194,.035) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,#000,transparent 80%)}
     .evoot-page header{background:rgba(2,10,11,.88);border-bottom-color:rgba(8,211,194,.18)}
-    .evoot-page nav a:not(.pill):hover{color:var(--evoot)}
+    .evoot-page nav a:not(.pill):hover{color:var(--evoot)}.evoot-page h1,.evoot-page h2,.evoot-page h3{font-family:Bahnschrift,"Arial Narrow","Segoe UI",sans-serif;font-stretch:condensed}.evoot-status{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;padding:9px 13px;border:1px solid rgba(8,211,194,.22);border-radius:999px;color:#b9d8d6;background:rgba(8,211,194,.055);font-size:.68rem;font-weight:800;letter-spacing:.12em}.evoot-status:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--evoot);box-shadow:0 0 14px var(--evoot);animation:evoot-pulse 1.8s ease-in-out infinite}@keyframes evoot-pulse{50%{opacity:.35;box-shadow:0 0 4px var(--evoot)}}@media(prefers-reduced-motion:reduce){.evoot-status:before{animation:none}}
     .evoot-hero{max-width:1440px;min-height:calc(100vh - 96px);padding:95px 6vw 110px;display:grid;grid-template-columns:.92fr 1.08fr;align-items:center;gap:90px;position:relative}
     .evoot-hero:after{content:"";position:absolute;right:-12%;top:8%;width:650px;height:650px;border-radius:50%;background:radial-gradient(circle,rgba(8,211,194,.12),transparent 67%);filter:blur(14px);z-index:-1}
     .evoot-hero h1{font-size:clamp(4rem,6.6vw,7.5rem);line-height:.94;letter-spacing:-.065em;margin:28px 0 38px}.evoot-hero h1 em{display:block;color:var(--evoot);font-style:normal;margin-top:14px;font-size:.72em;letter-spacing:-.045em}
@@ -43,7 +43,7 @@
   <header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/services.html">Services</a><a href="/formations.html">Formations</a><a href="/etudes-de-cas.html">Études de cas</a><a href="/a-propos.html">À propos</a><a class="pill" href="https://portail.evolutionpme.ca">Portail client</a><a class="pill" href="/soumission.html">Demander une soumission</a></nav></header>
   <main>
     <section class="evoot-hero">
-      <div><span class="eyebrow">UNE CRÉATION D’ÉVOLUTION PME</span><h1>ÉVOUT!<em>FORMER AUTREMENT.</em></h1><p>Une plateforme de formation interactive conçue pour rapprocher les formateurs, les entreprises et les équipes, que la formation se déroule en salle, à distance ou de façon autonome.</p><div class="actions"><a class="button" href="#decouvrir">DÉCOUVRIR ÉVOUT! →</a><a href="#interet">MANIFESTER MON INTÉRÊT</a></div></div>
+      <div><div class="evoot-status">PLATEFORME EN DÉVELOPPEMENT</div><span class="eyebrow">UNE CRÉATION D’ÉVOLUTION PME</span><h1>ÉVOUT!<em>FORMER AUTREMENT.</em></h1><p>Une plateforme de formation interactive conçue pour rapprocher les formateurs, les entreprises et les équipes, que la formation se déroule en salle, à distance ou de façon autonome.</p><div class="actions"><a class="button" href="#decouvrir">DÉCOUVRIR ÉVOUT! →</a><a href="#interet">MANIFESTER MON INTÉRÊT</a></div></div>
       <div class="evoot-visual"><img src="/assets/evoot-teaser.jpg" alt="Évout! Former autrement — quelque chose arrive"></div>
     </section>
     <section id="decouvrir" class="evoot-intro">
