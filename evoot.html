@@ -8,15 +8,35 @@
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="stylesheet" href="/assets/cookies.css">
   <style>
-    :root{--evoot:#08d3c2}.evoot-page{--orange:var(--evoot)}
-    .evoot-hero{max-width:none;min-height:calc(100vh - 96px);padding:70px max(5vw,calc((100vw - 1280px)/2 + 5vw));display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;gap:65px;background:radial-gradient(circle at 80% 40%,rgba(8,211,194,.13),transparent 34%)}
-    .evoot-hero h1{font-size:clamp(4.5rem,8vw,9rem);line-height:.82;letter-spacing:-.075em;margin:18px 0 30px}.evoot-hero h1 em{display:block;color:var(--evoot);font-style:normal}.evoot-hero p{max-width:620px;color:#c8c8ca;font-size:1.15rem;line-height:1.7}.evoot-hero .button{background:var(--evoot)}
-    .evoot-visual{border:1px solid #183b39;border-radius:34px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.45)}.evoot-visual img{display:block;width:100%;height:auto}
-    .evoot-intro{display:grid;grid-template-columns:.9fr 1.1fr;gap:80px}.evoot-intro h2 em,.evoot-modes h2 em,.evoot-final h2 em{color:var(--evoot);font-style:normal}.evoot-copy{padding-top:35px}.evoot-copy p{color:#c5c5c7;font-size:1.1rem;line-height:1.75;margin:0 0 24px}.evoot-copy strong{color:#fff}
-    .evoot-modes{max-width:none;background:#f3f0e9;color:#111;padding-left:max(5vw,calc((100vw - 1280px)/2 + 5vw));padding-right:max(5vw,calc((100vw - 1280px)/2 + 5vw))}.evoot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:48px}.evoot-grid article{background:#fff;border:1px solid #ddd8cf;border-radius:24px;padding:28px;min-height:285px}.evoot-grid b{color:#0aaea1;font-size:.78rem}.evoot-grid h3{font-size:1.55rem;margin:72px 0 12px}.evoot-grid p{color:#666;line-height:1.55}
-    .evoot-audience{display:grid;grid-template-columns:1fr 1fr;gap:18px}.evoot-audience article{background:#171719;border:1px solid #303035;border-radius:28px;padding:36px;min-height:340px}.evoot-audience small{color:var(--evoot);font-weight:900;letter-spacing:.12em}.evoot-audience h3{font-size:clamp(2.1rem,3vw,3.7rem);line-height:1;margin:70px 0 18px}.evoot-audience p{color:#aaa;line-height:1.65}
-    .evoot-final{text-align:center;padding-top:135px;padding-bottom:135px;background:radial-gradient(circle,rgba(8,211,194,.1),transparent 46%)}.evoot-final p{max-width:700px;margin:0 auto 34px;color:#aaa;font-size:1.1rem;line-height:1.7}.evoot-final .button{background:var(--evoot)}
-    @media(max-width:850px){.evoot-hero,.evoot-intro{grid-template-columns:1fr}.evoot-hero{padding-top:55px;gap:35px}.evoot-hero h1{font-size:clamp(4rem,18vw,6rem)}.evoot-grid{grid-template-columns:1fr}.evoot-grid article{min-height:230px}.evoot-grid h3{margin-top:45px}.evoot-audience{grid-template-columns:1fr}.evoot-copy{padding-top:0}}
+    :root{--evoot:#08d3c2;--evoot-dark:#020a0b;--evoot-panel:rgba(9,31,33,.72)}
+    .evoot-page{--orange:var(--evoot);background:var(--evoot-dark);font-family:"Trebuchet MS",Arial,sans-serif}
+    .evoot-page:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:linear-gradient(rgba(8,211,194,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(8,211,194,.035) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,#000,transparent 80%)}
+    .evoot-page header{background:rgba(2,10,11,.88);border-bottom-color:rgba(8,211,194,.18)}
+    .evoot-page nav a:not(.pill):hover{color:var(--evoot)}
+    .evoot-hero{max-width:1440px;min-height:calc(100vh - 96px);padding:95px 6vw 110px;display:grid;grid-template-columns:.92fr 1.08fr;align-items:center;gap:90px;position:relative}
+    .evoot-hero:after{content:"";position:absolute;right:-12%;top:8%;width:650px;height:650px;border-radius:50%;background:radial-gradient(circle,rgba(8,211,194,.12),transparent 67%);filter:blur(14px);z-index:-1}
+    .evoot-hero h1{font-size:clamp(4rem,6.6vw,7.5rem);line-height:.94;letter-spacing:-.065em;margin:28px 0 38px}.evoot-hero h1 em{display:block;color:var(--evoot);font-style:normal;margin-top:14px;font-size:.72em;letter-spacing:-.045em}
+    .evoot-hero p{max-width:650px;color:#c8d4d4;font-size:1.15rem;line-height:1.82;margin:0}
+    .evoot-hero .actions{margin-top:42px;gap:32px}.evoot-hero .button{background:var(--evoot);border-radius:7px;box-shadow:0 0 32px rgba(8,211,194,.18)}
+    .evoot-visual{position:relative;border:1px solid rgba(8,211,194,.28);border-radius:18px;overflow:hidden;background:#031011;box-shadow:0 45px 110px rgba(0,0,0,.52),0 0 60px rgba(8,211,194,.06);transform:perspective(1200px) rotateY(-3deg)}
+    .evoot-visual:before{content:"APERÇU // ÉVOUT";position:absolute;z-index:2;top:16px;left:18px;color:var(--evoot);font-size:.62rem;letter-spacing:.2em;font-weight:900}
+    .evoot-visual img{display:block;width:100%;height:auto}
+    .evoot-intro{display:grid;grid-template-columns:.82fr 1.18fr;gap:110px;padding-top:135px;padding-bottom:135px}
+    .evoot-intro h2,.evoot-modes h2,.evoot-page main>section>h2,.evoot-final h2{line-height:.97;letter-spacing:-.055em}
+    .evoot-intro h2 em,.evoot-modes h2 em,.evoot-final h2 em{color:var(--evoot);font-style:normal}
+    .evoot-copy{padding-top:45px;border-top:1px solid rgba(8,211,194,.2)}
+    .evoot-copy p{color:#becaca;font-size:1.1rem;line-height:1.82;margin:0 0 30px;max-width:690px}.evoot-copy strong{color:#fff}
+    .evoot-modes{max-width:none;background:linear-gradient(180deg,rgba(5,25,27,.9),rgba(3,15,16,.94));color:#f7ffff;padding:135px max(5vw,calc((100vw - 1280px)/2 + 5vw));border-top:1px solid rgba(8,211,194,.14);border-bottom:1px solid rgba(8,211,194,.14)}
+    .evoot-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:62px}
+    .evoot-grid article{position:relative;background:linear-gradient(135deg,rgba(13,50,53,.8),rgba(5,22,24,.82));border:1px solid rgba(8,211,194,.18);border-radius:14px;padding:34px;min-height:275px;overflow:hidden}
+    .evoot-grid article:after{content:"";position:absolute;width:90px;height:2px;right:0;top:0;background:var(--evoot);box-shadow:0 0 18px var(--evoot)}
+    .evoot-grid b{color:var(--evoot);font-size:.73rem;letter-spacing:.12em}.evoot-grid h3{font-size:1.85rem;margin:70px 0 16px;line-height:1.1}.evoot-grid p{color:#aebebe;line-height:1.68;max-width:520px}
+    .evoot-audience{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:55px}
+    .evoot-audience article{background:var(--evoot-panel);backdrop-filter:blur(15px);border:1px solid rgba(8,211,194,.18);border-radius:14px;padding:40px;min-height:360px}
+    .evoot-audience small{color:var(--evoot);font-weight:900;letter-spacing:.14em}.evoot-audience h3{font-size:clamp(2rem,3vw,3.5rem);line-height:1.08;margin:82px 0 22px}.evoot-audience p{color:#aebebe;line-height:1.72}
+    .evoot-final{max-width:none;text-align:center;padding:150px 5vw;background:radial-gradient(circle at center,rgba(8,211,194,.13),transparent 48%);border-top:1px solid rgba(8,211,194,.12)}
+    .evoot-final p{max-width:720px;margin:0 auto 42px;color:#b8c5c5;font-size:1.1rem;line-height:1.8}.evoot-final .button{background:var(--evoot);border-radius:7px;box-shadow:0 0 34px rgba(8,211,194,.16)}
+    @media(max-width:850px){.evoot-hero,.evoot-intro{grid-template-columns:1fr}.evoot-hero{padding:62px 20px 80px;gap:48px}.evoot-hero h1{font-size:clamp(3.5rem,16vw,5.5rem);line-height:.98}.evoot-hero h1 em{margin-top:10px}.evoot-hero p{font-size:1.03rem;line-height:1.72}.evoot-visual{transform:none}.evoot-intro{gap:35px;padding-top:90px;padding-bottom:90px}.evoot-copy{padding-top:30px}.evoot-grid,.evoot-audience{grid-template-columns:1fr}.evoot-grid article{min-height:245px}.evoot-grid h3{margin-top:52px}.evoot-modes{padding-top:95px;padding-bottom:95px}.evoot-audience article{min-height:300px}.evoot-audience h3{margin-top:58px}}
   </style>
 </head>
 <body class="evoot-page">
