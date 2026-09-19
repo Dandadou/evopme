@@ -23,7 +23,7 @@
     .evoot-hero .actions{margin-top:42px;gap:32px}.evoot-hero .button{background:var(--evoot);border-radius:7px;box-shadow:0 0 32px rgba(8,211,194,.18)}
     .evoot-visual{position:relative;border:1px solid rgba(8,211,194,.28);border-radius:18px;overflow:hidden;background:#031011;box-shadow:0 45px 110px rgba(0,0,0,.52),0 0 60px rgba(8,211,194,.06);transform:perspective(1200px) rotateY(-3deg)}
     .evoot-visual:before{content:"APERÇU // ÉVOUT";position:absolute;z-index:2;top:16px;left:18px;color:var(--evoot);font-size:.62rem;letter-spacing:.2em;font-weight:900}
-    .evoot-visual img{display:block;width:100%;height:auto}
+    .evoot-visual img,.evoot-visual video{display:block;width:100%;height:auto}.evoot-visual video{aspect-ratio:16/9;object-fit:cover}
     .evoot-intro{display:grid;grid-template-columns:.82fr 1.18fr;gap:110px;padding-top:135px;padding-bottom:135px}
     .evoot-intro h2,.evoot-modes h2,.evoot-page main>section>h2,.evoot-final h2{line-height:.97;letter-spacing:-.055em}
     .evoot-intro h2 em,.evoot-modes h2 em,.evoot-final h2 em{color:var(--evoot);font-style:normal}
@@ -47,7 +47,7 @@
   <main>
     <section class="evoot-hero">
       <div><div class="evoot-status">PLATEFORME EN DÉVELOPPEMENT</div><span class="eyebrow">UNE CRÉATION D’ÉVOLUTION PME</span><h1>ÉVOUT!<em>FORMER AUTREMENT.</em></h1><p>Une plateforme de formation interactive conçue pour rapprocher les formateurs, les entreprises et les équipes, que la formation se déroule en salle, à distance ou de façon autonome.</p><div class="actions"><a class="button" href="#decouvrir">DÉCOUVRIR ÉVOUT! →</a><a href="#interet">MANIFESTER MON INTÉRÊT</a></div></div>
-      <div class="evoot-visual"><img src="/assets/evoot-teaser.jpg" alt="Évout! Former autrement — quelque chose arrive"></div>
+      <div class="evoot-visual"><video autoplay muted loop playsinline preload="metadata" poster="/assets/evoot-teaser.jpg" aria-label="Aperçu animé de la plateforme Évout!"><source src="/assets/evoot-presentation.mp4" type="video/mp4"></video></div>
     </section>
     <section id="decouvrir" class="evoot-intro">
       <div><span class="eyebrow">LA FORMATION DOIT VIVRE</span><h2>PLUS QU’UN COURS.<br><em>UNE EXPÉRIENCE.</em></h2></div>
