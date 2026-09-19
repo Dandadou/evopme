@@ -1,0 +1,40 @@
+(() => {
+  const header = document.querySelector('header');
+  const nav = header?.querySelector('nav');
+  if (!header || !nav) return;
+
+  nav.id ||= 'navigation-principale';
+  const button = document.createElement('button');
+  button.className = 'menu-toggle';
+  button.type = 'button';
+  button.setAttribute('aria-label', 'Ouvrir le menu');
+  button.setAttribute('aria-controls', nav.id);
+  button.setAttribute('aria-expanded', 'false');
+  button.innerHTML = '<span aria-hidden="true"></span>';
+  header.insertBefore(button, nav);
+
+  const closeMenu = () => {
+    nav.classList.remove('is-open');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-label', 'Ouvrir le menu');
+  };
+
+  button.addEventListener('click', () => {
+    const open = !nav.classList.contains('is-open');
+    nav.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+  });
+
+  nav.addEventListener('click', event => {
+    if (event.target.closest('a')) closeMenu();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 850) closeMenu();
+  });
+})();
