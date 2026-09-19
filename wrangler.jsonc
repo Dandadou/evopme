@@ -3,15 +3,17 @@
   "name": "evopme",
   "main": "_worker.js",
   "compatibility_date": "2026-09-18",
-  "observability": {
-    "enabled": true
-  },
+  "observability": {"enabled": true},
   "vars": {
     "CONTACT_EMAIL": "info@evolutionpme.ca",
     "RESEND_FROM": "Évolution PME <formulaires@evoot.evolutionpme.ca>"
   },
-  "assets": {
-    "directory": ".",
-    "binding": "ASSETS"
-  }
+  "assets": {"directory": ".", "binding": "ASSETS"},
+  "d1_databases": [
+    {
+      "binding": "CMS_DB",
+      "database_name": "evolution-cms",
+      "database_id": "A_REMPLACER_APRES_CREATION_D1"
+    }
+  ]
 }
