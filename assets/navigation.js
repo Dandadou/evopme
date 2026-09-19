@@ -3,6 +3,14 @@
   const nav = header?.querySelector('nav');
   if (!header || !nav) return;
 
+  if (!nav.querySelector('a[href="/evoot.html"]')) {
+    const evootLink = document.createElement('a');
+    evootLink.href = '/evoot.html';
+    evootLink.textContent = 'Évout!';
+    const formationsLink = nav.querySelector('a[href="/formations.html"]');
+    nav.insertBefore(evootLink, formationsLink || nav.firstChild);
+  }
+
   nav.id ||= 'navigation-principale';
   const button = document.createElement('button');
   button.className = 'menu-toggle';
