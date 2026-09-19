@@ -6,6 +6,10 @@
   "observability": {
     "enabled": true
   },
+  "vars": {
+    "CONTACT_EMAIL": "info@evolutionpme.ca",
+    "RESEND_FROM": "Évolution PME <formulaires@evoot.evolutionpme.ca>"
+  },
   "assets": {
     "directory": ".",
     "binding": "ASSETS"
