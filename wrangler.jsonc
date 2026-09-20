@@ -6,7 +6,9 @@
   "observability": {"enabled": true},
   "vars": {
     "CONTACT_EMAIL": "info@evolutionpme.ca",
-    "RESEND_FROM": "Évolution PME <formulaires@evoot.evolutionpme.ca>"
+    "RESEND_FROM": "Évolution PME <formulaires@evoot.evolutionpme.ca>",
+    "TEAM_DOMAIN": "https://dry-mouse-3e28.cloudflareaccess.com",
+    "POLICY_AUD": "f852e111dd0613ee3633b3ef00031ef3e9e43e75097335770f0181b077a7b588"
   },
   "assets": {"directory": ".", "binding": "ASSETS"},
   "d1_databases": [
