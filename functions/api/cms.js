@@ -4,9 +4,57 @@ const allowedKeys=new Set([
 'home.mission.eyebrow','home.mission.title_line_1','home.mission.title_line_2','home.mission.title_line_3','home.mission.lead','home.mission.body_1','home.mission.body_2','home.mission.closing'
 ]);
 
+let accessKeysCache={expires:0,keys:null};
+
+function decodeBase64Url(value){
+ const normalized=value.replace(/-/g,'+').replace(/_/g,'/');
+ const padded=normalized+'='.repeat((4-normalized.length%4)%4);
+ const binary=atob(padded);
+ return Uint8Array.from(binary,c=>c.charCodeAt(0));
+}
+function decodeJsonPart(value){
+ return JSON.parse(new TextDecoder().decode(decodeBase64Url(value)));
+}
+async function getAccessKeys(teamDomain){
+ const now=Date.now();
+ if(accessKeysCache.keys&&accessKeysCache.expires>now)return accessKeysCache.keys;
+ const response=await fetch(`${teamDomain}/cdn-cgi/access/certs`,{headers:{accept:'application/json'}});
+ if(!response.ok)throw new Error('Impossible de récupérer les clés Cloudflare Access.');
+ const jwks=await response.json();
+ if(!Array.isArray(jwks.keys))throw new Error('Réponse JWKS Cloudflare Access invalide.');
+ accessKeysCache={keys:jwks.keys,expires:now+5*60*1000};
+ return jwks.keys;
+}
+async function verifyAccessJwt(request,env){
+ if(!env.TEAM_DOMAIN||!env.POLICY_AUD)throw new Error('Configuration Cloudflare Access incomplète.');
+ const token=request.headers.get('Cf-Access-Jwt-Assertion');
+ if(!token)throw new Error('Jeton Cloudflare Access manquant.');
+ const parts=token.split('.');
+ if(parts.length!==3)throw new Error('Jeton Cloudflare Access invalide.');
+ const [encodedHeader,encodedPayload,encodedSignature]=parts;
+ const header=decodeJsonPart(encodedHeader);
+ const payload=decodeJsonPart(encodedPayload);
+ if(header.alg!=='RS256'||!header.kid)throw new Error('Algorithme ou clé JWT invalide.');
+ const keys=await getAccessKeys(env.TEAM_DOMAIN);
+ const jwk=keys.find(key=>key.kid===header.kid);
+ if(!jwk)throw new Error('Clé de signature Cloudflare Access introuvable.');
+ const key=await crypto.subtle.importKey('jwk',jwk,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+ const valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,decodeBase64Url(encodedSignature),new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`));
+ if(!valid)throw new Error('Signature Cloudflare Access invalide.');
+ const now=Math.floor(Date.now()/1000);
+ if(typeof payload.exp!=='number'||payload.exp<=now)throw new Error('Jeton Cloudflare Access expiré.');
+ if(typeof payload.nbf==='number'&&payload.nbf>now+60)throw new Error('Jeton Cloudflare Access pas encore valide.');
+ if(payload.iss!==env.TEAM_DOMAIN)throw new Error('Émetteur Cloudflare Access invalide.');
+ const audiences=Array.isArray(payload.aud)?payload.aud:[payload.aud];
+ if(!audiences.includes(env.POLICY_AUD))throw new Error('Audience Cloudflare Access invalide.');
+ if(typeof payload.email!=='string'||!payload.email.trim())throw new Error('Identité Cloudflare Access sans courriel.');
+ return payload;
+}
+
 async function currentUser(request,env){
- const email=(request.headers.get('Cf-Access-Authenticated-User-Email')||'').trim().toLowerCase();
- if(!email)return null;
+ let identity;
+ try{identity=await verifyAccessJwt(request,env)}catch{return null}
+ const email=identity.email.trim().toLowerCase();
  const user=await env.CMS_DB.prepare(`
   SELECT u.id,u.email,u.display_name,u.status,o.id organization_id,o.slug organization_slug,o.name organization_name,r.slug role
   FROM users u
@@ -28,7 +76,7 @@ async function currentUser(request,env){
 const can=(user,permission)=>!!user&&(user.role==='super_admin'||user.permissions.includes(permission));
 async function requireUser(request,env,permission){
  const user=await currentUser(request,env);
- if(!user)return {response:json({error:'Authentification requise.'},401)};
+ if(!user)return {response:json({error:'Authentification Cloudflare Access requise ou invalide.'},401)};
  if(permission&&!can(user,permission))return {response:json({error:'Permission insuffisante.'},403)};
  return {user};
 }
