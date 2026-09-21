@@ -129,3 +129,103 @@ INSERT OR IGNORE INTO organization_modules (organization_id,module,enabled)
 SELECT id,'submissions',1 FROM organizations WHERE slug='evolution-pme';
 INSERT OR IGNORE INTO organization_modules (organization_id,module,enabled)
 SELECT id,'portal',1 FROM organizations WHERE slug='evolution-pme';
+
+
+-- Architecture multi-site : le CMS est le moteur, le thème reste indépendant.
+CREATE TABLE IF NOT EXISTS sites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  organization_id INTEGER NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  hostname TEXT UNIQUE,
+  theme_key TEXT NOT NULL DEFAULT 'custom',
+  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','inactive','draft')),
+  settings TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS site_pages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id INTEGER NOT NULL,
+  slug TEXT NOT NULL,
+  title TEXT NOT NULL,
+  page_type TEXT NOT NULL DEFAULT 'standard',
+  status TEXT NOT NULL DEFAULT 'published' CHECK(status IN ('draft','published','archived')),
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  settings TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(site_id,slug),
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS site_sections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  page_id INTEGER NOT NULL,
+  section_key TEXT NOT NULL,
+  section_type TEXT NOT NULL,
+  variant TEXT NOT NULL DEFAULT 'default',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  enabled INTEGER NOT NULL DEFAULT 1 CHECK(enabled IN (0,1)),
+  settings TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(page_id,section_key),
+  FOREIGN KEY (page_id) REFERENCES site_pages(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS site_content (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id INTEGER NOT NULL,
+  page_id INTEGER,
+  section_id INTEGER,
+  field_key TEXT NOT NULL,
+  value TEXT NOT NULL DEFAULT '',
+  type TEXT NOT NULL DEFAULT 'text',
+  is_public INTEGER NOT NULL DEFAULT 1 CHECK(is_public IN (0,1)),
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(site_id,page_id,section_id,field_key),
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE,
+  FOREIGN KEY (page_id) REFERENCES site_pages(id) ON DELETE CASCADE,
+  FOREIGN KEY (section_id) REFERENCES site_sections(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS site_popups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  title TEXT NOT NULL DEFAULT '',
+  body TEXT NOT NULL DEFAULT '',
+  image_url TEXT,
+  button_label TEXT,
+  button_url TEXT,
+  style TEXT NOT NULL DEFAULT 'info',
+  enabled INTEGER NOT NULL DEFAULT 0 CHECK(enabled IN (0,1)),
+  dismissible INTEGER NOT NULL DEFAULT 1 CHECK(dismissible IN (0,1)),
+  delay_seconds INTEGER NOT NULL DEFAULT 0,
+  frequency_days INTEGER NOT NULL DEFAULT 0,
+  starts_at TEXT,
+  ends_at TEXT,
+  audience TEXT NOT NULL DEFAULT 'all' CHECK(audience IN ('all','desktop','mobile')),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sites_org ON sites(organization_id);
+CREATE INDEX IF NOT EXISTS idx_pages_site ON site_pages(site_id,sort_order);
+CREATE INDEX IF NOT EXISTS idx_sections_page ON site_sections(page_id,sort_order);
+CREATE INDEX IF NOT EXISTS idx_content_site ON site_content(site_id,page_id,section_id);
+CREATE INDEX IF NOT EXISTS idx_popups_site ON site_popups(site_id,enabled);
+
+INSERT OR IGNORE INTO sites (organization_id,slug,name,hostname,theme_key)
+SELECT id,'evolution-pme','Évolution PME','evolutionpme.ca','evolution-pme'
+FROM organizations WHERE slug='evolution-pme';
+
+INSERT OR IGNORE INTO site_pages (site_id,slug,title,page_type,sort_order)
+SELECT id,'accueil','Accueil','home',0 FROM sites WHERE slug='evolution-pme';
+
+INSERT OR IGNORE INTO organization_modules (organization_id,module,enabled)
+SELECT id,'popups',1 FROM organizations WHERE slug='evolution-pme';
