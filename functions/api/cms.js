@@ -81,6 +81,12 @@ async function requireUser(request,env,permission){
  return {user};
 }
 
+export async function getPublicCmsContent(env){
+ if(!env.CMS_DB)return json({ok:true,content:{}});
+ const {results=[]}=await env.CMS_DB.prepare('SELECT key,value,type,updated_at FROM cms_content ORDER BY key').all();
+ return json({ok:true,content:Object.fromEntries(results.map(r=>[r.key,r]))});
+}
+
 export async function handleCms(request,env){
  if(!env.CMS_DB)return json({error:'La base D1 du CMS n’est pas encore liée au Worker.'},503);
  const url=new URL(request.url);
