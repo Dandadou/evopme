@@ -1,7 +1,13 @@
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const allowedKeys=new Set([
 'home.hero.eyebrow','home.hero.title_line_1','home.hero.title_line_2','home.hero.title_line_3','home.hero.text','home.hero.image',
-'home.mission.eyebrow','home.mission.title_line_1','home.mission.title_line_2','home.mission.title_line_3','home.mission.lead','home.mission.body_1','home.mission.body_2','home.mission.closing'
+'home.mission.eyebrow','home.mission.title_line_1','home.mission.title_line_2','home.mission.title_line_3','home.mission.lead','home.mission.body_1','home.mission.body_2','home.mission.closing',
+'home.pillars.eyebrow','home.pillars.title','home.pillars.intro',
+'home.pillar1.label','home.pillar1.title','home.pillar1.text','home.pillar2.label','home.pillar2.title','home.pillar2.text','home.pillar3.label','home.pillar3.title','home.pillar3.text',
+'home.why.eyebrow','home.why.title','home.why1.label','home.why1.title','home.why1.text','home.why2.label','home.why2.title','home.why2.text','home.why3.label','home.why3.title','home.why3.text','home.why4.label','home.why4.title','home.why4.text',
+'home.evoot.eyebrow','home.evoot.title','home.evoot.text','home.evoot.image',
+'home.training.eyebrow','home.training.title','home.training.text1','home.training.text2',
+'home.cta.eyebrow','home.cta.title','home.cta.text'
 ]);
 
 let accessKeysCache={expires:0,keys:null};
