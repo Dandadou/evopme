@@ -209,6 +209,50 @@ export async function handleCms(request,env){
   const publicPath='/media/'+key.split('/').map(encodeURIComponent).join('/');
   return json({ok:true,url:publicPath,key});
  }
+ if(request.method==='GET'&&url.pathname==='/api/cms/invoice-payments'){
+  const auth=await requireUser(request,env,'payments.manage'); if(auth.response)return auth.response;
+  const site=await managedSite(auth,url.searchParams.get('site_id'));
+  if(!site)return json({ok:true,payments:[]});
+  let results=[];
+  try{
+   ({results=[]}=await env.CMS_DB.prepare('SELECT id,site_id,invoice_number,client_name,client_email,amount_cents,currency,description,due_date,status,token,stripe_checkout_session_id,stripe_payment_intent_id,paid_at,created_at,updated_at FROM invoice_payment_requests WHERE site_id=? ORDER BY id DESC LIMIT 200').bind(site.id).all());
+  }catch{return json({ok:true,site,payments:[],migration_required:true})}
+  return json({ok:true,site,payments:results});
+ }
+ if(request.method==='POST'&&url.pathname==='/api/cms/invoice-payments'){
+  const auth=await requireUser(request,env,'payments.manage'); if(auth.response)return auth.response;
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  const p=body?.payment||{};
+  const site=await managedSite(auth,p.site_id);
+  if(!site)return json({error:'Site introuvable ou non autorisé.'},404);
+  const invoiceNumber=String(p.invoice_number||'').trim().slice(0,100);
+  const clientName=String(p.client_name||'').trim().slice(0,160);
+  const clientEmail=String(p.client_email||'').trim().toLowerCase().slice(0,320);
+  const amountCents=Number(p.amount_cents||0);
+  const description=String(p.description||'').trim().slice(0,500);
+  const dueDate=/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date||''))?String(p.due_date):null;
+  if(!invoiceNumber)return json({error:'Le numéro de facture est requis.'},400);
+  if(!Number.isInteger(amountCents)||amountCents<=0||amountCents>999999999)return json({error:'Montant invalide.'},400);
+  if(clientEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail))return json({error:'Adresse courriel invalide.'},400);
+  const token=(crypto.randomUUID()+crypto.randomUUID()).replaceAll('-','');
+  let result;
+  try{
+   result=await env.CMS_DB.prepare("INSERT INTO invoice_payment_requests (site_id,invoice_number,client_name,client_email,amount_cents,currency,description,due_date,token,status) VALUES (?,?,?,?,?,'cad',?,?,?,'pending')").bind(site.id,invoiceNumber,clientName,clientEmail,amountCents,description,dueDate,token).run();
+  }catch{return json({error:'Le module Paiements doit d’abord être initialisé dans D1.'},503)}
+  const host=site.hostname?('https://'+site.hostname):new URL(request.url).origin;
+  return json({ok:true,id:result.meta?.last_row_id,token,payment_url:`${host}/paiement.html?token=${token}`});
+ }
+ if(request.method==='DELETE'&&url.pathname==='/api/cms/invoice-payments'){
+  const auth=await requireUser(request,env,'payments.manage'); if(auth.response)return auth.response;
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  const id=Number(body?.id||0); if(!id)return json({error:'Identifiant manquant.'},400);
+  const row=await env.CMS_DB.prepare('SELECT ip.id,ip.status,s.organization_id FROM invoice_payment_requests ip JOIN sites s ON s.id=ip.site_id WHERE ip.id=?').bind(id).first();
+  if(!row)return json({error:'Demande de paiement introuvable.'},404);
+  if(auth.user.role!=='super_admin'&&row.organization_id!==auth.user.organization_id)return json({error:'Permission insuffisante.'},403);
+  if(row.status==='paid')return json({error:'Un paiement confirmé ne peut pas être désactivé.'},409);
+  await env.CMS_DB.prepare("UPDATE invoice_payment_requests SET status='cancelled',updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(id).run();
+  return json({ok:true});
+ }
  if(request.method==='GET'&&url.pathname==='/api/cms/submissions'){
   const auth=await requireUser(request,env,'submissions.view'); if(auth.response)return auth.response;
   const {results=[]}=await env.CMS_DB.prepare('SELECT id,form_type,name,email,company,phone,service,message,created_at FROM cms_submissions ORDER BY id DESC LIMIT 100').all();
