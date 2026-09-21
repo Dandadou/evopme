@@ -87,10 +87,15 @@ async function requireUser(request,env,permission){
  return {user};
 }
 
-export async function getPublicCmsContent(env){
- if(!env.CMS_DB)return json({ok:true,content:{}});
+export async function getPublicCmsContent(env,hostname='evolutionpme.ca'){
+ if(!env.CMS_DB)return json({ok:true,content:{},popup:null});
  const {results=[]}=await env.CMS_DB.prepare('SELECT key,value,type,updated_at FROM cms_content ORDER BY key').all();
- return json({ok:true,content:Object.fromEntries(results.map(r=>[r.key,r]))});
+ let popup=null;
+ try{
+  const site=await env.CMS_DB.prepare('SELECT id FROM sites WHERE hostname=? OR slug=? ORDER BY CASE WHEN hostname=? THEN 0 ELSE 1 END LIMIT 1').bind(hostname,'evolution-pme',hostname).first();
+  if(site){popup=await env.CMS_DB.prepare("SELECT id,name,title,body,image_url,button_label,button_url,style,dismissible,delay_seconds,frequency_days,starts_at,ends_at,audience FROM site_popups WHERE site_id=? AND enabled=1 AND (starts_at IS NULL OR starts_at='' OR starts_at<=CURRENT_TIMESTAMP) AND (ends_at IS NULL OR ends_at='' OR ends_at>=CURRENT_TIMESTAMP) ORDER BY id DESC LIMIT 1").bind(site.id).first();}
+ }catch{}
+ return json({ok:true,content:Object.fromEntries(results.map(r=>[r.key,r])),popup});
 }
 
 export async function handleCms(request,env){
@@ -117,6 +122,29 @@ export async function handleCms(request,env){
    return env.CMS_DB.prepare("INSERT INTO cms_content (key,value,type,updated_at) VALUES (?,?,?,CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value=excluded.value,type=excluded.type,updated_at=CURRENT_TIMESTAMP").bind(key,value,type);
   });
   await env.CMS_DB.batch(statements); return json({ok:true,saved:statements.length});
+ }
+ if(request.method==='GET'&&url.pathname==='/api/cms/sites'){
+  const auth=await requireUser(request,env,'cms.content.view'); if(auth.response)return auth.response;
+  const {results=[]}=await env.CMS_DB.prepare('SELECT id,slug,name,hostname,theme_key,status,settings,created_at,updated_at FROM sites WHERE organization_id=? ORDER BY id').bind(auth.user.organization_id).all();
+  return json({ok:true,sites:results});
+ }
+ if(request.method==='GET'&&url.pathname==='/api/cms/popups'){
+  const auth=await requireUser(request,env,'cms.content.view'); if(auth.response)return auth.response;
+  const site=await env.CMS_DB.prepare('SELECT id FROM sites WHERE organization_id=? ORDER BY id LIMIT 1').bind(auth.user.organization_id).first();
+  if(!site)return json({ok:true,popups:[]});
+  const {results=[]}=await env.CMS_DB.prepare('SELECT * FROM site_popups WHERE site_id=? ORDER BY id DESC').bind(site.id).all();
+  return json({ok:true,popups:results});
+ }
+ if(request.method==='PUT'&&url.pathname==='/api/cms/popups'){
+  const auth=await requireUser(request,env,'cms.content.edit'); if(auth.response)return auth.response;
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  const site=await env.CMS_DB.prepare('SELECT id FROM sites WHERE organization_id=? ORDER BY id LIMIT 1').bind(auth.user.organization_id).first();
+  if(!site)return json({error:'Aucun site associé à cette organisation.'},404);
+  const p=body?.popup||{};
+  const id=Number(p.id||0); const vals=[String(p.name||'Pop-up').trim(),String(p.title||'').trim(),String(p.body||'').trim(),String(p.image_url||'').trim(),String(p.button_label||'').trim(),String(p.button_url||'').trim(),String(p.style||'info'),p.enabled?1:0,p.dismissible===false?0:1,Math.max(0,Number(p.delay_seconds)||0),Math.max(0,Number(p.frequency_days)||0),p.starts_at||null,p.ends_at||null,['all','desktop','mobile'].includes(p.audience)?p.audience:'all'];
+  if(id){const owned=await env.CMS_DB.prepare('SELECT p.id FROM site_popups p JOIN sites s ON s.id=p.site_id WHERE p.id=? AND s.organization_id=?').bind(id,auth.user.organization_id).first();if(!owned)return json({error:'Pop-up introuvable.'},404);await env.CMS_DB.prepare('UPDATE site_popups SET name=?,title=?,body=?,image_url=?,button_label=?,button_url=?,style=?,enabled=?,dismissible=?,delay_seconds=?,frequency_days=?,starts_at=?,ends_at=?,audience=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(...vals,id).run();return json({ok:true,id});}
+  const result=await env.CMS_DB.prepare('INSERT INTO site_popups (site_id,name,title,body,image_url,button_label,button_url,style,enabled,dismissible,delay_seconds,frequency_days,starts_at,ends_at,audience) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(site.id,...vals).run();
+  return json({ok:true,id:result.meta?.last_row_id});
  }
  if(request.method==='GET'&&url.pathname==='/api/cms/submissions'){
   const auth=await requireUser(request,env,'submissions.view'); if(auth.response)return auth.response;
