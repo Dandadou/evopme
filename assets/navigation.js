@@ -3,6 +3,14 @@
   const nav = header?.querySelector('nav');
   if (!header || !nav) return;
 
+  if (!nav.querySelector('a[href="/paiement.html"]')) {
+    const paymentLink = document.createElement('a');
+    paymentLink.href = '/paiement.html';
+    paymentLink.textContent = 'Payer une facture';
+    const portalLink = nav.querySelector('a[href="https://portail.evolutionpme.ca"]');
+    nav.insertBefore(paymentLink, portalLink || null);
+  }
+
   if (!nav.querySelector('a[href="/evoot.html"]')) {
     const evootLink = document.createElement('a');
     evootLink.href = '/evoot.html';
