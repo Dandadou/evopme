@@ -125,26 +125,54 @@ export async function handleCms(request,env){
  }
  if(request.method==='GET'&&url.pathname==='/api/cms/sites'){
   const auth=await requireUser(request,env,'cms.content.view'); if(auth.response)return auth.response;
-  const {results=[]}=await env.CMS_DB.prepare('SELECT id,slug,name,hostname,theme_key,status,settings,created_at,updated_at FROM sites WHERE organization_id=? ORDER BY id').bind(auth.user.organization_id).all();
+  let results=[];
+  if(auth.user.role==='super_admin'){
+   ({results=[]}=await env.CMS_DB.prepare('SELECT s.id,s.organization_id,o.name organization_name,s.slug,s.name,s.hostname,s.theme_key,s.status,s.settings,s.created_at,s.updated_at FROM sites s JOIN organizations o ON o.id=s.organization_id ORDER BY o.name,s.id').all());
+  }else{
+   ({results=[]}=await env.CMS_DB.prepare('SELECT s.id,s.organization_id,o.name organization_name,s.slug,s.name,s.hostname,s.theme_key,s.status,s.settings,s.created_at,s.updated_at FROM sites s JOIN organizations o ON o.id=s.organization_id WHERE s.organization_id=? ORDER BY s.id').bind(auth.user.organization_id).all());
+  }
   return json({ok:true,sites:results});
+ }
+ async function managedSite(auth,requestedId){
+  const id=Number(requestedId||0);
+  if(auth.user.role==='super_admin'&&id)return env.CMS_DB.prepare('SELECT id,organization_id,name,hostname,theme_key FROM sites WHERE id=?').bind(id).first();
+  if(id)return env.CMS_DB.prepare('SELECT id,organization_id,name,hostname,theme_key FROM sites WHERE id=? AND organization_id=?').bind(id,auth.user.organization_id).first();
+  return env.CMS_DB.prepare('SELECT id,organization_id,name,hostname,theme_key FROM sites WHERE organization_id=? ORDER BY id LIMIT 1').bind(auth.user.organization_id).first();
  }
  if(request.method==='GET'&&url.pathname==='/api/cms/popups'){
   const auth=await requireUser(request,env,'cms.content.view'); if(auth.response)return auth.response;
-  const site=await env.CMS_DB.prepare('SELECT id FROM sites WHERE organization_id=? ORDER BY id LIMIT 1').bind(auth.user.organization_id).first();
+  const site=await managedSite(auth,url.searchParams.get('site_id'));
   if(!site)return json({ok:true,popups:[]});
   const {results=[]}=await env.CMS_DB.prepare('SELECT * FROM site_popups WHERE site_id=? ORDER BY id DESC').bind(site.id).all();
-  return json({ok:true,popups:results});
+  return json({ok:true,site,popups:results});
  }
  if(request.method==='PUT'&&url.pathname==='/api/cms/popups'){
   const auth=await requireUser(request,env,'cms.content.edit'); if(auth.response)return auth.response;
   let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
-  const site=await env.CMS_DB.prepare('SELECT id FROM sites WHERE organization_id=? ORDER BY id LIMIT 1').bind(auth.user.organization_id).first();
-  if(!site)return json({error:'Aucun site associé à cette organisation.'},404);
   const p=body?.popup||{};
-  const id=Number(p.id||0); const vals=[String(p.name||'Pop-up').trim(),String(p.title||'').trim(),String(p.body||'').trim(),String(p.image_url||'').trim(),String(p.button_label||'').trim(),String(p.button_url||'').trim(),String(p.style||'info'),p.enabled?1:0,p.dismissible===false?0:1,Math.max(0,Number(p.delay_seconds)||0),Math.max(0,Number(p.frequency_days)||0),p.starts_at||null,p.ends_at||null,['all','desktop','mobile'].includes(p.audience)?p.audience:'all'];
-  if(id){const owned=await env.CMS_DB.prepare('SELECT p.id FROM site_popups p JOIN sites s ON s.id=p.site_id WHERE p.id=? AND s.organization_id=?').bind(id,auth.user.organization_id).first();if(!owned)return json({error:'Pop-up introuvable.'},404);await env.CMS_DB.prepare('UPDATE site_popups SET name=?,title=?,body=?,image_url=?,button_label=?,button_url=?,style=?,enabled=?,dismissible=?,delay_seconds=?,frequency_days=?,starts_at=?,ends_at=?,audience=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(...vals,id).run();return json({ok:true,id});}
+  const site=await managedSite(auth,p.site_id);
+  if(!site)return json({error:'Site introuvable ou non autorisé.'},404);
+  const id=Number(p.id||0);
+  const style=['info','promo','important'].includes(p.style)?p.style:'info';
+  const vals=[String(p.name||'Pop-up').trim(),String(p.title||'').trim(),String(p.body||'').trim(),String(p.image_url||'').trim(),String(p.button_label||'').trim(),String(p.button_url||'').trim(),style,p.enabled?1:0,p.dismissible===false?0:1,Math.max(0,Number(p.delay_seconds)||0),Math.max(0,Number(p.frequency_days)||0),p.starts_at||null,p.ends_at||null,['all','desktop','mobile'].includes(p.audience)?p.audience:'all'];
+  if(id){
+   const owned=await env.CMS_DB.prepare('SELECT id FROM site_popups WHERE id=? AND site_id=?').bind(id,site.id).first();
+   if(!owned)return json({error:'Pop-up introuvable.'},404);
+   await env.CMS_DB.prepare('UPDATE site_popups SET name=?,title=?,body=?,image_url=?,button_label=?,button_url=?,style=?,enabled=?,dismissible=?,delay_seconds=?,frequency_days=?,starts_at=?,ends_at=?,audience=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(...vals,id).run();
+   return json({ok:true,id});
+  }
   const result=await env.CMS_DB.prepare('INSERT INTO site_popups (site_id,name,title,body,image_url,button_label,button_url,style,enabled,dismissible,delay_seconds,frequency_days,starts_at,ends_at,audience) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(site.id,...vals).run();
   return json({ok:true,id:result.meta?.last_row_id});
+ }
+ if(request.method==='DELETE'&&url.pathname==='/api/cms/popups'){
+  const auth=await requireUser(request,env,'cms.content.edit'); if(auth.response)return auth.response;
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  const id=Number(body?.id||0); if(!id)return json({error:'Identifiant du pop-up manquant.'},400);
+  const popup=await env.CMS_DB.prepare('SELECT p.id,p.site_id,s.organization_id FROM site_popups p JOIN sites s ON s.id=p.site_id WHERE p.id=?').bind(id).first();
+  if(!popup)return json({error:'Pop-up introuvable.'},404);
+  if(auth.user.role!=='super_admin'&&popup.organization_id!==auth.user.organization_id)return json({error:'Permission insuffisante.'},403);
+  await env.CMS_DB.prepare('DELETE FROM site_popups WHERE id=?').bind(id).run();
+  return json({ok:true});
  }
  if(request.method==='GET'&&url.pathname==='/api/cms/submissions'){
   const auth=await requireUser(request,env,'submissions.view'); if(auth.response)return auth.response;
