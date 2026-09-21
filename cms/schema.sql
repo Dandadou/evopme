@@ -229,3 +229,41 @@ SELECT id,'accueil','Accueil','home',0 FROM sites WHERE slug='evolution-pme';
 
 INSERT OR IGNORE INTO organization_modules (organization_id,module,enabled)
 SELECT id,'popups',1 FROM organizations WHERE slug='evolution-pme';
+
+
+-- Paiement de factures via Stripe Checkout.
+CREATE TABLE IF NOT EXISTS invoice_payment_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id INTEGER NOT NULL,
+  invoice_number TEXT NOT NULL,
+  client_name TEXT NOT NULL DEFAULT '',
+  client_email TEXT NOT NULL DEFAULT '',
+  amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
+  currency TEXT NOT NULL DEFAULT 'cad',
+  description TEXT NOT NULL DEFAULT '',
+  due_date TEXT,
+  token TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','processing','paid','cancelled')),
+  stripe_checkout_session_id TEXT,
+  stripe_payment_intent_id TEXT,
+  paid_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_invoice_payments_site
+ON invoice_payment_requests(site_id,created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_invoice_payments_status
+ON invoice_payment_requests(status,created_at DESC);
+
+INSERT OR IGNORE INTO permissions (slug,name,description)
+VALUES ('payments.manage','Gérer les paiements','Création et suivi des liens de paiement de factures');
+
+INSERT OR IGNORE INTO role_permissions (role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON p.slug='payments.manage'
+WHERE r.slug IN ('super_admin','staff');
+
+INSERT OR IGNORE INTO organization_modules (organization_id,module,enabled)
+SELECT id,'payments',1 FROM organizations WHERE slug='evolution-pme';
