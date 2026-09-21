@@ -98,6 +98,24 @@ export async function getPublicCmsContent(env,hostname='evolutionpme.ca'){
  return json({ok:true,content:Object.fromEntries(results.map(r=>[r.key,r])),popup});
 }
 
+
+export async function getCmsMedia(request,env){
+ if(!env.CMS_MEDIA)return new Response('Média introuvable.',{status:404});
+ const url=new URL(request.url);
+ const raw=url.pathname.slice('/media/'.length);
+ let key='';
+ try{key=raw.split('/').filter(Boolean).map(decodeURIComponent).join('/')}catch{return new Response('Chemin invalide.',{status:400})}
+ if(!key||key.includes('..'))return new Response('Chemin invalide.',{status:400});
+ const object=await env.CMS_MEDIA.get(key);
+ if(!object)return new Response('Média introuvable.',{status:404});
+ const headers=new Headers();
+ object.writeHttpMetadata(headers);
+ headers.set('etag',object.httpEtag);
+ headers.set('cache-control',headers.get('cache-control')||'public, max-age=31536000, immutable');
+ headers.set('x-content-type-options','nosniff');
+ return new Response(object.body,{headers});
+}
+
 export async function handleCms(request,env){
  if(!env.CMS_DB)return json({error:'La base D1 du CMS n’est pas encore liée au Worker.'},503);
  const url=new URL(request.url);
@@ -173,6 +191,23 @@ export async function handleCms(request,env){
   if(auth.user.role!=='super_admin'&&popup.organization_id!==auth.user.organization_id)return json({error:'Permission insuffisante.'},403);
   await env.CMS_DB.prepare('DELETE FROM site_popups WHERE id=?').bind(id).run();
   return json({ok:true});
+ }
+ if(request.method==='POST'&&url.pathname==='/api/cms/media'){
+  const auth=await requireUser(request,env,'cms.media.upload'); if(auth.response)return auth.response;
+  if(!env.CMS_MEDIA)return json({error:'Le stockage d’images R2 n’est pas encore lié au Worker.'},503);
+  let data;try{data=await request.formData()}catch{return json({error:'Téléversement invalide.'},400)}
+  const site=await managedSite(auth,data.get('site_id'));
+  if(!site)return json({error:'Site introuvable ou non autorisé.'},404);
+  const file=data.get('file');
+  if(!(file instanceof File)||!file.size)return json({error:'Choisis une image à téléverser.'},400);
+  const allowed={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/avif':'avif'};
+  const ext=allowed[file.type];
+  if(!ext)return json({error:'Format non accepté. Utilise JPG, PNG, WebP, GIF ou AVIF.'},400);
+  if(file.size>8*1024*1024)return json({error:'Image trop lourde. Maximum 8 Mo.'},413);
+  const key=`sites/${site.id}/popups/${crypto.randomUUID()}.${ext}`;
+  await env.CMS_MEDIA.put(key,file.stream(),{httpMetadata:{contentType:file.type,cacheControl:'public, max-age=31536000, immutable'},customMetadata:{originalName:file.name||'image',siteId:String(site.id)}});
+  const publicPath='/media/'+key.split('/').map(encodeURIComponent).join('/');
+  return json({ok:true,url:publicPath,key});
  }
  if(request.method==='GET'&&url.pathname==='/api/cms/submissions'){
   const auth=await requireUser(request,env,'submissions.view'); if(auth.response)return auth.response;
