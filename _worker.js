@@ -8,7 +8,7 @@ export default {
       if (request.method === 'POST') return onRequestPost({ request, env });
       return onRequest();
     }
-    if (url.pathname === '/api/content' && request.method === 'GET') return getPublicCmsContent(env);
+    if (url.pathname === '/api/content' && request.method === 'GET') return getPublicCmsContent(env,url.hostname);
     if (url.pathname.startsWith('/api/cms/')) return handleCms(request, env);
     return env.ASSETS.fetch(request);
   }
