@@ -13,6 +13,22 @@ async function renderCmsHtml(response,env){
   try{
     const {results=[]}=await env.CMS_DB.prepare('SELECT key,value,type FROM cms_content ORDER BY key').all();
     const content=new Map(results.map(row=>[row.key,row]));
+    const seoByPath={
+      '/':['seo.home.title','seo.home.description'],
+      '/index.html':['seo.home.title','seo.home.description'],
+      '/services.html':['seo.services.title','seo.services.description'],
+      '/formations.html':['seo.formations.title','seo.formations.description'],
+      '/etudes-de-cas.html':['seo.etudes.title','seo.etudes.description'],
+      '/evoot.html':['seo.evoot.title','seo.evoot.description'],
+      '/a-propos.html':['seo.about.title','seo.about.description']
+    };
+    const seo=seoByPath[new URL(response.url||'https://evolutionpme.ca/').pathname];
+    if(seo){
+      const title=content.get(seo[0])?.value?.trim();
+      const description=content.get(seo[1])?.value?.trim();
+      if(title)html=html.replace(/<title>[\\s\\S]*?<\\/title>/i,'<title>'+escapeHtml(title)+'</title>');
+      if(description)html=html.replace(/<meta\\s+name=["']description["']\\s+content=["'][^"']*["']\\s*\\/?>/i,'<meta name="description" content="'+escapeHtml(description)+'">');
+    }
     html=html.replace(/(<([a-zA-Z][\\w:-]*)\\b[^>]*\\sdata-public-cms=["']([^"']+)["'][^>]*>)([\\s\\S]*?)(<\\/\\2>)/g,(match,open,tag,key,current,close)=>{
       const item=content.get(key);
       if(!item||typeof item.value!=='string'||!item.value.trim())return match;
