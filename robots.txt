@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /paiement.html
+
+Sitemap: https://evolutionpme.ca/sitemap.xml
