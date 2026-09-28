@@ -7,7 +7,11 @@ const allowedKeys=new Set([
 'home.why.eyebrow','home.why.title','home.why1.label','home.why1.title','home.why1.text','home.why2.label','home.why2.title','home.why2.text','home.why3.label','home.why3.title','home.why3.text','home.why4.label','home.why4.title','home.why4.text',
 'home.evoot.eyebrow','home.evoot.title','home.evoot.text','home.evoot.image',
 'home.training.eyebrow','home.training.title','home.training.text1','home.training.text2',
-'home.cta.eyebrow','home.cta.title','home.cta.text'
+'home.cta.eyebrow','home.cta.title','home.cta.text',
+'services.hero.eyebrow','services.hero.title','services.hero.text','services.brand.title','services.brand.text','services.digital.title','services.digital.text','services.training.title','services.training.text',
+'formations.hero.eyebrow','formations.hero.title','formations.hero.text','formations.philosophy.title','formations.philosophy.text1','formations.philosophy.text2',
+'etudes.hero.eyebrow','etudes.hero.title','etudes.hero.text',
+'seo.home.title','seo.home.description','seo.services.title','seo.services.description','seo.formations.title','seo.formations.description','seo.etudes.title','seo.etudes.description','seo.evoot.title','seo.evoot.description','seo.about.title','seo.about.description'
 ]);
 
 let accessKeysCache={expires:0,keys:null};
