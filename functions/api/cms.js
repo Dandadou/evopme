@@ -120,6 +120,39 @@ export async function handleCms(request,env){
  if(!env.CMS_DB)return json({error:'La base D1 du CMS n’est pas encore liée au Worker.'},503);
  const url=new URL(request.url);
 
+
+ // Catalogue interne indépendant de S&S. Protégé par Cloudflare Access et les permissions CMS.
+ if(url.pathname==='/api/cms/catalogue'&&['GET','POST','DELETE'].includes(request.method)){
+  const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
+  if(auth.response)return auth.response;
+  await env.CMS_DB.prepare("CREATE TABLE IF NOT EXISTS internal_catalogue (id INTEGER PRIMARY KEY AUTOINCREMENT, organization_id INTEGER NOT NULL, sku TEXT NOT NULL DEFAULT '', name TEXT NOT NULL, category TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', image_url TEXT NOT NULL DEFAULT '', cost_cents INTEGER NOT NULL DEFAULT 0, price_cents INTEGER NOT NULL DEFAULT 0, stock INTEGER NOT NULL DEFAULT 0, active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
+  const org=auth.user.organization_id;
+  if(request.method==='GET'){
+   const {results=[]}=await env.CMS_DB.prepare('SELECT id,sku,name,category,description,image_url,cost_cents,price_cents,stock,active,updated_at FROM internal_catalogue WHERE organization_id=? ORDER BY name COLLATE NOCASE,id DESC LIMIT 1000').bind(org).all();
+   return json({ok:true,products:results});
+  }
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  if(request.method==='DELETE'){
+   const id=Number(body?.id);if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+   await env.CMS_DB.prepare('DELETE FROM internal_catalogue WHERE id=? AND organization_id=?').bind(id,org).run();
+   return json({ok:true});
+  }
+  const p=body?.product||{},id=Number(p.id||0),name=String(p.name||'').trim().slice(0,180);
+  if(!name)return json({error:'Le nom du produit est requis.'},400);
+  const cents=value=>{const n=Number(value);return Number.isFinite(n)&&n>=0&&n<=10000000&&Number.isInteger(n)?n:null};
+  const cost=cents(p.cost_cents??0),price=cents(p.price_cents??0),stock=Number(p.stock??0);
+  if(cost===null||price===null||!Number.isSafeInteger(stock)||stock<0||stock>100000000)return json({error:'Prix ou quantité invalide.'},400);
+  const fields=[String(p.sku||'').trim().slice(0,100),name,String(p.category||'').trim().slice(0,120),String(p.description||'').trim().slice(0,3000),String(p.image_url||'').trim().slice(0,1000),cost,price,stock,p.active===false?0:1];
+  if(id){
+   if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+   const result=await env.CMS_DB.prepare('UPDATE internal_catalogue SET sku=?,name=?,category=?,description=?,image_url=?,cost_cents=?,price_cents=?,stock=?,active=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(...fields,id,org).run();
+   if(!result.meta?.changes)return json({error:'Produit introuvable.'},404);
+   return json({ok:true,id});
+  }
+  const result=await env.CMS_DB.prepare('INSERT INTO internal_catalogue (sku,name,category,description,image_url,cost_cents,price_cents,stock,active,organization_id) VALUES (?,?,?,?,?,?,?,?,?,?)').bind(...fields,org).run();
+  return json({ok:true,id:result.meta?.last_row_id});
+ }
+
  if(request.method==='GET'&&url.pathname==='/api/cms/me'){
   const auth=await requireUser(request,env); if(auth.response)return auth.response;
   return json({ok:true,user:auth.user});
