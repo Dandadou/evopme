@@ -122,6 +122,34 @@ export async function handleCms(request,env){
 
 
  // Catalogue interne indépendant de S&S. Protégé par Cloudflare Access et les permissions CMS.
+ // Paliers de prix propres à chaque produit, sans données fournisseur présumées.
+ if(url.pathname==='/api/cms/catalogue-prices'&&['GET','PUT'].includes(request.method)){
+  const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
+  if(auth.response)return auth.response;
+  await env.CMS_DB.prepare("CREATE TABLE IF NOT EXISTS internal_catalogue_price_tiers (organization_id INTEGER NOT NULL, product_id INTEGER NOT NULL, min_qty INTEGER NOT NULL, price_cents INTEGER NOT NULL, PRIMARY KEY (organization_id,product_id,min_qty))").run();
+  const org=auth.user.organization_id;
+  if(request.method==='GET'){
+   const productId=Number(url.searchParams.get('product_id'));
+   if(!Number.isSafeInteger(productId)||productId<1)return json({error:'Produit invalide.'},400);
+   const product=await env.CMS_DB.prepare('SELECT id FROM internal_catalogue WHERE id=? AND organization_id=?').bind(productId,org).first();
+   if(!product)return json({error:'Produit introuvable.'},404);
+   const {results=[]}=await env.CMS_DB.prepare('SELECT min_qty,price_cents FROM internal_catalogue_price_tiers WHERE organization_id=? AND product_id=? ORDER BY min_qty').bind(org,productId).all();
+   return json({ok:true,tiers:results});
+  }
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  const productId=Number(body.product_id),tiers=body.tiers;
+  if(!Number.isSafeInteger(productId)||productId<1||!Array.isArray(tiers)||tiers.length>20)return json({error:'Paliers invalides.'},400);
+  const product=await env.CMS_DB.prepare('SELECT id FROM internal_catalogue WHERE id=? AND organization_id=?').bind(productId,org).first();
+  if(!product)return json({error:'Produit introuvable.'},404);
+  const seen=new Set();
+  for(const t of tiers){
+   if(!Number.isSafeInteger(t.min_qty)||t.min_qty<1||t.min_qty>100000000||!Number.isSafeInteger(t.price_cents)||t.price_cents<0||t.price_cents>1000000000||seen.has(t.min_qty))return json({error:'Quantités ou prix invalides.'},400);
+   seen.add(t.min_qty);
+  }
+  const statements=[env.CMS_DB.prepare('DELETE FROM internal_catalogue_price_tiers WHERE organization_id=? AND product_id=?').bind(org,productId),...tiers.map(t=>env.CMS_DB.prepare('INSERT INTO internal_catalogue_price_tiers (organization_id,product_id,min_qty,price_cents) VALUES (?,?,?,?)').bind(org,productId,t.min_qty,t.price_cents))];
+  await env.CMS_DB.batch(statements);
+  return json({ok:true});
+ }
  if(url.pathname==='/api/cms/catalogue'&&['GET','POST','DELETE'].includes(request.method)){
   const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
   if(auth.response)return auth.response;
