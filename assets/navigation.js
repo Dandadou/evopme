@@ -52,6 +52,14 @@
     nav.insertBefore(evootLink, formationsLink || nav.firstChild);
   }
 
+  if (!nav.querySelector('a[href="/accompagnement-entreprise.html"]')) {
+    const coachingLink = document.createElement('a');
+    coachingLink.href = '/accompagnement-entreprise.html';
+    coachingLink.textContent = 'Accompagnement';
+    const aboutLink = nav.querySelector('a[href="/a-propos.html"]');
+    nav.insertBefore(coachingLink, aboutLink || null);
+  }
+
   nav.id ||= 'navigation-principale';
   const button = document.createElement('button');
   button.className = 'menu-toggle';
