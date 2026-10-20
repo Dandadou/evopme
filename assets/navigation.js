@@ -1,3 +1,36 @@
+// Google Ads — charger la balise uniquement après consentement aux témoins non essentiels.
+(() => {
+  const GOOGLE_ADS_ID = 'AW-11322458314';
+  const CONSENT_KEY = 'evopme-cookie-consent';
+  let loaded = false;
+
+  function loadGoogleAds() {
+    if (loaded || document.querySelector('script[data-google-ads-tag]')) return;
+    loaded = true;
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function gtag() { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GOOGLE_ADS_ID);
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GOOGLE_ADS_ID;
+    script.dataset.googleAdsTag = GOOGLE_ADS_ID;
+    document.head.appendChild(script);
+  }
+
+  try {
+    if (localStorage.getItem(CONSENT_KEY) === 'accept') loadGoogleAds();
+  } catch (_) {
+    // Sans accès au consentement enregistré, aucun suivi n'est lancé.
+  }
+
+  window.addEventListener('evopme:cookie-consent', event => {
+    if (event.detail?.choice === 'accept') loadGoogleAds();
+  });
+})();
+
 (() => {
   const header = document.querySelector('header');
   const nav = header?.querySelector('nav');
