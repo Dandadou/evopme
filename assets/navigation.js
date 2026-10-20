@@ -1,33 +1,38 @@
-// Google Ads — charger la balise uniquement après consentement aux témoins non essentiels.
+// Google Ads et Google Analytics 4 — activés avec le consentement du visiteur.
 (() => {
   const GOOGLE_ADS_ID = 'AW-11322458314';
+  const GA4_ID = 'G-6576HFYKY0';
   const CONSENT_KEY = 'evopme-cookie-consent';
-  let loaded = false;
+  let initialized = false;
 
-  function loadGoogleAds() {
-    if (loaded || document.querySelector('script[data-google-ads-tag]')) return;
-    loaded = true;
+  function initializeGoogleTags() {
+    if (initialized) return;
+    initialized = true;
 
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function gtag() { window.dataLayer.push(arguments); };
     window.gtag('js', new Date());
     window.gtag('config', GOOGLE_ADS_ID);
+    window.gtag('config', GA4_ID);
 
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GOOGLE_ADS_ID;
-    script.dataset.googleAdsTag = GOOGLE_ADS_ID;
-    document.head.appendChild(script);
+    // Une seule bibliothèque Google pour les deux destinations.
+    if (!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_ID;
+      script.dataset.googleTags = 'true';
+      document.head.appendChild(script);
+    }
   }
 
   try {
-    if (localStorage.getItem(CONSENT_KEY) === 'accept') loadGoogleAds();
+    if (localStorage.getItem(CONSENT_KEY) === 'accept') initializeGoogleTags();
   } catch (_) {
-    // Sans accès au consentement enregistré, aucun suivi n'est lancé.
+    // Sans consentement vérifiable, ne pas activer le suivi.
   }
 
   window.addEventListener('evopme:cookie-consent', event => {
-    if (event.detail?.choice === 'accept') loadGoogleAds();
+    if (event.detail?.choice === 'accept') initializeGoogleTags();
   });
 })();
 
