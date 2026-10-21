@@ -122,6 +122,27 @@ export async function handleCms(request,env){
 
 
 
+ // Consultation S&S depuis le backend. Les clés restent dans les secrets Cloudflare.
+ if(url.pathname==='/api/cms/ss-catalogue'&&request.method==='GET'){
+  const auth=await requireUser(request,env,'cms.content.view');if(auth.response)return auth.response;
+  const account=env.SS_ACCOUNT_NUMBER,apiKey=env.SS_API_KEY;
+  if(!account||!apiKey)return json({configured:false,error:'Configure SS_ACCOUNT_NUMBER et SS_API_KEY dans les secrets du Worker evopme.'},503);
+  const query=String(url.searchParams.get('q')||'').trim().toLowerCase();
+  if(query.length<2)return json({configured:true,products:[],hint:'Saisis au moins deux caractères pour rechercher.'});
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
+  try{
+   const response=await fetch('https://api-ca.ssactivewear.com/v2/products/',{headers:{authorization:'Basic '+btoa(account+':'+apiKey),accept:'application/json'},signal:controller.signal});
+   if(!response.ok)return json({error:response.status===401||response.status===403?'Identifiants S&S refusés.':'Réponse S&S '+response.status},502);
+   const raw=await response.json();
+   if(!Array.isArray(raw))return json({error:'Réponse produits S&S invalide.'},502);
+   const items=raw.filter(p=>[p.sku,p.styleName,p.brandName,p.colorName,p.sizeName].some(v=>String(v||'').toLowerCase().includes(query))).slice(0,60).map(p=>({
+     sku:String(p.sku||''),styleId:Number(p.styleID)||0,name:[p.brandName,p.styleName].filter(Boolean).join(' '),color:String(p.colorName||''),size:String(p.sizeName||''),cost:Number(p.customerPrice)||0,retail:Number(p.retailPrice)||0
+   }));
+   return json({configured:true,products:items,matchLimit:60,source:'S&S Canada',totalSource:raw.length});
+  }catch(error){return json({error:'Connexion à S&S impossible. Vérifie les secrets et la disponibilité de l’API.'},502)}
+  finally{clearTimeout(timeout)}
+ }
+
  // Listes de prix internes : coûts et marges accessibles uniquement via Cloudflare Access.
  if(url.pathname==='/api/cms/pricing'&&['GET','POST','DELETE'].includes(request.method)){
   const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
