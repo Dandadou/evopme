@@ -164,15 +164,18 @@ export async function handleCms(request,env){
   const category=String(p.category||'').trim().slice(0,80),name=String(p.name||'').trim().slice(0,180),unit=String(p.unit||'unité').trim().slice(0,30);
   const minQty=Number(p.min_qty),cost=Number(p.cost_cents),margin=Number(p.margin_percent);
   if(!category||!name||!unit||!Number.isSafeInteger(minQty)||minQty<1||minQty>1000000||!Number.isSafeInteger(cost)||cost<0||cost>100000000||!Number.isFinite(margin)||margin<0||margin>=100)return json({error:'Champs invalides. La marge doit être entre 0 et moins de 100 %.'},400);
-  const price=Math.ceil(cost/(1-margin/100));
+  const fixed= p.fixed_price_cents===undefined||p.fixed_price_cents===null ? null : Number(p.fixed_price_cents);
+  if(fixed!==null&&(!Number.isSafeInteger(fixed)||fixed<cost||fixed>1000000000))return json({error:'Prix fixe invalide : il doit couvrir le coût.'},400);
+  const price=fixed===null?Math.ceil(cost/(1-margin/100)):fixed;
+  const actualMargin=price?Math.round((price-cost)/price*100000)/1000:0;
   if(!Number.isSafeInteger(price)||price>1000000000)return json({error:'Prix trop élevé.'},400);
   if(id){
    if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
-   const result=await env.CMS_DB.prepare('UPDATE internal_pricing_rules SET category=?,name=?,unit=?,min_qty=?,cost_cents=?,margin_percent=?,price_cents=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(category,name,unit,minQty,cost,margin,price,id,org).run();
+   const result=await env.CMS_DB.prepare('UPDATE internal_pricing_rules SET category=?,name=?,unit=?,min_qty=?,cost_cents=?,margin_percent=?,price_cents=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(category,name,unit,minQty,cost,actualMargin,price,id,org).run();
    if(!result.meta?.changes)return json({error:'Tarif introuvable.'},404);
    return json({ok:true,id,price_cents:price});
   }
-  const result=await env.CMS_DB.prepare('INSERT INTO internal_pricing_rules (organization_id,category,name,unit,min_qty,cost_cents,margin_percent,price_cents) VALUES (?,?,?,?,?,?,?,?)').bind(org,category,name,unit,minQty,cost,margin,price).run();
+  const result=await env.CMS_DB.prepare('INSERT INTO internal_pricing_rules (organization_id,category,name,unit,min_qty,cost_cents,margin_percent,price_cents) VALUES (?,?,?,?,?,?,?,?)').bind(org,category,name,unit,minQty,cost,actualMargin,price).run();
   return json({ok:true,id:result.meta?.last_row_id,price_cents:price});
  }
 
