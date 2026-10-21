@@ -121,6 +121,40 @@ export async function handleCms(request,env){
  const url=new URL(request.url);
 
 
+
+ // Listes de prix internes : coûts et marges accessibles uniquement via Cloudflare Access.
+ if(url.pathname==='/api/cms/pricing'&&['GET','POST','DELETE'].includes(request.method)){
+  const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
+  if(auth.response)return auth.response;
+  await env.CMS_DB.prepare("CREATE TABLE IF NOT EXISTS internal_pricing_rules (id INTEGER PRIMARY KEY AUTOINCREMENT, organization_id INTEGER NOT NULL, category TEXT NOT NULL, name TEXT NOT NULL, unit TEXT NOT NULL DEFAULT 'unité', min_qty INTEGER NOT NULL DEFAULT 1, cost_cents INTEGER NOT NULL DEFAULT 0, margin_percent REAL NOT NULL DEFAULT 30, price_cents INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
+  const org=auth.user.organization_id;
+  if(request.method==='GET'){
+   const {results=[]}=await env.CMS_DB.prepare('SELECT id,category,name,unit,min_qty,cost_cents,margin_percent,price_cents,updated_at FROM internal_pricing_rules WHERE organization_id=? ORDER BY category,name,min_qty LIMIT 5000').bind(org).all();
+   return json({ok:true,rules:results});
+  }
+  let body;try{body=await request.json()}catch{return json({error:'Données JSON invalides.'},400)}
+  if(request.method==='DELETE'){
+   const id=Number(body?.id);
+   if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+   await env.CMS_DB.prepare('DELETE FROM internal_pricing_rules WHERE id=? AND organization_id=?').bind(id,org).run();
+   return json({ok:true});
+  }
+  const p=body?.rule||{},id=Number(p.id||0);
+  const category=String(p.category||'').trim().slice(0,80),name=String(p.name||'').trim().slice(0,180),unit=String(p.unit||'unité').trim().slice(0,30);
+  const minQty=Number(p.min_qty),cost=Number(p.cost_cents),margin=Number(p.margin_percent);
+  if(!category||!name||!unit||!Number.isSafeInteger(minQty)||minQty<1||minQty>1000000||!Number.isSafeInteger(cost)||cost<0||cost>100000000||!Number.isFinite(margin)||margin<0||margin>=100)return json({error:'Champs invalides. La marge doit être entre 0 et moins de 100 %.'},400);
+  const price=Math.ceil(cost/(1-margin/100));
+  if(!Number.isSafeInteger(price)||price>1000000000)return json({error:'Prix trop élevé.'},400);
+  if(id){
+   if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+   const result=await env.CMS_DB.prepare('UPDATE internal_pricing_rules SET category=?,name=?,unit=?,min_qty=?,cost_cents=?,margin_percent=?,price_cents=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(category,name,unit,minQty,cost,margin,price,id,org).run();
+   if(!result.meta?.changes)return json({error:'Tarif introuvable.'},404);
+   return json({ok:true,id,price_cents:price});
+  }
+  const result=await env.CMS_DB.prepare('INSERT INTO internal_pricing_rules (organization_id,category,name,unit,min_qty,cost_cents,margin_percent,price_cents) VALUES (?,?,?,?,?,?,?,?)').bind(org,category,name,unit,minQty,cost,margin,price).run();
+  return json({ok:true,id:result.meta?.last_row_id,price_cents:price});
+ }
+
  // Catalogue interne indépendant de S&S. Protégé par Cloudflare Access et les permissions CMS.
  // Paliers de prix propres à chaque produit, sans données fournisseur présumées.
  if(url.pathname==='/api/cms/catalogue-prices'&&['GET','PUT'].includes(request.method)){
