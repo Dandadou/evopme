@@ -122,6 +122,48 @@ export async function handleCms(request,env){
 
 
 
+ // Configuration des catalogues Heyzine (par organisation, publication opt-in).
+ if(url.pathname==='/api/cms/heyzine-selection'&&['GET','POST'].includes(request.method)){
+  const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
+  if(auth.response)return auth.response;
+  await env.CMS_DB.prepare(`CREATE TABLE IF NOT EXISTS heyzine_catalogue_selection (
+    organization_id INTEGER NOT NULL, flipbook_id TEXT NOT NULL,
+    title TEXT NOT NULL, url TEXT NOT NULL, thumbnail TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL, published INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (organization_id,flipbook_id)
+  )`).run();
+  if(request.method==='GET'){
+   const {results=[]}=await env.CMS_DB.prepare('SELECT flipbook_id,title,url,thumbnail,category,published FROM heyzine_catalogue_selection WHERE organization_id=? ORDER BY title').bind(auth.user.organization_id).all();
+   return json({ok:true,selections:results});
+  }
+  let body;try{body=await request.json()}catch{return json({error:'Données JSON invalides.'},400)}
+  const books=body?.catalogues;
+  if(!Array.isArray(books)||books.length>500)return json({error:'Liste de catalogues invalide.'},400);
+  const categories=new Set(['Vêtements','Produits promotionnels']);
+  const seen=new Set(),queries=[];
+  for(const book of books){
+   const id=String(book.id||'').trim().slice(0,120);
+   const category=String(book.category||'');
+   const title=String(book.title||'').trim().slice(0,250);
+   const urlValue=String(book.url||'').trim().slice(0,1500);
+   const thumbnail=String(book.thumbnail||'').trim().slice(0,1500);
+   if(!id||seen.has(id)||!categories.has(category)||!title)return json({error:'Catalogue ou catégorie invalide.'},400);
+   seen.add(id);
+   let uri;try{uri=new URL(urlValue)}catch{return json({error:'URL de catalogue invalide.'},400)}
+   if(uri.protocol!=='https:'||!uri.hostname.endsWith('heyzine.com'))return json({error:'Les catalogues doivent pointer vers Heyzine.'},400);
+   queries.push(env.CMS_DB.prepare(`INSERT INTO heyzine_catalogue_selection
+    (organization_id,flipbook_id,title,url,thumbnail,category,published,updated_at)
+    VALUES (?,?,?,?,?,?,1,CURRENT_TIMESTAMP)
+    ON CONFLICT(organization_id,flipbook_id) DO UPDATE SET title=excluded.title,url=excluded.url,
+    thumbnail=excluded.thumbnail,category=excluded.category,published=1,updated_at=CURRENT_TIMESTAMP`)
+    .bind(auth.user.organization_id,id,title,urlValue,thumbnail,category));
+  }
+  // Une seule transaction : les catalogues absents de la sélection deviennent non publiés.
+  await env.CMS_DB.batch([env.CMS_DB.prepare('UPDATE heyzine_catalogue_selection SET published=0,updated_at=CURRENT_TIMESTAMP WHERE organization_id=?').bind(auth.user.organization_id),...queries]);
+  return json({ok:true,saved:books.length});
+ }
+
  // Lecture sécurisée des flipbooks Heyzine; aucune publication automatique.
  if(url.pathname==='/api/cms/heyzine-flipbooks'&&request.method==='GET'){
   const auth=await requireUser(request,env,'cms.content.view');
