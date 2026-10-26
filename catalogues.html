@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalogues de vêtements et produits promotionnels | Évolution PME</title>
+<meta name="description" content="Explorez nos catalogues de vêtements corporatifs et d’objets promotionnels. Évolution PME, créateur de marques dans Lanaudière.">
+<link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/assets/cookies.css">
+<style>
+:root{--orange:#f7941d}
+.catalogue-page{padding:65px max(20px,5vw) 110px;max-width:1480px;margin:auto;min-height:70vh}
+.catalogue-page h1{font-size:clamp(2.5rem,6vw,5.8rem);line-height:1.02;margin:15px 0 24px}
+.catalogue-page h1 em{color:var(--orange);font-style:normal}
+.catalogue-page .intro{max-width:770px;color:#c4c4c4;font-size:1.12rem;line-height:1.7;margin:0 0 28px}
+.catalogue-filter{display:flex;flex-wrap:wrap;gap:10px;margin:30px 0 42px}
+.catalogue-filter button{border:1px solid #555;background:#1b1b1b;color:white;border-radius:999px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer}
+.catalogue-filter button.active,.catalogue-filter button:hover{background:var(--orange);border-color:var(--orange);color:#121212}
+.catalogue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:22px}
+.catalogue-card{display:flex;flex-direction:column;min-width:0;border:1px solid #353535;border-radius:23px;background:#171717;overflow:hidden;transition:transform .2s,border-color .2s}
+.catalogue-card:hover{transform:translateY(-3px);border-color:var(--orange)}
+.catalogue-card .cover{height:230px;background:#252525;display:grid;place-items:center;overflow:hidden}
+.catalogue-card img{max-width:100%;max-height:100%;object-fit:contain}
+.catalogue-card .fallback{font-size:4rem;color:var(--orange)}
+.catalogue-info{padding:24px;display:flex;flex-direction:column;gap:12px;flex:1}
+.catalogue-tag{color:var(--orange);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900}
+.catalogue-info h2{font-size:1.45rem;line-height:1.25;margin:0;overflow-wrap:anywhere}
+.catalogue-info a{display:block;margin-top:auto;border-radius:12px;padding:13px 15px;text-align:center;background:var(--orange);color:#131313;text-decoration:none;font-weight:900}
+.catalogue-empty{border:1px dashed #555;border-radius:18px;padding:32px;color:#ccc}
+.catalogue-cta{margin-top:75px;padding:36px;border:1px solid #3b3b3b;border-radius:24px;background:#1a1a1a}
+.catalogue-cta a{color:var(--orange);font-weight:900}
+@media(prefers-reduced-motion:reduce){.catalogue-card{transition:none}.catalogue-card:hover{transform:none}}
+</style></head><body>
+<header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/services.html">Services</a><a href="/formations.html">Formations</a><a href="/catalogues.html" aria-current="page">Catalogues</a><a href="/etudes-de-cas.html">Études de cas</a><a href="/a-propos.html">À propos</a><a class="pill" href="https://portail.evolutionpme.ca">Portail client</a><a class="pill" href="/soumission.html">Demander une soumission</a></nav></header>
+<main class="catalogue-page"><span class="eyebrow">ÉVOLUTION PME · CRÉATEUR DE MARQUES</span><h1>DES IDÉES À FEUILLETER.<br><em>DES MARQUES À FAIRE RAYONNER.</em></h1><p class="intro">Découvrez notre sélection de catalogues de vêtements corporatifs et de produits promotionnels. Choisissez ce qui vous inspire et nous nous occupons du reste : personnalisation, conseils et soumission.</p>
+<div class="catalogue-filter" role="group" aria-label="Filtrer les catalogues">
+<button type="button" class="active" data-filter="Tous" aria-pressed="true">Tous les catalogues</button>
+<button type="button" data-filter="Vêtements" aria-pressed="false">Vêtements</button>
+<button type="button" data-filter="Produits promotionnels" aria-pressed="false">Produits promotionnels</button></div>
+<div id="catalogue-status" role="status" aria-live="polite">Chargement des catalogues…</div>
+<div id="catalogue-grid" class="catalogue-grid"></div>
+<section class="catalogue-cta"><h2>UN PRODUIT VOUS INTÉRESSE ?</h2><p>Dites-nous ce que vous avez repéré, la quantité souhaitée et votre idée de personnalisation. On vous prépare une soumission adaptée.</p><a href="/soumission.html">DEMANDER UNE SOUMISSION →</a></section></main>
+<footer class="site-footer"><span>© Évolution PME 2026 · <a class="cookie-preferences-link" href="#">Préférences de confidentialité</a></span><span>Une création d’Évolution PME — Créateur de marques.</span></footer>
+<script src="/assets/catalogues-public.js" defer></script><script src="/assets/cookies.js" defer></script><script src="/assets/navigation.js" defer></script></body></html>
