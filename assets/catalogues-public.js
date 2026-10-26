@@ -1,10 +1,11 @@
 (()=>{'use strict';const grid=document.getElementById('catalogue-grid'),status=document.getElementById('catalogue-status');if(!grid)return;
-const buttons=[...document.querySelectorAll('[data-filter]')];let books=[],selected='Tous';
+const buttons=[...document.querySelectorAll('[data-filter]')];let books=[],selected=({vetements:'Vêtements',produits:'Produits promotionnels'})[new URLSearchParams(location.search).get('categorie')]||'Tous';
 function element(tag,content){const e=document.createElement(tag);if(content!==undefined)e.textContent=content;return e}
 function render(){grid.replaceChildren();const filtered=selected==='Tous'?books:books.filter(b=>b.category===selected);status.textContent=filtered.length?'':(books.length?'Aucun catalogue dans cette catégorie pour le moment.':'Nos catalogues seront bientôt disponibles. Revenez nous voir !');
 for(const b of filtered){const card=element('article');card.className='catalogue-card';const cover=element('div');cover.className='cover';
 if(b.thumbnail&&/^https:\/\//.test(b.thumbnail)){const img=element('img');img.src=b.thumbnail;img.alt='Couverture du catalogue '+b.title;img.loading='lazy';img.onerror=()=>{cover.replaceChildren(element('span','📖'))};cover.append(img)}else{const ico=element('span','📖');ico.className='fallback';cover.append(ico)}
 const info=element('div');info.className='catalogue-info';const cat=element('span',b.category);cat.className='catalogue-tag';const link=element('a','CONSULTER LE CATALOGUE →');link.href=b.url;link.target='_blank';link.rel='noopener noreferrer';info.append(cat,link);card.append(cover,info);grid.append(card)}}
+buttons.forEach(b=>{const active=b.dataset.filter===selected;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
 buttons.forEach(b=>b.addEventListener('click',()=>{selected=b.dataset.filter;buttons.forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-pressed',String(active))});render()}));
 fetch('/api/catalogues',{headers:{Accept:'application/json'}}).then(async r=>{const j=await r.json();if(!r.ok||!j.ok)throw Error(j.error||'Erreur de chargement');books=(j.catalogues||[]).filter(b=>/^https:\/\//.test(b.url));render()}).catch(()=>{status.textContent='Impossible de charger les catalogues pour le moment. Réessayez plus tard.'});
 })();
