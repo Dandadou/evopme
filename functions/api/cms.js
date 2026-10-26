@@ -122,6 +122,20 @@ export async function handleCms(request,env){
 
 
 
+ // Lecture sécurisée des flipbooks Heyzine; aucune publication automatique.
+ if(url.pathname==='/api/cms/heyzine-flipbooks'&&request.method==='GET'){
+  const auth=await requireUser(request,env,'cms.content.view');
+  if(auth.response)return auth.response;
+  if(!env.HEYZINE_API_KEY)return json({configured:false,error:'Ajoute HEYZINE_API_KEY aux secrets Cloudflare.'},503);
+  try{
+   const upstream=await fetch('https://heyzine.com/api1/flipbook-list',{headers:{Authorization:'Bearer '+env.HEYZINE_API_KEY,Accept:'application/json'},signal:AbortSignal.timeout(20000)});
+   if(!upstream.ok)return json({configured:true,error:upstream.status===401||upstream.status===403?'Heyzine refuse la clé API.':'Heyzine retourne HTTP '+upstream.status},502);
+   const books=await upstream.json();
+   if(!Array.isArray(books))return json({configured:true,error:'Format de réponse Heyzine inattendu.'},502);
+   return json({configured:true,flipbooks:books.slice(0,500).map(b=>({id:String(b.id||''),title:String(b.title||'Sans titre'),description:String(b.description||''),date:b.date||null,pages:Number(b.pages)||0,url:b.links?.custom||b.links?.base||'',thumbnail:b.links?.thumbnail||''})).filter(b=>/^https:\/\//.test(b.url))});
+  }catch{return json({configured:true,error:'Impossible de joindre Heyzine pour le moment.'},502)}
+ }
+
  // Consultation S&S depuis le backend. Les clés restent dans les secrets Cloudflare.
  if(url.pathname==='/api/cms/ss-catalogue'&&request.method==='GET'){
   const auth=await requireUser(request,env,'cms.content.view');if(auth.response)return auth.response;
