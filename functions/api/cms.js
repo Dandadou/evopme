@@ -87,6 +87,23 @@ async function requireUser(request,env,permission){
  return {user};
 }
 
+
+export async function getPublicHeyzineCatalogues(env,hostname='evolutionpme.ca'){
+ if(!env.CMS_DB)return json({ok:true,catalogues:[]});
+ try{
+  const {results=[]}=await env.CMS_DB.prepare(`
+   SELECT h.flipbook_id AS id,h.title,h.url,h.thumbnail,h.category
+   FROM heyzine_catalogue_selection h
+   JOIN sites s ON s.organization_id=h.organization_id
+   WHERE (s.hostname=? OR s.slug='evolution-pme') AND h.published=1
+   ORDER BY CASE h.category WHEN 'Vêtements' THEN 0 ELSE 1 END,h.title COLLATE NOCASE
+  `).bind(hostname).all();
+  return json({ok:true,catalogues:results.filter(c=>['Vêtements','Produits promotionnels'].includes(c.category))});
+ }catch(error){
+  return json({ok:false,error:'Impossible de charger les catalogues pour le moment.',catalogues:[]},503);
+ }
+}
+
 export async function getPublicCmsContent(env,hostname='evolutionpme.ca'){
  if(!env.CMS_DB)return json({ok:true,content:{},popup:null});
  const {results=[]}=await env.CMS_DB.prepare('SELECT key,value,type,updated_at FROM cms_content ORDER BY key').all();
