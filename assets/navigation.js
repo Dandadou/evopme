@@ -37,66 +37,37 @@
 })();
 
 (() => {
-  const header = document.querySelector('header');
-  const nav = header?.querySelector('nav');
-  if (!header || !nav) return;
-
-  if (!nav.querySelector('a[href="/paiement.html"]')) {
-    const paymentLink = document.createElement('a');
-    paymentLink.href = '/paiement.html';
-    paymentLink.textContent = 'Payer une facture';
-    const portalLink = nav.querySelector('a[href="https://portail.evolutionpme.ca"]');
-    nav.insertBefore(paymentLink, portalLink || null);
-  }
-
-  if (!nav.querySelector('a[href="/evoot.html"]')) {
-    const evootLink = document.createElement('a');
-    evootLink.href = '/evoot.html';
-    evootLink.textContent = 'Évout!';
-    const formationsLink = nav.querySelector('a[href="/formations.html"]');
-    nav.insertBefore(evootLink, formationsLink || nav.firstChild);
-  }
-
-  if (!nav.querySelector('a[href="/accompagnement-entreprise.html"]')) {
-    const coachingLink = document.createElement('a');
-    coachingLink.href = '/accompagnement-entreprise.html';
-    coachingLink.textContent = 'Accompagnement';
-    const aboutLink = nav.querySelector('a[href="/a-propos.html"]');
-    nav.insertBefore(coachingLink, aboutLink || null);
-  }
-
-  nav.id ||= 'navigation-principale';
-  const button = document.createElement('button');
-  button.className = 'menu-toggle';
-  button.type = 'button';
-  button.setAttribute('aria-label', 'Ouvrir le menu');
-  button.setAttribute('aria-controls', nav.id);
-  button.setAttribute('aria-expanded', 'false');
-  button.innerHTML = '<span aria-hidden="true"></span>';
-  header.insertBefore(button, nav);
-
-  const closeMenu = () => {
-    nav.classList.remove('is-open');
-    button.setAttribute('aria-expanded', 'false');
-    button.setAttribute('aria-label', 'Ouvrir le menu');
+  const header=document.querySelector('header'),nav=header?.querySelector('nav');
+  if(!nav)return;
+  // Navigation commune à toutes les pages du site.
+  nav.classList.add('evopme-nav');
+  nav.id='navigation-principale';
+  const group=(label,links)=>{
+    const details=document.createElement('details');details.className='nav-dropdown';
+    const summary=document.createElement('summary');summary.textContent=label;details.append(summary);
+    const sub=document.createElement('div');sub.className='nav-submenu';
+    links.forEach(([text,href])=>{const a=document.createElement('a');a.textContent=text;a.href=href;sub.append(a)});
+    details.append(sub);return details;
   };
-
-  button.addEventListener('click', () => {
-    const open = !nav.classList.contains('is-open');
-    nav.classList.toggle('is-open', open);
-    button.setAttribute('aria-expanded', String(open));
-    button.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
-  });
-
-  nav.addEventListener('click', event => {
-    if (event.target.closest('a')) closeMenu();
-  });
-
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeMenu();
-  });
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 850) closeMenu();
-  });
+  const link=(label,href,cls)=>{const a=document.createElement('a');a.textContent=label;a.href=href;if(cls)a.className=cls;return a};
+  nav.replaceChildren(
+    group('Nos services',[['Tous nos services','/services.html'],['Vêtements corporatifs','/services.html'],['Produits promotionnels','/catalogues.html?categorie=produits'],['Graphisme et image de marque','/services.html'],['Formations','/formations.html'],['Accompagnement','/accompagnement-entreprise.html']]),
+    link('Évoot!','/evoot.html','nav-evoot'),
+    group('Catalogues',[['Tous les catalogues','/catalogues.html'],['Vêtements','/catalogues.html?categorie=vetements'],['Produits promotionnels','/catalogues.html?categorie=produits']]),
+    group('À propos',[['Notre entreprise','/a-propos.html'],['Études de cas','/etudes-de-cas.html'],['Nous joindre','/#contact']]),
+    group('Espace client',[['Portail client','https://portail.evolutionpme.ca'],['Payer une facture','/paiement.html']]),
+    link('Demander une soumission','/soumission.html','pill nav-quote')
+  );
+  const button=document.createElement('button');button.className='menu-toggle';button.type='button';
+  button.setAttribute('aria-label','Ouvrir le menu');button.setAttribute('aria-controls',nav.id);
+  button.setAttribute('aria-expanded','false');button.innerHTML='<span aria-hidden="true"></span>';
+  header.insertBefore(button,nav);
+  const closeDropdowns=()=>nav.querySelectorAll('details[open]').forEach(d=>d.open=false);
+  const closeMenu=()=>{nav.classList.remove('is-open');button.setAttribute('aria-expanded','false');button.setAttribute('aria-label','Ouvrir le menu');closeDropdowns()};
+  button.addEventListener('click',()=>{const open=!nav.classList.contains('is-open');nav.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-label',open?'Fermer le menu':'Ouvrir le menu');if(!open)closeDropdowns()});
+  nav.querySelectorAll('details').forEach(details=>details.addEventListener('toggle',()=>{if(details.open)nav.querySelectorAll('details[open]').forEach(other=>{if(other!==details)other.open=false})}));
+  nav.addEventListener('click',e=>{if(e.target.closest('a'))closeMenu()});
+  document.addEventListener('click',e=>{if(!header.contains(e.target))closeDropdowns()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();button.focus()}});
+  window.addEventListener('resize',()=>{if(window.innerWidth>850)closeMenu()});
 })();
