@@ -153,7 +153,7 @@ body{--orange:#c52939;--pine:#0d422e}
 <div class="ticker"><div class="ticker-track"><span>CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUSES FÊTES ET BONNE ANNÉE!</i> &nbsp;✦&nbsp; </span><span aria-hidden="true">CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUSES FÊTES ET BONNE ANNÉE!</i> &nbsp;✦&nbsp; </span></div></div>
 <section class="noel-signup" id="inscription">
 <div><span class="eyebrow">ATELIERS DE NOËL · INSCRIPTION</span><h2>À TON TOUR<br>DE <em>CRÉER.</em></h2><p class="description">Choisis le vêtement et la grandeur de chaque participant. Tu peux inscrire toute la famille en une seule demande. Nous communiquerons avec toi pour confirmer la séance et les disponibilités.</p>
-<ul class="help-list"><li>60 $ par participant, taxes incluses</li><li>Vêtement supplémentaire : 15 $ (coton ouaté : 18 $), taxes incluses</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>5, rue Industrielle, Saint-Roch-de-l'Achigan</li></ul>
+<ul class="help-list"><li>60 $ par participant, taxes incluses</li><li>Vêtements supplémentaires : sac réutilisable 10 $, coton ouaté 18 $, autres vêtements 15 $, taxes incluses</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>5, rue Industrielle, Saint-Roch-de-l'Achigan</li></ul>
 <p class="noel-location"><strong>📍 Lieu de l’atelier</strong><br>5, rue Industrielle<br>Saint-Roch-de-l’Achigan (Québec)</p><p class="description" style="font-size:.85rem">Toutes les séances ont lieu de 13 h à 15 h. L’envoi du formulaire est une demande d’inscription; nous confirmerons les places disponibles.</p></div>
 <form id="atelier-form" class="contact-form" novalidate>
 <h3>DEMANDE D'INSCRIPTION</h3>
@@ -187,7 +187,7 @@ body{--orange:#c52939;--pine:#0d422e}
   function update() {
     const n=list.children.length;
     const extras=[...list.querySelectorAll('.extra-vetement')];
-    const extrasTotal=extras.reduce((sum,card)=>sum+(card.querySelector('.extra-type').value==='ouate'?18:15),0);
+    const extrasTotal=extras.reduce((sum,card)=>sum+(card.querySelector('.extra-type').value==='ouate'?18:card.querySelector('.extra-type').value==='sac'?10:15),0);
     document.querySelector('#count').textContent=n+' participant'+(n>1?'s':'')+' · '+extras.length+' vêtement'+(extras.length>1?'s':'')+' supplémentaire'+(extras.length>1?'s':'')+' · taxes incluses';
     document.querySelector('#total').textContent=(n*60+extrasTotal).toLocaleString('fr-CA')+' $';
     list.querySelectorAll('.participant').forEach((card,i)=>{
@@ -212,13 +212,13 @@ body{--orange:#c52939;--pine:#0d422e}
     });
     const extrasArea=document.createElement('div');
     extrasArea.className='extras-area';
-    extrasArea.innerHTML='<p class="extras-heading">Vêtements supplémentaires</p><p class="extras-info">15 $ chacun · coton ouaté 18 $ · taxes incluses</p><div class="extras-list"></div><button type="button" class="secondary add-extra">+ AJOUTER UN VÊTEMENT SUPPLÉMENTAIRE</button>';
+    extrasArea.innerHTML='<p class="extras-heading">Vêtements supplémentaires</p><p class="extras-info">Sac 10 $ · autres vêtements 15 $ · coton ouaté 18 $ · taxes incluses</p><div class="extras-list"></div><button type="button" class="secondary add-extra">+ AJOUTER UN VÊTEMENT SUPPLÉMENTAIRE</button>';
     card.append(extrasArea);
     extrasArea.querySelector('.add-extra').addEventListener('click',()=>{
       if(list.querySelectorAll('.extra-vetement').length>=30)return;
       const extra=document.createElement('div');
       extra.className='extra-vetement';
-      extra.innerHTML='<div class="participant-head"><h4>VÊTEMENT SUPPLÉMENTAIRE</h4><button type="button" class="remove extra-remove">Retirer</button></div><div class="form-row"><label>Vêtement<select class="extra-type" required><option value="">Choisir un vêtement</option><option value="tshirt">T-shirt · 15 $</option><option value="manches">Chandail manches longues · 15 $</option><option value="ouate">Coton ouaté · 18 $</option><option value="cache">Cache-couche · 15 $</option><option value="bavette">Bavette · 15 $</option><option value="sac">Sac réutilisable · 15 $</option></select></label><label>Grandeur<select class="extra-size" required disabled><option value="">Choisir le vêtement d’abord</option></select></label></div><label>Couleur du vêtement<select class="extra-color" required disabled><option value="">Choisir le vêtement d’abord</option></select></label>';
+      extra.innerHTML='<div class="participant-head"><h4>VÊTEMENT SUPPLÉMENTAIRE</h4><button type="button" class="remove extra-remove">Retirer</button></div><div class="form-row"><label>Vêtement<select class="extra-type" required><option value="">Choisir un vêtement</option><option value="tshirt">T-shirt · 15 $</option><option value="manches">Chandail manches longues · 15 $</option><option value="ouate">Coton ouaté · 18 $</option><option value="cache">Cache-couche · 15 $</option><option value="bavette">Bavette · 15 $</option><option value="sac">Sac réutilisable · 10 $</option></select></label><label>Grandeur<select class="extra-size" required disabled><option value="">Choisir le vêtement d’abord</option></select></label></div><label>Couleur du vêtement<select class="extra-color" required disabled><option value="">Choisir le vêtement d’abord</option></select></label>';
       const kind=extra.querySelector('.extra-type'),size=extra.querySelector('.extra-size'),color=extra.querySelector('.extra-color');
       kind.addEventListener('change',()=>{
         size.innerHTML='<option value="">Choisir une grandeur</option>'+(options[kind.value]||[]).map(x=>'<option value="'+escape(x)+'">'+escape(x)+'</option>').join('');
@@ -251,7 +251,7 @@ body{--orange:#c52939;--pine:#0d422e}
         vetement:extra.querySelector('.extra-type').selectedOptions[0].text,
         grandeur:extra.querySelector('.extra-size').value,
         couleur:extra.querySelector('.extra-color').value,
-        prix:extra.querySelector('.extra-type').value==='ouate'?18:15
+        prix:extra.querySelector('.extra-type').value==='ouate'?18:extra.querySelector('.extra-type').value==='sac'?10:15
       }))
     }));
     const extras=participants.flatMap(p=>p.supplementaires);
