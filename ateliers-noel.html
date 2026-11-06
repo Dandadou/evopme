@@ -50,6 +50,31 @@
 .noel-accent{color:var(--orange)}
 @media(max-width:850px){.noel-hero,.noel-signup{grid-template-columns:1fr}.noel-signup{gap:20px}.noel-hero .hero-card{min-height:250px}.noel-signup .contact-form{padding:22px}.noel-lights{height:45px}}
 @media(prefers-reduced-motion:reduce){.noel-lights i{box-shadow:none}}
+
+/* Noël 2026 : vert sapin dominant, touches or et rouge */
+.noel-hero,.noel-signup{background:radial-gradient(circle at 90% 8%,rgba(28,88,57,.28),transparent 44%)}
+.noel-hero h1 em,.noel-signup h2 em,.noel-accent{color:#8ac7a0}
+.noel-hero .hero-card{background:linear-gradient(145deg,#175038,#09261b);border:1px solid #48785b}
+.noel-hero .hero-card strong,.noel-signup .total strong{color:#f6dc9b}
+.noel-signup .help-list li:before{color:#a0d6a8}
+.noel-signup .contact-form{border:1px solid #305841}
+.noel-signup .participant{background:#10221b;border-color:#31543e}
+.noel-signup .secondary{border-color:#6a9578}
+.noel-hero .button,.noel-bottom .button,.noel-signup .form-submit{background:#176b47!important;color:#fff!important}
+.noel-bottom{background:#e6ebdf}
+.noel-lights{background:#0b241c;border-color:#34513d}
+.noel-lights i{animation:noel-glow 2.7s ease-in-out infinite alternate}
+.noel-lights i:nth-child(2n){animation-delay:.7s}
+.noel-lights i:nth-child(3n){animation-delay:1.2s}
+@keyframes noel-glow{from{opacity:.6;filter:brightness(.75)}to{opacity:1;filter:brightness(1.3)}}
+.noel-location{margin-top:25px;border-left:3px solid #b4d3a8;padding-left:16px;color:#e4eee5;line-height:1.65}
+.noel-groups{background:#103c2c;color:#fff;border-top:1px solid #3a7656;padding-top:55px;padding-bottom:65px}
+.noel-groups h2{font-size:clamp(2rem,4vw,4rem);margin:12px 0}
+.noel-groups p{max-width:760px;line-height:1.7;color:#e0e9e0}
+.noel-groups .group-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}
+.noel-groups .group-actions a{display:inline-block;padding:14px 19px;border:1px solid #9ec3aa;color:#fff;border-radius:999px;font-weight:800;text-decoration:none}
+.noel-groups .group-actions a:first-child{background:#f2d79b;color:#163d2b;border-color:#f2d79b}
+@media(prefers-reduced-motion:reduce){.noel-lights i{animation:none}}
 </style>
 </head>
 <body>
@@ -63,12 +88,12 @@
 <div class="ticker"><div class="ticker-track"><span>CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUX NOËL!</i> &nbsp;✦&nbsp; </span><span aria-hidden="true">CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUX NOËL!</i> &nbsp;✦&nbsp; </span></div></div>
 <section class="noel-signup" id="inscription">
 <div><span class="eyebrow">ATELIERS DE NOËL · INSCRIPTION</span><h2>À TON TOUR<br>DE <em>CRÉER.</em></h2><p class="description">Choisis le vêtement et la grandeur de chaque participant. Tu peux inscrire toute la famille en une seule demande. Nous communiquerons avec toi pour confirmer la séance et les disponibilités.</p>
-<ul class="help-list"><li>60 $ par participant</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>Saint-Roch-de-l'Achigan</li></ul>
-<p class="description" style="font-size:.85rem">Les dates ne sont pas encore publiées sur cette page. L'envoi constitue une demande d'inscription, pas une réservation confirmée.</p></div>
+<ul class="help-list"><li>60 $ par participant</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>5, rue Industrielle, Saint-Roch-de-l'Achigan</li></ul>
+<p class="noel-location"><strong>📍 Lieu de l’atelier</strong><br>5, rue Industrielle<br>Saint-Roch-de-l’Achigan (Québec)</p><p class="description" style="font-size:.85rem">Toutes les séances ont lieu de 13 h à 15 h. L’envoi du formulaire est une demande d’inscription; nous confirmerons les places disponibles.</p></div>
 <form id="atelier-form" class="contact-form" novalidate>
 <h3>DEMANDE D'INSCRIPTION</h3>
 <div class="form-row"><label>Nom du responsable<input name="nom" type="text" autocomplete="name" required maxlength="120" placeholder="Votre nom"></label><label>Courriel<input name="courriel" type="email" autocomplete="email" required maxlength="180" placeholder="vous@exemple.ca"></label></div>
-<div class="form-row"><label>Téléphone<input name="telephone" type="tel" autocomplete="tel" required maxlength="30" placeholder="Votre numéro"></label><label>Préférence de séance<select name="preference" required><option value="">Choisir une préférence</option><option>Fin de semaine</option><option>Semaine en soirée</option><option>Flexible / à confirmer</option></select></label></div>
+<div class="form-row"><label>Téléphone<input name="telephone" type="tel" autocomplete="tel" required maxlength="30" placeholder="Votre numéro"></label><label>Date de l’atelier<select name="date_atelier" required><option value="">Choisir une date</option><option value="2026-11-21">Samedi 21 novembre 2026 · 13 h à 15 h</option><option value="2026-11-28">Samedi 28 novembre 2026 · 13 h à 15 h</option><option value="2026-12-04">Vendredi 4 décembre 2026 · 13 h à 15 h</option><option value="2026-12-05">Samedi 5 décembre 2026 · 13 h à 15 h</option><option value="2026-12-11">Vendredi 11 décembre 2026 · 13 h à 15 h</option><option value="2026-12-12">Samedi 12 décembre 2026 · 13 h à 15 h</option><option value="2026-12-18">Vendredi 18 décembre 2026 · 13 h à 15 h</option><option value="2026-12-19">Samedi 19 décembre 2026 · 13 h à 15 h</option></select></label></div>
 <div id="participants"></div><button type="button" class="secondary" id="add-participant">+ AJOUTER UN PARTICIPANT</button>
 <div class="total"><span>TOTAL ESTIMÉ <small id="count" style="display:block;color:#999;margin-top:4px">1 participant</small></span><strong id="total">60 $</strong></div>
 <label style="margin-top:22px">Précisions (facultatif)<textarea name="notes" rows="3" placeholder="Une question ou un besoin particulier?"></textarea></label>
@@ -77,7 +102,7 @@
 <button type="submit" class="form-submit">ENVOYER MA DEMANDE →</button><div class="form-status" role="status" tabindex="-1" aria-live="polite"></div>
 </form></section>
 <section class="noel-bottom"><span class="eyebrow">UNE EXPÉRIENCE À PARTAGER</span><h2>UN NOËL QUI<br>VOUS RESSEMBLE.</h2><p>En famille, entre amis ou en solo, laisse parler ta créativité. Pas besoin d'être un artiste : on est là pour t'accompagner.</p><a class="button" href="#inscription">CHOISIR MON VÊTEMENT →</a></section>
-</main><footer class="site-footer"><span>© Évolution PME 2026</span><span>Une création d'Évolution PME — Créateur de marques.</span></footer>
+<section class="noel-groups"><span class="eyebrow">ENTREPRISES ET GROUPES</span><h2>UN NOËL D’ÉQUIPE<br>QUI SORT DE L’ORDINAIRE.</h2><p>Vous cherchez une activité originale pour votre entreprise? Réservez une journée d’atelier privé avec Évolution PME et offrez à votre équipe un moment créatif, rassembleur et festif. Vous organisez une activité pour un groupe? Contactez-nous pour une soumission adaptée à vos besoins.</p><div class="group-actions"><a href="tel:+14384092203">APPELEZ-NOUS · 438 409-2203</a><a href="mailto:info@evolutionpme.ca?subject=Soumission%20atelier%20de%20No%C3%ABl%20pour%20un%20groupe">DEMANDER UNE SOUMISSION PAR COURRIEL</a></div></section></main><footer class="site-footer"><span>© Évolution PME 2026</span><span>Une création d'Évolution PME — Créateur de marques.</span></footer>
 <script src="/assets/navigation.js" defer></script>
 <script>
 (() => {
@@ -130,11 +155,11 @@
     }));
     const data=new FormData();
     data.set('form_type','atelier_noel');data.set('nom',form.elements.nom.value.trim());data.set('courriel',form.elements.courriel.value.trim());
-    data.set('telephone',form.elements.telephone.value.trim());data.set('preference_seance',form.elements.preference.value);
+    data.set('telephone',form.elements.telephone.value.trim());data.set('date_atelier',form.elements.date_atelier.value);data.set('heure_atelier','13 h à 15 h');data.set('lieu_atelier','5, rue Industrielle, Saint-Roch-de-l’Achigan');
     data.set('nombre_participants',String(participants.length));data.set('total_estime',String(participants.length*60)+' $');
     data.set('details_participants',participants.map((p,i)=>[i+1,p.prenom,p.vetement,p.grandeur,p.couleur].join(' | ')).join('\n'));
     data.set('notes',form.elements.notes.value.trim());
-    data.set('message','Demande d’inscription aux ateliers de Noël — '+participants.length+' participant(s).');
+    data.set('message','Demande d’inscription aux ateliers de Noël — '+form.elements.date_atelier.selectedOptions[0].text+' — '+participants.length+' participant(s).');
     btn.disabled=true;btn.textContent='ENVOI EN COURS…';
     status.className='form-status show';status.textContent='Envoi de votre demande…';
     try {
