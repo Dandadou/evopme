@@ -189,7 +189,7 @@ body{--orange:#c52939;--pine:#0d422e}
     const extras=[...list.querySelectorAll('.extra-vetement')];
     const extrasTotal=extras.reduce((sum,card)=>sum+(card.querySelector('.extra-type').value==='ouate'?18:15),0);
     document.querySelector('#count').textContent=n+' participant'+(n>1?'s':'')+' · '+extras.length+' vêtement'+(extras.length>1?'s':'')+' supplémentaire'+(extras.length>1?'s':'')+' · taxes incluses';
-    document.querySelector('#total').textContent=(n*60+extrasTotal).toLocaleString('fr-CA')+' 
+    document.querySelector('#total').textContent=(n*60+extrasTotal).toLocaleString('fr-CA')+' $';
     list.querySelectorAll('.participant').forEach((card,i)=>{
       card.querySelector('h4').textContent='PARTICIPANT '+(i+1);
       card.querySelector('.remove').hidden=n===1;
@@ -266,63 +266,6 @@ body{--orange:#c52939;--pine:#0d422e}
     ].join('\n')).join('\n'));
     data.set('notes',form.elements.notes.value.trim());
     data.set('message','Demande d’inscription aux ateliers de Noël — '+form.elements.date_atelier.selectedOptions[0].text+' — '+participants.length+' participant(s), '+extras.length+' supplément(s), total '+total+' $ taxes incluses.');
-    btn.disabled=true;btn.textContent='ENVOI EN COURS…';
-    status.className='form-status show';status.textContent='Envoi de votre demande…';
-    try {
-      const response=await fetch('/api/forms',{method:'POST',body:data,headers:{Accept:'application/json'}});
-      const result=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(result.error||'Impossible d’envoyer la demande.');
-      status.className='form-status show success';status.textContent='Demande envoyée! Évolution PME communiquera avec vous pour confirmer la séance et les disponibilités. Aucun paiement n’a été prélevé.';
-      form.reset();list.replaceChildren();add();
-    } catch(error) {
-      status.className='form-status show error';status.textContent='L’envoi a échoué. '+error.message+' Écrivez à info@evolutionpme.ca.';
-    } finally {btn.disabled=false;btn.textContent='ENVOYER MA DEMANDE →';status.focus();}
-  });
-})();
-</script>
-</body></html>;
-    list.querySelectorAll('.participant').forEach((card,i)=>{
-      card.querySelector('h4').textContent='PARTICIPANT '+(i+1);
-      card.querySelector('.remove').hidden=n===1;
-    });
-  }
-  function add(){
-    if(list.children.length>=20)return;
-    const id=++uid;
-    const card=document.createElement('div');card.className='participant';card.dataset.id=id;
-    card.innerHTML='<div class="participant-head"><h4></h4><button type="button" class="remove">Retirer</button></div><div class="form-row"><label>Prénom du participant<input type="text" class="prenom" required maxlength="100" placeholder="Prénom"></label><label>Choix du vêtement<select class="vetement" required><option value="">Choisir un vêtement</option><option value="tshirt">T-shirt</option><option value="manches">Chandail manches longues</option><option value="ouate">Coton ouaté</option><option value="cache">Cache-couche</option><option value="bavette">Bavette</option><option value="sac">Sac réutilisable</option></select></label></div><div class="form-row"><label>Grandeur<select class="grandeur" required disabled><option value="">Choisir le vêtement d’abord</option></select></label><label>Couleur du vêtement<select class="couleur" required disabled><option value="">Choisir le vêtement d’abord</option></select></label></div>';
-    const select=card.querySelector('.vetement'), size=card.querySelector('.grandeur');
-    select.addEventListener('change',()=>{
-      size.innerHTML='<option value="">Choisir une grandeur</option>'+ (options[select.value]||[]).map(x=>'<option value="'+escape(x)+'">'+escape(x)+'</option>').join('');
-      size.disabled=!select.value;
-      const color=card.querySelector('.couleur');
-      const multi=['cache','bavette','sac'].includes(select.value);
-      color.innerHTML=multi ? '<option value="">Choisir une couleur</option><option>Blanc</option><option>Rouge</option><option>Vert</option>' : '<option value="Blanc">Blanc seulement</option>';
-      color.disabled=!select.value;
-      if(!multi && select.value) color.value='Blanc';
-    });
-    card.querySelector('.remove').addEventListener('click',()=>{card.remove();update()});
-    list.append(card);update();
-  }
-  document.querySelector('#add-participant').addEventListener('click',add);
-  add();
-  form.addEventListener('submit', async event=>{
-    event.preventDefault();
-    if(!form.reportValidity())return;
-    const btn=form.querySelector('[type="submit"]');
-    const participants=[...list.children].map(card=>({
-      prenom:card.querySelector('.prenom').value.trim(),
-      vetement:card.querySelector('.vetement').selectedOptions[0].text,
-      grandeur:card.querySelector('.grandeur').value,
-      couleur:card.querySelector('.couleur').value
-    }));
-    const data=new FormData();
-    data.set('form_type','atelier_noel');data.set('nom',form.elements.nom.value.trim());data.set('courriel',form.elements.courriel.value.trim());
-    data.set('telephone',form.elements.telephone.value.trim());data.set('date_atelier',form.elements.date_atelier.value);data.set('heure_atelier','13 h à 15 h');data.set('lieu_atelier','5, rue Industrielle, Saint-Roch-de-l’Achigan');
-    data.set('nombre_participants',String(participants.length));data.set('total_estime',String(participants.length*60)+' $');
-    data.set('details_participants',participants.map((p,i)=>[i+1,p.prenom,p.vetement,p.grandeur,p.couleur].join(' | ')).join('\n'));
-    data.set('notes',form.elements.notes.value.trim());
-    data.set('message','Demande d’inscription aux ateliers de Noël — '+form.elements.date_atelier.selectedOptions[0].text+' — '+participants.length+' participant(s).');
     btn.disabled=true;btn.textContent='ENVOI EN COURS…';
     status.className='form-status show';status.textContent='Envoi de votre demande…';
     try {
