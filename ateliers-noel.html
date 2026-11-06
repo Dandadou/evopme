@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ateliers de Noël — Inscription | Évolution PME</title>
+<meta name="description" content="Inscrivez-vous à l'atelier Viens faire ton chandail de Noël d'Évolution PME. 60 $ par personne, vêtement et matériel inclus.">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="canonical" href="https://evolutionpme.ca/ateliers-noel.html">
+<style>
+.noel-lights{height:56px;position:relative;overflow:hidden;pointer-events:none;background:#101012;border-bottom:1px solid #303035}
+.noel-lights:before{content:"";position:absolute;left:-2%;right:-2%;top:-15px;height:36px;border-bottom:2px solid #656057;border-radius:50%}
+.noel-lights .bulbs{display:flex;justify-content:space-around;gap:18px;position:absolute;inset:14px 0 auto}
+.noel-lights i{display:block;position:relative;width:10px;height:17px;border-radius:5px 5px 8px 8px;transform:rotate(8deg);background:#f6a529;box-shadow:0 0 11px 3px #f6a52966}
+.noel-lights i:nth-child(3n){background:#c74140;box-shadow:0 0 11px 3px #c7414066}
+.noel-lights i:nth-child(3n+2){background:#7aaf72;box-shadow:0 0 11px 3px #7aaf7266}
+.noel-lights i:before{content:"";position:absolute;top:-5px;left:2px;width:6px;height:5px;background:#56514b;border-radius:2px}
+.noel-hero{min-height:0;padding-top:65px;padding-bottom:65px;grid-template-columns:1.1fr .9fr;gap:30px}
+.noel-hero h1{font-size:clamp(3.1rem,6vw,6.6rem)}
+.noel-hero h1 em{color:var(--orange)}
+.noel-hero .hero-card{transform:none;min-height:320px;border-radius:28px;overflow:hidden;padding:28px;text-align:center}
+.noel-hero .hero-card strong{font-size:clamp(4rem,8vw,7.5rem);line-height:1;color:var(--orange);letter-spacing:-.08em}
+.noel-hero .hero-card span{font-size:1.1rem;font-weight:900}
+.noel-hero .hero-card p{max-width:270px;margin:20px auto 0;color:#aaa;font-size:.95rem;letter-spacing:0}
+.noel-hero .facts{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.noel-hero .facts span{padding:12px 16px;border:1px solid #47474c;border-radius:100px;font-size:.82rem;font-weight:800}
+.noel-signup{display:grid;grid-template-columns:.78fr 1.22fr;gap:45px;align-items:start;padding-top:75px}
+.noel-signup h2{font-size:clamp(2.7rem,4.7vw,4.9rem)}
+.noel-signup h2 em{font-style:normal;color:var(--orange)}
+.noel-signup .description{color:#aaa;line-height:1.75;font-size:1.03rem}
+.noel-signup .help-list{margin:30px 0;padding:0;list-style:none;color:#d3d3d3;line-height:2.2}
+.noel-signup .help-list li:before{content:"✓";color:var(--orange);margin-right:12px;font-weight:900}
+.noel-signup .contact-form{min-width:0}
+.noel-signup .contact-form h3{font-size:1.45rem;margin:0 0 25px;letter-spacing:-.02em}
+.noel-signup .contact-form .form-row{gap:14px}
+.noel-signup .contact-form label{line-height:1.4}
+.noel-signup .contact-form select{appearance:auto}
+.noel-signup .contact-form .participant{border:1px solid #45454b;background:#111113;border-radius:18px;padding:22px;margin:14px 0}
+.noel-signup .participant-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:15px}
+.noel-signup .participant-head h4{font-size:1rem;margin:0}
+.noel-signup .remove{color:#ffb7a2;background:transparent;border:1px solid #704537;border-radius:8px;padding:9px;cursor:pointer}
+.noel-signup .secondary{border:1px solid #6b6b70;background:transparent;color:#fff;padding:13px 18px;border-radius:12px;cursor:pointer;font-weight:850}
+.noel-signup .total{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:22px 0;margin-top:22px;border-top:1px solid #444;border-bottom:1px solid #444}
+.noel-signup .total strong{font-size:2.2rem;color:var(--orange)}
+.noel-signup .smallprint{font-size:.8rem;color:#999;line-height:1.6;margin:18px 0}
+.noel-signup .form-status{display:none}
+.noel-signup .form-status.show{display:block}
+.noel-bottom{max-width:none;background:var(--cream);color:#111;padding-left:max(5vw,calc((100vw - 1280px)/2 + 5vw));padding-right:max(5vw,calc((100vw - 1280px)/2 + 5vw))}
+.noel-bottom h2{font-size:clamp(2.6rem,5vw,5rem)}
+.noel-bottom p{max-width:780px;line-height:1.7}
+.noel-accent{color:var(--orange)}
+@media(max-width:850px){.noel-hero,.noel-signup{grid-template-columns:1fr}.noel-signup{gap:20px}.noel-hero .hero-card{min-height:250px}.noel-signup .contact-form{padding:22px}.noel-lights{height:45px}}
+@media(prefers-reduced-motion:reduce){.noel-lights i{box-shadow:none}}
+</style>
+</head>
+<body>
+<header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/services.html">Services</a><a href="/formations.html">Formations</a><a href="/catalogues.html">Catalogues</a><a href="/a-propos.html">À propos</a><a href="/contact.html">Contact</a><a class="pill" href="/">Accueil</a></nav></header>
+<div class="noel-lights" aria-hidden="true"><div class="bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+<main>
+<section class="hero noel-hero">
+<div><span class="eyebrow">ÉVÉNEMENT CRÉATIF · NOËL 2026</span><h1>VIENS FAIRE<br>TON <em>CHANDAIL<br>DE NOËL.</em></h1><p>Un moment festif pour personnaliser ton vêtement et créer un souvenir à ton image. Les idées prennent vie, un chandail à la fois.</p><div class="facts"><span>✦ Activité pour tous</span><span>✦ Vêtement et matériel inclus</span><span>✦ Atelier de 2 heures</span></div><div class="actions"><a class="button" href="#inscription">JE M'INSCRIS →</a></div></div>
+<aside class="hero-card"><span>PRIX PAR PERSONNE</span><strong>60 $</strong><p>Vêtement et matériel de création inclus. Une activité conviviale pour petits et grands.</p></aside>
+</section>
+<div class="ticker"><div class="ticker-track"><span>CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUX NOËL!</i> &nbsp;✦&nbsp; </span><span aria-hidden="true">CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUX NOËL!</i> &nbsp;✦&nbsp; </span></div></div>
+<section class="noel-signup" id="inscription">
+<div><span class="eyebrow">ATELIERS DE NOËL · INSCRIPTION</span><h2>À TON TOUR<br>DE <em>CRÉER.</em></h2><p class="description">Choisis le vêtement et la grandeur de chaque participant. Tu peux inscrire toute la famille en une seule demande. Nous communiquerons avec toi pour confirmer la séance et les disponibilités.</p>
+<ul class="help-list"><li>60 $ par participant</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>Saint-Roch-de-l'Achigan</li></ul>
+<p class="description" style="font-size:.85rem">Les dates ne sont pas encore publiées sur cette page. L'envoi constitue une demande d'inscription, pas une réservation confirmée.</p></div>
+<form id="atelier-form" class="contact-form" novalidate>
+<h3>DEMANDE D'INSCRIPTION</h3>
+<div class="form-row"><label>Nom du responsable<input name="nom" type="text" autocomplete="name" required maxlength="120" placeholder="Votre nom"></label><label>Courriel<input name="courriel" type="email" autocomplete="email" required maxlength="180" placeholder="vous@exemple.ca"></label></div>
+<div class="form-row"><label>Téléphone<input name="telephone" type="tel" autocomplete="tel" required maxlength="30" placeholder="Votre numéro"></label><label>Préférence de séance<select name="preference" required><option value="">Choisir une préférence</option><option>Fin de semaine</option><option>Semaine en soirée</option><option>Flexible / à confirmer</option></select></label></div>
+<div id="participants"></div><button type="button" class="secondary" id="add-participant">+ AJOUTER UN PARTICIPANT</button>
+<div class="total"><span>TOTAL ESTIMÉ <small id="count" style="display:block;color:#999;margin-top:4px">1 participant</small></span><strong id="total">60 $</strong></div>
+<label style="margin-top:22px">Précisions (facultatif)<textarea name="notes" rows="3" placeholder="Une question ou un besoin particulier?"></textarea></label>
+<label style="display:flex;flex-direction:row;align-items:flex-start;text-transform:none;letter-spacing:0;font-weight:500;gap:12px"><input type="checkbox" name="accord" required style="width:auto;margin-top:3px"> Je comprends qu'il s'agit d'une demande et que ma place sera confirmée séparément.</label>
+<p class="smallprint">Aucun paiement n'est prélevé sur cette page. Les choix de vêtements sont soumis à disponibilité. Les tarifs et conditions définitifs seront confirmés avant paiement.</p>
+<button type="submit" class="form-submit">ENVOYER MA DEMANDE →</button><div class="form-status" role="status" tabindex="-1" aria-live="polite"></div>
+</form></section>
+<section class="noel-bottom"><span class="eyebrow">UNE EXPÉRIENCE À PARTAGER</span><h2>UN NOËL QUI<br>VOUS RESSEMBLE.</h2><p>En famille, entre amis ou en solo, laisse parler ta créativité. Pas besoin d'être un artiste : on est là pour t'accompagner.</p><a class="button" href="#inscription">CHOISIR MON VÊTEMENT →</a></section>
+</main><footer class="site-footer"><span>© Évolution PME 2026</span><span>Une création d'Évolution PME — Créateur de marques.</span></footer>
+<script src="/assets/navigation.js" defer></script>
+<script>
+(() => {
+  const form = document.querySelector('#atelier-form');
+  const list = document.querySelector('#participants');
+  const status = form.querySelector('.form-status');
+  const options = {
+    tshirt:['Enfant 2 ans','Enfant 4 ans','Enfant 6 ans','Enfant 8 ans','Enfant 10 ans','Enfant 12 ans','XS','S','M','L','XL','2XL','3XL'],
+    manches:['Enfant 2 ans','Enfant 4 ans','Enfant 6 ans','Enfant 8 ans','Enfant 10 ans','Enfant 12 ans','XS','S','M','L','XL','2XL','3XL'],
+    ouate:['Enfant XS','Enfant S','Enfant M','Enfant L','Enfant XL','XS','S','M','L','XL','2XL','3XL'],
+    cache:['0-3 mois','3-6 mois','6-12 mois','12-18 mois','18-24 mois'],
+    bavette:['Taille unique'],
+    sac:['Taille unique']
+  };
+  let uid = 0;
+  const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function update() {
+    const n=list.children.length;
+    document.querySelector('#count').textContent=n+' participant'+(n>1?'s':'');
+    document.querySelector('#total').textContent=(n*60).toLocaleString('fr-CA')+' $';
+    list.querySelectorAll('.participant').forEach((card,i)=>{
+      card.querySelector('h4').textContent='PARTICIPANT '+(i+1);
+      card.querySelector('.remove').hidden=n===1;
+    });
+  }
+  function add(){
+    if(list.children.length>=20)return;
+    const id=++uid;
+    const card=document.createElement('div');card.className='participant';card.dataset.id=id;
+    card.innerHTML='<div class="participant-head"><h4></h4><button type="button" class="remove">Retirer</button></div><div class="form-row"><label>Prénom du participant<input type="text" class="prenom" required maxlength="100" placeholder="Prénom"></label><label>Choix du vêtement<select class="vetement" required><option value="">Choisir un vêtement</option><option value="tshirt">T-shirt</option><option value="manches">Chandail manches longues</option><option value="ouate">Coton ouaté</option><option value="cache">Cache-couche</option><option value="bavette">Bavette</option><option value="sac">Sac réutilisable</option></select></label></div><div class="form-row"><label>Grandeur<select class="grandeur" required disabled><option value="">Choisir le vêtement d’abord</option></select></label><label>Couleur souhaitée<select class="couleur"><option value="Sans préférence">Sans préférence</option><option>Blanc</option><option>Rouge</option><option>Vert</option></select></label></div>';
+    const select=card.querySelector('.vetement'), size=card.querySelector('.grandeur');
+    select.addEventListener('change',()=>{
+      size.innerHTML='<option value="">Choisir une grandeur</option>'+ (options[select.value]||[]).map(x=>'<option value="'+escape(x)+'">'+escape(x)+'</option>').join('');
+      size.disabled=!select.value;
+    });
+    card.querySelector('.remove').addEventListener('click',()=>{card.remove();update()});
+    list.append(card);update();
+  }
+  document.querySelector('#add-participant').addEventListener('click',add);
+  add();
+  form.addEventListener('submit', async event=>{
+    event.preventDefault();
+    if(!form.reportValidity())return;
+    const btn=form.querySelector('[type="submit"]');
+    const participants=[...list.children].map(card=>({
+      prenom:card.querySelector('.prenom').value.trim(),
+      vetement:card.querySelector('.vetement').selectedOptions[0].text,
+      grandeur:card.querySelector('.grandeur').value,
+      couleur:card.querySelector('.couleur').value
+    }));
+    const data=new FormData();
+    data.set('form_type','atelier_noel');data.set('nom',form.elements.nom.value.trim());data.set('courriel',form.elements.courriel.value.trim());
+    data.set('telephone',form.elements.telephone.value.trim());data.set('preference_seance',form.elements.preference.value);
+    data.set('nombre_participants',String(participants.length));data.set('total_estime',String(participants.length*60)+' $');
+    data.set('details_participants',participants.map((p,i)=>[i+1,p.prenom,p.vetement,p.grandeur,p.couleur].join(' | ')).join('\n'));
+    data.set('notes',form.elements.notes.value.trim());
+    data.set('message','Demande d’inscription aux ateliers de Noël — '+participants.length+' participant(s).');
+    btn.disabled=true;btn.textContent='ENVOI EN COURS…';
+    status.className='form-status show';status.textContent='Envoi de votre demande…';
+    try {
+      const response=await fetch('/api/forms',{method:'POST',body:data,headers:{Accept:'application/json'}});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'Impossible d’envoyer la demande.');
+      status.className='form-status show success';status.textContent='Demande envoyée! Évolution PME communiquera avec vous pour confirmer la séance et les disponibilités. Aucun paiement n’a été prélevé.';
+      form.reset();list.replaceChildren();add();
+    } catch(error) {
+      status.className='form-status show error';status.textContent='L’envoi a échoué. '+error.message+' Écrivez à info@evolutionpme.ca.';
+    } finally {btn.disabled=false;btn.textContent='ENVOYER MA DEMANDE →';status.focus();}
+  });
+})();
+</script>
+</body></html>
