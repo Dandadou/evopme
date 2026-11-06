@@ -6,8 +6,8 @@
 .holiday-callout>a:hover{transform:translateY(-2px);background:#ae293a}
 .hero{position:relative;isolation:isolate;overflow:hidden}
 .hero::before,.hero::after{content:"";position:absolute;inset:-120px 0 0;pointer-events:none;z-index:1;will-change:background-position}
-.hero::before{opacity:.43;background-image:radial-gradient(1.5px 1.5px at 12px 14px,#fff 99%,transparent),radial-gradient(1px 1px at 85px 70px,#fff 99%,transparent),radial-gradient(1.8px 1.8px at 157px 120px,#dceef1 99%,transparent);background-size:210px 220px,280px 260px,340px 330px;animation:gentle-snow 32s linear infinite}
-.hero::after{opacity:.25;background-image:radial-gradient(2px 2px at 45px 32px,#fff 99%,transparent),radial-gradient(1.25px 1.25px at 160px 140px,#d9efff 99%,transparent);background-size:310px 360px,390px 420px;animation:gentle-snow-drift 48s linear infinite}
+.hero::before{opacity:.43;background-image:radial-gradient(1.5px 1.5px at 12px 14px,#fff 99%,transparent),radial-gradient(1px 1px at 85px 70px,#fff 99%,transparent),radial-gradient(1.8px 1.8px at 157px 120px,#dceef1 99%,transparent);background-size:210px 220px,280px 260px,340px 330px;animation:gentle-snow 12s linear infinite}
+.hero::after{opacity:.25;background-image:radial-gradient(2px 2px at 45px 32px,#fff 99%,transparent),radial-gradient(1.25px 1.25px at 160px 140px,#d9efff 99%,transparent);background-size:310px 360px,390px 420px;animation:gentle-snow-drift 19s linear infinite}
 @keyframes gentle-snow{from{background-position:0 -220px,0 -260px,0 -330px}to{background-position:30px 0,48px 0,-20px 0}}
 @keyframes gentle-snow-drift{from{background-position:0 -360px,0 -420px}to{background-position:-45px 0,34px 0}}
 @media(max-width:850px){.holiday-callout{padding:14px 18px}.holiday-callout>a{padding:11px 19px}}
