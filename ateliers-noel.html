@@ -75,6 +75,33 @@
 .noel-groups .group-actions a{display:inline-block;padding:14px 19px;border:1px solid #9ec3aa;color:#fff;border-radius:999px;font-weight:800;text-decoration:none}
 .noel-groups .group-actions a:first-child{background:#f2d79b;color:#163d2b;border-color:#f2d79b}
 @media(prefers-reduced-motion:reduce){.noel-lights i{animation:none}}
+
+/* Palette Noël: vert sapin, rouge, blanc - sans orange */
+body{--orange:#c52939;--pine:#0d422e}
+.noel-hero,.noel-signup{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 88% 12%,rgba(16,101,65,.32),transparent 53%),linear-gradient(145deg,#091b15,#10291f)!important}
+.noel-hero::before,.noel-signup::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.24;background-image:radial-gradient(circle,#fff 1px,transparent 1.7px);background-size:42px 48px}
+.noel-hero::after{content:"🎄";font-size:clamp(7rem,18vw,15rem);position:absolute;right:4%;bottom:-38px;opacity:.25;pointer-events:none;z-index:-1;transform:rotate(-8deg)}
+.noel-signup::after{content:"🎄";font-size:clamp(5rem,10vw,10rem);position:absolute;left:2%;bottom:8px;opacity:.18;pointer-events:none;z-index:-1}
+.noel-hero h1 em{color:#fff4e4!important;text-shadow:3px 3px 0 #9d2130}
+.noel-signup h2 em{color:#ffd2d5!important}
+.noel-hero .hero-card{background:linear-gradient(145deg,#ad2133,#4b1320)!important;border:2px solid #ffd9a2;box-shadow:0 25px 60px rgba(0,0,0,.26)}
+.noel-hero .hero-card strong{color:#fff7dd!important}
+.noel-signup .total strong{color:#f6d0d1!important}
+.noel-hero .button,.noel-bottom .button,.noel-signup .form-submit{background:#bd263a!important;color:#fff!important;box-shadow:none!important}
+.noel-hero .button:hover,.noel-bottom .button:hover,.noel-signup .form-submit:hover{background:#a31d31!important}
+.noel-signup .contact-form{background:#10261c;border:1px solid #47735c}
+.noel-signup .participant{background:#153527;border-color:#4e725a}
+.noel-signup .secondary{border-color:#d88a93}
+.noel-signup .help-list li:before{color:#ffccd0}
+.noel-bottom{background:#eaf0e8!important}
+.noel-groups{background:#113927}
+.noel-groups .group-actions a:first-child{background:#c52939;color:#fff;border-color:#c52939}
+.noel-lights{background:#0a291d}
+.noel-lights i{background:#ffd9a2;box-shadow:0 0 13px 3px #ffd9a277}
+.noel-lights i:nth-child(3n){background:#ed4659;box-shadow:0 0 13px 3px #ed465988}
+.noel-lights i:nth-child(3n+2){background:#86d9a7;box-shadow:0 0 13px 3px #86d9a788}
+.ticker{background:#bb2135!important;color:#fff!important;border-color:#8f1e2d!important}
+.ticker-track,.ticker-track span,.ticker-track i{color:#fff!important}
 </style>
 </head>
 <body>
@@ -85,7 +112,7 @@
 <div><span class="eyebrow">ÉVÉNEMENT CRÉATIF · NOËL 2026</span><h1>VIENS FAIRE<br>TON <em>CHANDAIL<br>DE NOËL.</em></h1><p>Un moment festif pour personnaliser ton vêtement et créer un souvenir à ton image. Les idées prennent vie, un chandail à la fois.</p><div class="facts"><span>✦ Activité pour tous</span><span>✦ Vêtement et matériel inclus</span><span>✦ Atelier de 2 heures</span></div><div class="actions"><a class="button" href="#inscription">JE M'INSCRIS →</a></div></div>
 <aside class="hero-card"><span>PRIX PAR PERSONNE</span><strong>60 $</strong><p>Vêtement et matériel de création inclus. Une activité conviviale pour petits et grands.</p></aside>
 </section>
-<div class="ticker"><div class="ticker-track"><span>CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUX NOËL!</i> &nbsp;✦&nbsp; </span><span aria-hidden="true">CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUX NOËL!</i> &nbsp;✦&nbsp; </span></div></div>
+<div class="ticker"><div class="ticker-track"><span>CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUSES FÊTES ET BONNE ANNÉE!</i> &nbsp;✦&nbsp; </span><span aria-hidden="true">CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUSES FÊTES ET BONNE ANNÉE!</i> &nbsp;✦&nbsp; </span></div></div>
 <section class="noel-signup" id="inscription">
 <div><span class="eyebrow">ATELIERS DE NOËL · INSCRIPTION</span><h2>À TON TOUR<br>DE <em>CRÉER.</em></h2><p class="description">Choisis le vêtement et la grandeur de chaque participant. Tu peux inscrire toute la famille en une seule demande. Nous communiquerons avec toi pour confirmer la séance et les disponibilités.</p>
 <ul class="help-list"><li>60 $ par participant</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>5, rue Industrielle, Saint-Roch-de-l'Achigan</li></ul>
@@ -132,11 +159,16 @@
     if(list.children.length>=20)return;
     const id=++uid;
     const card=document.createElement('div');card.className='participant';card.dataset.id=id;
-    card.innerHTML='<div class="participant-head"><h4></h4><button type="button" class="remove">Retirer</button></div><div class="form-row"><label>Prénom du participant<input type="text" class="prenom" required maxlength="100" placeholder="Prénom"></label><label>Choix du vêtement<select class="vetement" required><option value="">Choisir un vêtement</option><option value="tshirt">T-shirt</option><option value="manches">Chandail manches longues</option><option value="ouate">Coton ouaté</option><option value="cache">Cache-couche</option><option value="bavette">Bavette</option><option value="sac">Sac réutilisable</option></select></label></div><div class="form-row"><label>Grandeur<select class="grandeur" required disabled><option value="">Choisir le vêtement d’abord</option></select></label><label>Couleur souhaitée<select class="couleur"><option value="Sans préférence">Sans préférence</option><option>Blanc</option><option>Rouge</option><option>Vert</option></select></label></div>';
+    card.innerHTML='<div class="participant-head"><h4></h4><button type="button" class="remove">Retirer</button></div><div class="form-row"><label>Prénom du participant<input type="text" class="prenom" required maxlength="100" placeholder="Prénom"></label><label>Choix du vêtement<select class="vetement" required><option value="">Choisir un vêtement</option><option value="tshirt">T-shirt</option><option value="manches">Chandail manches longues</option><option value="ouate">Coton ouaté</option><option value="cache">Cache-couche</option><option value="bavette">Bavette</option><option value="sac">Sac réutilisable</option></select></label></div><div class="form-row"><label>Grandeur<select class="grandeur" required disabled><option value="">Choisir le vêtement d’abord</option></select></label><label>Couleur du vêtement<select class="couleur" required disabled><option value="">Choisir le vêtement d’abord</option></select></label></div>';
     const select=card.querySelector('.vetement'), size=card.querySelector('.grandeur');
     select.addEventListener('change',()=>{
       size.innerHTML='<option value="">Choisir une grandeur</option>'+ (options[select.value]||[]).map(x=>'<option value="'+escape(x)+'">'+escape(x)+'</option>').join('');
       size.disabled=!select.value;
+      const color=card.querySelector('.couleur');
+      const multi=['cache','bavette','sac'].includes(select.value);
+      color.innerHTML=multi ? '<option value="">Choisir une couleur</option><option>Blanc</option><option>Rouge</option><option>Vert</option>' : '<option value="Blanc">Blanc seulement</option>';
+      color.disabled=!select.value;
+      if(!multi && select.value) color.value='Blanc';
     });
     card.querySelector('.remove').addEventListener('click',()=>{card.remove();update()});
     list.append(card);update();
