@@ -5,6 +5,9 @@
 <title>Ateliers de Noël — Inscription | Évolution PME</title>
 <meta name="description" content="Inscrivez-vous à l'atelier Viens faire ton chandail de Noël d'Évolution PME. 60 $ par personne, vêtement et matériel inclus.">
 <link rel="stylesheet" href="/assets/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="canonical" href="https://evolutionpme.ca/ateliers-noel.html">
 <style>
 .noel-lights{height:56px;position:relative;overflow:hidden;pointer-events:none;background:#101012;border-bottom:1px solid #303035}
@@ -102,6 +105,34 @@ body{--orange:#c52939;--pine:#0d422e}
 .noel-lights i:nth-child(3n+2){background:#86d9a7;box-shadow:0 0 13px 3px #86d9a788}
 .ticker{background:#bb2135!important;color:#fff!important;border-color:#8f1e2d!important}
 .ticker-track,.ticker-track span,.ticker-track i{color:#fff!important}
+
+/* Lisibilité : formulaire ivoire et typographie Fredoka */
+.noel-hero,.noel-signup,.noel-bottom,.noel-groups{font-family:'Fredoka',Arial,sans-serif}
+.noel-hero h1,.noel-signup h2,.noel-groups h2,.noel-bottom h2,.noel-signup h3{letter-spacing:-.035em;line-height:1.03}
+.noel-hero p{font-size:clamp(1.15rem,1.7vw,1.38rem);color:#fff7eb;font-weight:500;line-height:1.6;max-width:680px}
+.noel-hero .hero-card p{font-size:1.05rem;color:#fff4e4;line-height:1.55}
+.noel-signup .description{font-size:1.12rem;color:#f5f3e9;line-height:1.65}
+.noel-signup .help-list{color:#f7f1e7;font-size:1.06rem}
+.noel-signup .contact-form{background:#fff8eb!important;color:#26382c!important;border:2px solid #d6e3cc;box-shadow:0 24px 55px #001b1266}
+.noel-signup .contact-form h3,.noel-signup .participant-head h4{color:#153e2c}
+.noel-signup .contact-form label{color:#24412f;font-size:.9rem;letter-spacing:.015em}
+.noel-signup .contact-form input:not([type=checkbox]),.noel-signup .contact-form select,.noel-signup .contact-form textarea{background:#fffefb;color:#173b2b;border:2px solid #b8cbb7;font-family:inherit;font-size:1rem;font-weight:500;min-width:0}
+.noel-signup .contact-form input::placeholder,.noel-signup .contact-form textarea::placeholder{color:#647268;opacity:1}
+.noel-signup .contact-form input:focus,.noel-signup .contact-form select:focus,.noel-signup .contact-form textarea:focus{border-color:#a5263b;box-shadow:0 0 0 3px #a5263b27}
+.noel-signup .contact-form select:disabled{background:#ebeee8;color:#526357}
+.noel-signup .participant{background:#f1f4eb!important;border:1px solid #c4d3c0}
+.noel-signup .secondary{background:#fffefb;color:#194b34;border:2px solid #47745b}
+.noel-signup .remove{color:#a02437;border-color:#ce8490}
+.noel-signup .total{border-color:#c9d3c7}
+.noel-signup .total strong{color:#a62135!important}
+.noel-signup .total small,.noel-signup .smallprint{color:#52665a!important}
+.noel-signup .form-status.show{background:#e3ebdf;color:#22442e}
+.noel-signup .form-status.error{background:#ffe2e2;color:#80202a}
+.noel-signup .form-status.success{background:#dcf0dd;color:#215b2c}
+.noel-signup .contact-form input[type=checkbox]{accent-color:#a62135}
+.ticker{transform:none!important;width:100%;max-width:100%;margin:0;position:relative;font-family:'Fredoka',Arial,sans-serif;line-height:1.25;padding:17px 0}
+.ticker-track span{white-space:nowrap}
+@media(max-width:850px){.noel-hero p{font-size:1.15rem}.noel-signup .contact-form{padding:22px}.noel-signup .description{font-size:1.04rem}.ticker{font-size:1.15rem}}
 </style>
 </head>
 <body>
