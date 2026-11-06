@@ -140,6 +140,24 @@ body{--orange:#c52939;--pine:#0d422e}
 .noel-signup .extra-vetement{background:#fffefb;border:1px solid #ced9c8;border-radius:15px;padding:17px;margin:12px 0}
 .noel-signup .extra-vetement h4{color:#153e2c;margin:0;font-size:.87rem}
 .noel-signup .extras-area .secondary{font-size:.84rem;max-width:100%;white-space:normal}
+/* Finalisation visuelle : espace, relief et accents festifs */
+.noel-hero{padding-top:95px;padding-bottom:105px;gap:clamp(35px,5vw,80px)}
+.noel-hero .hero-card{box-shadow:0 30px 85px #0007,0 0 0 7px #f7deaa14;transition:transform .25s ease,box-shadow .25s ease}
+.noel-hero .hero-card:hover{transform:translateY(-5px);box-shadow:0 38px 90px #0009,0 0 0 8px #f7deaa24}
+.noel-hero .facts{gap:13px;margin-top:30px}
+.noel-hero .facts span{background:#faf1df10;border-color:#bdcab577;box-shadow:0 7px 20px #00190e38}
+.noel-hero .actions .button{border-radius:999px;padding:19px 28px;box-shadow:0 12px 30px #0005!important}
+.noel-signup{padding-top:110px;padding-bottom:125px;gap:clamp(40px,5vw,85px)}
+.noel-signup .contact-form{box-shadow:0 28px 85px #00170c88,0 0 0 7px #fff5da0a}
+.noel-signup .contact-form h3{font-size:clamp(1.6rem,2.5vw,2.1rem)}
+.noel-signup .participant{padding:clamp(20px,2vw,28px);border-radius:20px}
+.noel-signup .total{padding-top:26px;padding-bottom:26px}
+.noel-groups{padding-top:90px;padding-bottom:100px;background:radial-gradient(circle at 85% 12%,#2b674855,transparent 40%),#113927}
+.noel-groups h2{color:#fff5e7}
+.noel-groups .group-actions a{transition:transform .2s,background .2s}
+.noel-groups .group-actions a:hover{transform:translateY(-3px)}
+@media(max-width:850px){.noel-hero{padding-top:58px;padding-bottom:65px}.noel-signup{padding-top:70px;padding-bottom:78px;gap:38px}.noel-groups{padding-top:70px;padding-bottom:75px}}
+@media(prefers-reduced-motion:reduce){.noel-hero .hero-card,.noel-groups .group-actions a{transition:none}}
 </style>
 </head>
 <body>
@@ -166,7 +184,6 @@ body{--orange:#c52939;--pine:#0d422e}
 <p class="smallprint">Aucun paiement n'est prélevé sur cette page. Les choix de vêtements sont soumis à disponibilité. Les tarifs et conditions définitifs seront confirmés avant paiement. Les prix affichés comprennent les taxes.</p>
 <button type="submit" class="form-submit">ENVOYER MA DEMANDE →</button><div class="form-status" role="status" tabindex="-1" aria-live="polite"></div>
 </form></section>
-<section class="noel-bottom"><span class="eyebrow">UNE EXPÉRIENCE À PARTAGER</span><h2>UN NOËL QUI<br>VOUS RESSEMBLE.</h2><p>En famille, entre amis ou en solo, laisse parler ta créativité. Pas besoin d'être un artiste : on est là pour t'accompagner.</p><a class="button" href="#inscription">CHOISIR MON VÊTEMENT →</a></section>
 <section class="noel-groups"><span class="eyebrow">ENTREPRISES ET GROUPES</span><h2>UN NOËL D’ÉQUIPE<br>QUI SORT DE L’ORDINAIRE.</h2><p>Vous cherchez une activité originale pour votre entreprise? Réservez une journée d’atelier privé avec Évolution PME et offrez à votre équipe un moment créatif, rassembleur et festif. Vous organisez une activité pour un groupe? Contactez-nous pour une soumission adaptée à vos besoins.</p><div class="group-actions"><a href="tel:+14384092203">APPELEZ-NOUS · 438 409-2203</a><a href="mailto:info@evolutionpme.ca?subject=Soumission%20atelier%20de%20No%C3%ABl%20pour%20un%20groupe">DEMANDER UNE SOUMISSION PAR COURRIEL</a></div></section></main><footer class="site-footer"><span>© Évolution PME 2026</span><span>Une création d'Évolution PME — Créateur de marques.</span></footer>
 <script src="/assets/navigation.js" defer></script>
 <script>
