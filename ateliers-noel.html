@@ -158,6 +158,33 @@ body{--orange:#c52939;--pine:#0d422e}
 .noel-groups .group-actions a:hover{transform:translateY(-3px)}
 @media(max-width:850px){.noel-hero{padding-top:58px;padding-bottom:65px}.noel-signup{padding-top:70px;padding-bottom:78px;gap:38px}.noel-groups{padding-top:70px;padding-bottom:75px}}
 @media(prefers-reduced-motion:reduce){.noel-hero .hero-card,.noel-groups .group-actions a{transition:none}}
+/* Les ateliers d'entreprise ont une vraie place sur la page */
+.noel-groups{max-width:none;padding:105px max(5vw,calc((100vw - 1280px)/2 + 5vw)) 115px!important;background:radial-gradient(ellipse at 80% 15%,#246143 0%,#123d2b 40%,#09261b 100%)!important;border-top:4px solid #b72c40;position:relative;overflow:hidden}
+.noel-groups::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.14;background-image:radial-gradient(circle,#fff 1px,transparent 1.5px);background-size:47px 47px}
+.noel-groups .group-intro,.noel-groups .group-benefits{position:relative;z-index:1;max-width:1280px;margin:0 auto}
+.noel-groups .group-intro{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(30px,5vw,75px);align-items:center}
+.noel-groups .eyebrow{color:#ffd5db}
+.noel-groups h2{font-size:clamp(3rem,5.2vw,6.2rem);line-height:.98;letter-spacing:-.045em;margin:20px 0 28px}
+.noel-groups h2 em{font-style:normal;color:#f3c5cb}
+.noel-groups p{color:#edf5ec;max-width:710px;font-size:1.08rem;line-height:1.7}
+.noel-groups .group-lead{font-size:clamp(1.4rem,2vw,1.85rem);font-weight:650;color:#fff9ed;line-height:1.35;margin-bottom:20px}
+.noel-groups .group-actions{margin-top:34px;gap:14px}
+.noel-groups .group-actions a{padding:17px 23px;border-radius:999px;text-align:center}
+.noel-groups .group-actions a:first-child{background:#c52939;border-color:#c52939;color:#fff;box-shadow:0 13px 30px #0004}
+.noel-groups .group-actions a:last-child{border-color:#f3d7bc;background:#fff7ed12}
+.noel-groups .group-contact{font-size:.92rem;margin-top:20px;color:#cfe0cf}
+.noel-groups .group-contact a{text-decoration:underline;text-underline-offset:4px}
+.noel-groups .group-feature{background:linear-gradient(145deg,#f7edd9,#e4eedf);border-radius:34px;border:3px solid #dfbf82;padding:clamp(26px,3vw,44px);color:#133d2a;text-align:center;box-shadow:0 28px 70px #001b12aa;transform:rotate(1.5deg);min-width:0}
+.noel-groups .group-feature-top,.noel-groups .group-feature-bottom{font-size:.75rem;font-weight:700;letter-spacing:.12em;color:#a12839}
+.noel-groups .group-tree{font-size:clamp(5.5rem,11vw,9.5rem);line-height:1.35;margin:14px auto}
+.noel-groups .group-feature h3{font-size:clamp(2.4rem,4vw,4.3rem);line-height:1;letter-spacing:-.04em;margin:8px 0 16px;color:#133d2a}
+.noel-groups .group-feature p{color:#315a43;font-size:1.05rem;margin:0 auto 25px;max-width:330px}
+.noel-groups .group-benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:65px}
+.noel-groups .group-benefits article{border:1px solid #78a08388;background:#ffffff11;border-radius:24px;padding:28px}
+.noel-groups .group-benefits span{color:#ffcbd1;font-size:.85rem;font-weight:700}
+.noel-groups .group-benefits h3{font-size:1.45rem;margin:18px 0 12px;color:#fff7ec}
+.noel-groups .group-benefits p{font-size:.98rem;line-height:1.6;margin:0}
+@media(max-width:850px){.noel-groups{padding:76px 5vw 85px!important}.noel-groups .group-intro{grid-template-columns:1fr}.noel-groups .group-benefits{grid-template-columns:1fr;margin-top:40px}.noel-groups .group-feature{transform:none}.noel-groups .group-actions a{width:100%}}
 </style>
 </head>
 <body>
@@ -184,7 +211,33 @@ body{--orange:#c52939;--pine:#0d422e}
 <p class="smallprint">Aucun paiement n'est prélevé sur cette page. Les choix de vêtements sont soumis à disponibilité. Les tarifs et conditions définitifs seront confirmés avant paiement. Les prix affichés comprennent les taxes.</p>
 <button type="submit" class="form-submit">ENVOYER MA DEMANDE →</button><div class="form-status" role="status" tabindex="-1" aria-live="polite"></div>
 </form></section>
-<section class="noel-groups"><span class="eyebrow">ENTREPRISES ET GROUPES</span><h2>UN NOËL D’ÉQUIPE<br>QUI SORT DE L’ORDINAIRE.</h2><p>Vous cherchez une activité originale pour votre entreprise? Réservez une journée d’atelier privé avec Évolution PME et offrez à votre équipe un moment créatif, rassembleur et festif. Vous organisez une activité pour un groupe? Contactez-nous pour une soumission adaptée à vos besoins.</p><div class="group-actions"><a href="tel:+14384092203">APPELEZ-NOUS · 438 409-2203</a><a href="mailto:info@evolutionpme.ca?subject=Soumission%20atelier%20de%20No%C3%ABl%20pour%20un%20groupe">DEMANDER UNE SOUMISSION PAR COURRIEL</a></div></section></main><footer class="site-footer"><span>© Évolution PME 2026</span><span>Une création d'Évolution PME — Créateur de marques.</span></footer>
+<section class="noel-groups" id="entreprises">
+<div class="group-intro">
+  <div class="group-copy">
+    <span class="eyebrow">🎄 POUR LES ENTREPRISES · ÉQUIPES · GROUPES PRIVÉS</span>
+    <h2>VOTRE PARTY DES FÊTES,<br><em>AUTREMENT.</em></h2>
+    <p class="group-lead">Et si votre prochaine activité d’équipe devenait un souvenir qu’on peut porter?</p>
+    <p>Offrez à vos collègues un atelier de création de chandails personnalisé : une expérience rassembleuse, festive et accessible, où chacun repart avec sa propre création. Parfait pour souligner la fin d’année, remercier votre équipe ou simplement vivre un bon moment ensemble.</p>
+    <div class="group-actions">
+      <a href="mailto:info@evolutionpme.ca?subject=Demande%20de%20soumission%20-%20Atelier%20priv%C3%A9%20des%20F%C3%AAtes&body=Bonjour%2C%0A%0ANous%20aimerions%20organiser%20un%20atelier%20priv%C3%A9%20pour%20notre%20%C3%A9quipe.%0A%0AEntreprise%20%3A%0ANombre%20de%20participants%20%3A%0ADate%20souhait%C3%A9e%20%3A%0A%0AMerci%20!">DEMANDER UNE SOUMISSION →</a>
+      <a href="tel:+14384092203">438 409-2203 · APPELEZ-NOUS</a>
+    </div>
+    <p class="group-contact">Ou écrivez directement à <a href="mailto:info@evolutionpme.ca">info@evolutionpme.ca</a></p>
+  </div>
+  <aside class="group-feature" aria-label="Ateliers privés pour votre équipe">
+    <div class="group-feature-top"><span>✦</span> UNE ACTIVITÉ QUI RASSEMBLE <span>✦</span></div>
+    <div class="group-tree" aria-hidden="true">🎄</div>
+    <h3>UN MOMENT<br>À PARTAGER.</h3>
+    <p>Une date pour votre groupe. Des créations uniques. Des souvenirs à rapporter.</p>
+    <span class="group-feature-bottom">VOTRE ÉQUIPE MÉRITE UN PEU DE MAGIE ✨</span>
+  </aside>
+</div>
+<div class="group-benefits">
+  <article><span>01</span><h3>Une activité originale</h3><p>Un atelier créatif pour changer du traditionnel party de bureau.</p></article>
+  <article><span>02</span><h3>Tout le monde participe</h3><p>Une expérience conviviale, sans talent artistique requis.</p></article>
+  <article><span>03</span><h3>Une date à votre image</h3><p>Parlez-nous de votre groupe et de la journée que vous souhaitez réserver.</p></article>
+</div>
+</section></main><footer class="site-footer"><span>© Évolution PME 2026</span><span>Une création d'Évolution PME — Créateur de marques.</span></footer>
 <script src="/assets/navigation.js" defer></script>
 <script>
 (() => {
