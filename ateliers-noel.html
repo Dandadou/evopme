@@ -208,6 +208,7 @@ body{--orange:#c52939;--pine:#0d422e}
 <div class="total"><span>TOTAL ESTIMÉ · TAXES INCLUSES <small id="count" style="display:block;color:#999;margin-top:4px">1 participant</small></span><strong id="total">60 $</strong></div>
 <label style="margin-top:22px">Précisions (facultatif)<textarea name="notes" rows="3" placeholder="Une question ou un besoin particulier?"></textarea></label>
 <label style="display:flex;flex-direction:row;align-items:flex-start;text-transform:none;letter-spacing:0;font-weight:500;gap:12px"><input type="checkbox" name="accord" required style="width:auto;margin-top:3px"> Je comprends que ma place sera confirmée après paiement. Si la séance doit être annulée ou reportée, je pourrai choisir une autre date disponible ou demander un remboursement intégral.</label>
+<p class="smallprint"><strong>Inscription au plus tard 4 jours avant chaque atelier</strong> pour permettre à nos lutins de préparer tout le matériel nécessaire. 🎄</p>
 <p class="smallprint">Les prix affichés comprennent les taxes. Les vêtements sont sous réserve de disponibilité. Le paiement sécurisé est effectué avec Stripe.</p>
 <button type="submit" class="form-submit">PROCÉDER AU PAIEMENT →</button><div class="form-status" role="status" tabindex="-1" aria-live="polite"></div>
 </form></section>
@@ -245,6 +246,17 @@ body{--orange:#c52939;--pine:#0d422e}
   const form = document.querySelector('#atelier-form');
   const list = document.querySelector('#participants');
   const status = form.querySelector('.form-status');
+  // Masquer les séances dont la période d'inscription est terminée (heure du Québec).
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const day=Object.fromEntries(parts.filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  const today=Date.UTC(Number(day.year),Number(day.month)-1,Number(day.day));
+  const dateSelect=form.elements.date_atelier;
+  [...dateSelect.options].filter(option=>option.value).forEach(option=>{
+    if((Date.parse(option.value+'T00:00:00Z')-today)/86400000<4){
+      option.disabled=true;
+      option.textContent+=' · Inscriptions terminées';
+    }
+  });
   const query=new URLSearchParams(location.search);
   if(query.get('paiement')==='annule'){
     status.className='form-status show';status.textContent='Paiement annulé. Votre inscription n’est pas confirmée; vous pouvez recommencer.';
