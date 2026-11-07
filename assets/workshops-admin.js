@@ -3,7 +3,7 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=c=>new Intl.NumberFormat('fr-CA',{style:'currency',currency:'CAD'}).format((Number(c)||0)/100);
  const labels={tshirt:'T-shirt',manches:'Manches longues',ouate:'Coton ouaté',cache:'Cache-couche',bavette:'Bavette',sac:'Sac réutilisable'};
- const statuses={pending:'En attente de paiement',processing:'Paiement en cours',paid:'Payé',expired:'Expiré',failed:'Échoué'};
+ const statuses={pending:'En attente de paiement',processing:'Paiement en cours',paid:'Payé',expired:'Expiré',failed:'Échoué',paid_review:'Paiement à vérifier !'};
  const stock={to_order:'À commander',ordered:'Commandé',received:'Reçu',ready:'Prêt pour l’atelier'};
  let snapshot=null;
  async function api(url,options={}){const r=await fetch(url,{...options,headers:{Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erreur de chargement');return d}
