@@ -17,7 +17,13 @@ function validate(body){
  const phone=String(body?.phone||'').trim().slice(0,35);
  const notes=String(body?.notes||'').trim().slice(0,1200);
  const participants=body?.participants;
- if(!DATES.has(date)||date<new Date().toISOString().slice(0,10))throw new Error('Date d’atelier invalide.');
+ if(!DATES.has(date))throw new Error('Date d’atelier invalide.');
+ // Date limite : le jour local au Québec doit être au plus tard quatre jours civils avant l’atelier.
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const local=Object.fromEntries(parts.filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ const todayUTC=Date.UTC(Number(local.year),Number(local.month)-1,Number(local.day));
+ const sessionUTC=Date.parse(date+'T00:00:00Z');
+ if((sessionUTC-todayUTC)/86400000<4)throw new Error('Les inscriptions ferment 4 jours avant l’atelier pour permettre à nos lutins de préparer le matériel. Choisissez une autre date.');
  if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!phone)throw new Error('Coordonnées incomplètes.');
  if(!Array.isArray(participants)||participants.length<1||participants.length>CAPACITY)throw new Error('Nombre de participants invalide.');
  let total=participants.length*6000;
