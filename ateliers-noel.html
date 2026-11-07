@@ -197,7 +197,7 @@ body{--orange:#c52939;--pine:#0d422e}
 </section>
 <div class="ticker"><div class="ticker-track"><span>CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUSES FÊTES ET BONNE ANNÉE!</i> &nbsp;✦&nbsp; </span><span aria-hidden="true">CRÉEZ. PERSONNALISEZ. PARTAGEZ. <i>JOYEUSES FÊTES ET BONNE ANNÉE!</i> &nbsp;✦&nbsp; </span></div></div>
 <section class="noel-signup" id="inscription">
-<div><span class="eyebrow">ATELIERS DE NOËL · INSCRIPTION</span><h2>À TON TOUR<br>DE <em>CRÉER.</em></h2><p class="description">Choisis le vêtement et la grandeur de chaque participant. Tu peux inscrire toute la famille en une seule demande. Nous communiquerons avec toi pour confirmer la séance et les disponibilités.</p>
+<div><span class="eyebrow">ATELIERS DE NOËL · INSCRIPTION</span><h2>À TON TOUR<br>DE <em>CRÉER.</em></h2><p class="description">Choisis le vêtement et la grandeur de chaque participant. Tu peux inscrire toute la famille en une seule inscription. Ta réservation sera confirmée après le paiement sécurisé.</p>
 <ul class="help-list"><li>60 $ par participant, taxes incluses</li><li>Vêtements supplémentaires : sac réutilisable 10 $, coton ouaté 18 $, autres vêtements 15 $, taxes incluses</li><li>Vêtement et matériel inclus</li><li>DTF, pochoirs et feutres textiles</li><li>Ambiance festive et chocolat chaud</li><li>5, rue Industrielle, Saint-Roch-de-l'Achigan</li></ul>
 <p class="noel-location"><strong>📍 Lieu de l’atelier</strong><br>5, rue Industrielle<br>Saint-Roch-de-l’Achigan (Québec)</p><p class="description" style="font-size:.85rem">Toutes les séances ont lieu de 13 h à 15 h. Choisis ta date, tes vêtements et poursuis vers le paiement sécurisé.</p></div>
 <form id="atelier-form" class="contact-form" novalidate>
@@ -351,7 +351,7 @@ body{--orange:#c52939;--pine:#0d422e}
     try {
       const response=await fetch('/api/workshops/checkout',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(payload)});
       const result=await response.json().catch(()=>({}));
-      if(!response.ok||!result.url)throw new Error(result.error||'Impossible de créer le paiement.');
+      if(!response.ok||!result.url){if(result.code==='FULL'){try{const r=await fetch('/api/workshops/availability');if(r.ok){const d=await r.json();const sel=form.elements.date_atelier;const required=participants.length;const available=[...sel.options].filter(opt=>opt.value&&opt.value!==sel.value&&(d.availability?.[opt.value]??0)>=required);if(available.length){status.textContent='Cette séance n’a plus assez de places. Autres dates disponibles : '+available.map(x=>x.textContent).join(' · ')+'. Choisis une autre date pour continuer.';sel.focus();throw new Error('Choisis une autre date disponible dans la liste.')}}}catch(e){if(e.message==='Choisis une autre date disponible dans la liste.')throw e}}throw new Error(result.error||'Impossible de créer le paiement.');}
       window.location.assign(result.url);
     } catch(error){
       status.className='form-status show error';
