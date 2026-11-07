@@ -20,7 +20,7 @@ function validate(body){
  if(!DATES.has(date)||date<new Date().toISOString().slice(0,10))throw new Error('Date d’atelier invalide.');
  if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!phone)throw new Error('Coordonnées incomplètes.');
  if(!Array.isArray(participants)||participants.length<1||participants.length>CAPACITY)throw new Error('Nombre de participants invalide.');
- let total=participants.length*6000;
+ let total=100; // ESSAI TEMPORAIRE : 1 $ TTC pour la réservation entière
  const normalized=participants.map(p=>{
   const prenom=String(p.prenom||'').trim().slice(0,90);
   const vetement=String(p.vetement||'').trim().slice(0,45);
@@ -34,7 +34,7 @@ function validate(body){
    const size=String(e.grandeur||'').trim().slice(0,20);
    const color=String(e.couleur||'').trim().slice(0,30);
    if(!kinds.has(kind)||!size||!color)throw new Error('Article supplémentaire invalide.');
-   total+=extraPrices[kind];return {vetement:kind,grandeur:size,couleur:color,prix_cents:extraPrices[kind]};
+   return {vetement:kind,grandeur:size,couleur:color,prix_cents:0}; // ESSAI : suppléments sans frais
   });
   return {prenom,vetement,grandeur,couleur,supplementaires};
  });
@@ -65,7 +65,7 @@ async function checkout(env,b,origin){
  p.set('customer_email',b.email);
  p.set('line_items[0][price_data][currency]','cad');
  p.set('line_items[0][price_data][unit_amount]',String(b.total));
- p.set('line_items[0][price_data][product_data][name]',"Atelier de Noël – "+b.date+" – "+b.participants.length+" participant(s), suppléments inclus");
+ p.set('line_items[0][price_data][product_data][name]',"ESSAI 1 $ – Atelier de Noël – "+b.date+" – "+b.participants.length+" participant(s)");
  p.set('line_items[0][quantity]','1');
  p.set('metadata[workshop_booking_id]',b.id);
  p.set('payment_intent_data[metadata][workshop_booking_id]',b.id);
