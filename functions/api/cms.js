@@ -141,7 +141,7 @@ export async function handleCms(request,env){
 
 
 
- if(url.pathname==='/api/cms/workshops'&&['GET','PATCH'].includes(request.method)){
+ if(url.pathname==='/api/cms/workshops'&&['GET','PATCH','POST'].includes(request.method)){
   const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
   if(auth.response)return auth.response;
   return workshopAdmin(request,env);
