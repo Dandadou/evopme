@@ -157,6 +157,21 @@ export async function workshopAdmin(request,env){
   const garments=(await env.CMS_DB.prepare("SELECT g.*,b.date,b.status booking_status FROM workshop_garment_orders g JOIN workshop_bookings b ON b.id=g.booking_id WHERE b.status='paid' ORDER BY b.date,g.garment,g.size,g.color").all()).results||[];
   return json({ok:true,bookings:rows.map(({participants_json,...r})=>({...r,participants:JSON.parse(participants_json)})),garments,capacity:CAPACITY,minimum_target:MIN_TARGET});
  }
+ if(request.method==='POST' && url.searchParams.get('action')==='cancel'){
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  const id=String(body?.booking_id||'');
+  if(!/^[0-9a-f-]{36}$/i.test(id))return json({error:'Inscription invalide.'},400);
+  const booking=await env.CMS_DB.prepare("SELECT id,date,quantity,status FROM workshop_bookings WHERE id=?").bind(id).first();
+  if(!booking)return json({error:'Inscription introuvable.'},404);
+  if(booking.status==='cancelled')return json({ok:true,already_cancelled:true});
+  if(!['paid','pending','processing','paid_review'].includes(booking.status))return json({error:'Cette inscription ne peut plus être annulée.'},409);
+  const updated=await env.CMS_DB.prepare("UPDATE workshop_bookings SET status='cancelled' WHERE id=? AND status=?").bind(id,booking.status).run();
+  if(!updated.meta?.changes)return json({error:'Statut modifié : actualisez la page.'},409);
+  if(booking.status!=='paid_review')await env.CMS_DB.prepare("UPDATE workshop_sessions SET reserved=MAX(0,reserved-?) WHERE date=?").bind(booking.quantity,booking.date).run();
+  // L'inscription reste dans l'historique; les vêtements ne sont plus à commander.
+  // Ne déclenche aucun remboursement Stripe : il se gère séparément.
+  return json({ok:true,refunded_automatically:false});
+ }
  if(request.method==='PATCH'){
   let b;try{b=await request.json()}catch{return json({error:'Données invalides.'},400)}
   const allowed=['to_order','ordered','received','ready'];
