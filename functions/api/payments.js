@@ -1,3 +1,5 @@
+import { onWorkshopStripeEvent } from './workshops.js';
+
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
 
 function hexToBytes(hex){
@@ -107,6 +109,7 @@ export async function handlePayments(request,env){
   const valid=await verifyStripeWebhook(raw,request.headers.get('Stripe-Signature'),env.STRIPE_WEBHOOK_SECRET);
   if(!valid)return json({error:'Signature Stripe invalide.'},400);
   let event;try{event=JSON.parse(raw)}catch{return json({error:'Événement Stripe invalide.'},400)}
+  if(await onWorkshopStripeEvent(event,env))return json({received:true});
   const session=event?.data?.object||{};
   const id=Number(session?.metadata?.invoice_payment_id||0);
   if(id){
