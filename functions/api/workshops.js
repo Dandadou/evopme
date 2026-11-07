@@ -2,8 +2,8 @@ const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:
 const DATES=new Set(['2026-11-21','2026-11-28','2026-12-04','2026-12-05','2026-12-11','2026-12-12','2026-12-18','2026-12-19']);
 const CAPACITY=24, MIN_TARGET=10;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const kinds=new Set(['tshirt','long','ouate','cache','bavette','sac']);
-const extraPrices={tshirt:1500,long:1500,ouate:1800,cache:1500,bavette:1500,sac:1000};
+const kinds=new Set(['tshirt','manches','ouate','cache','bavette','sac']);
+const extraPrices={tshirt:1500,manches:1500,ouate:1800,cache:1500,bavette:1500,sac:1000};
 async function ensure(db){
  await db.prepare(`CREATE TABLE IF NOT EXISTS workshop_sessions (date TEXT PRIMARY KEY, capacity INTEGER NOT NULL DEFAULT 24, reserved INTEGER NOT NULL DEFAULT 0, minimum_target INTEGER NOT NULL DEFAULT 10)`).run();
  await db.prepare(`CREATE TABLE IF NOT EXISTS workshop_bookings (id TEXT PRIMARY KEY, date TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL, participants_json TEXT NOT NULL, notes TEXT NOT NULL DEFAULT '', quantity INTEGER NOT NULL, amount_cents INTEGER NOT NULL, checkout_session_id TEXT, payment_intent_id TEXT, status TEXT NOT NULL DEFAULT 'pending', expires_at TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, paid_at TEXT, notified_at TEXT)`).run();
