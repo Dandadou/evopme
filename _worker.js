@@ -1,6 +1,7 @@
 import { onRequestPost, onRequest } from './functions/api/forms.js';
 import { handleCms, getPublicCmsContent, getPublicHeyzineCatalogues, getCmsMedia } from './functions/api/cms.js';
 import { handlePayments } from './functions/api/payments.js';
+import { handleWorkshop } from './functions/api/workshops.js';
 
 export default {
   async fetch(request, env) {
@@ -11,6 +12,7 @@ export default {
     }
     if (url.pathname === '/api/catalogues' && request.method === 'GET') return getPublicHeyzineCatalogues(env,url.hostname);
     if (url.pathname === '/api/content' && request.method === 'GET') return getPublicCmsContent(env,url.hostname);
+    if (url.pathname.startsWith('/api/workshops/')) return handleWorkshop(request, env);
     if (url.pathname.startsWith('/api/payments/')) return handlePayments(request, env);
     if (url.pathname.startsWith('/api/cms/')) return handleCms(request, env);
     if (url.pathname.startsWith('/media/') && request.method === 'GET') return getCmsMedia(request, env);
