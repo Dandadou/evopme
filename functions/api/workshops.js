@@ -75,7 +75,7 @@ async function checkout(env,b,origin){
  return data;
 }
 async function notify(env,b){
- if(!env.RESEND_API_KEY)return;
+ if(!env.RESEND_API_KEY)throw new Error('Configuration Resend absente.');
  const participants=JSON.parse(b.participants_json);
  const rows=participants.map((p,i)=>`<li><b>${escape(p.prenom)}</b> — ${escape(p.vetement)} / ${escape(p.grandeur)} / ${escape(p.couleur)}${p.supplementaires.map(e=>`<br>Supplément : ${escape(e.vetement)} / ${escape(e.grandeur)} / ${escape(e.couleur)}`).join('')}</li>`).join('');
  const common=`<p>Date : ${escape(b.date)} · 13 h à 15 h<br>Lieu : 5, rue Industrielle, Saint-Roch-de-l'Achigan<br>Total payé : ${(b.amount_cents/100).toFixed(2)} $ CAD, taxes incluses</p><ul>${rows}</ul>`;
@@ -101,12 +101,14 @@ export async function onWorkshopStripeEvent(event,env){
    console.error('Atelier payé après expiration : vérification/remboursement manuel requis',bId);
    return true;
   }
-  const updated=await env.CMS_DB.prepare("UPDATE workshop_bookings SET status='paid',paid_at=COALESCE(paid_at,CURRENT_TIMESTAMP),checkout_session_id=?,payment_intent_id=? WHERE id=? AND status IN ('pending','processing')").bind(session.id||null,session.payment_intent||null,bId).run();
-  if(updated.meta?.changes){
-   const people=JSON.parse(b.participants_json);
-   const queries=[];
-   people.forEach((p,i)=>{const all=[p,...p.supplementaires];all.forEach((g,j)=>queries.push(env.CMS_DB.prepare("INSERT OR IGNORE INTO workshop_garment_orders(booking_id,participant_index,item_index,garment,size,color) VALUES (?,?,?,?,?,?)").bind(bId,i,j,g.vetement,g.grandeur,g.couleur)));});
-   if(queries.length)await env.CMS_DB.batch(queries);
+  await env.CMS_DB.prepare("UPDATE workshop_bookings SET status='paid',paid_at=COALESCE(paid_at,CURRENT_TIMESTAMP),checkout_session_id=?,payment_intent_id=? WHERE id=? AND status IN ('pending','processing')").bind(session.id||null,session.payment_intent||null,bId).run();
+  // Les événements Stripe peuvent être livrés plusieurs fois. Reconstruire les articles
+  // manquants de façon idempotente, même si l'inscription était déjà marquée payée.
+  const people=JSON.parse(b.participants_json);
+  const queries=[];
+  people.forEach((p,i)=>{const all=[p,...p.supplementaires];all.forEach((g,j)=>queries.push(env.CMS_DB.prepare("INSERT OR IGNORE INTO workshop_garment_orders(booking_id,participant_index,item_index,garment,size,color) VALUES (?,?,?,?,?,?)").bind(bId,i,j,g.vetement,g.grandeur,g.couleur)));});
+  if(queries.length)await env.CMS_DB.batch(queries);
+  if(!b.notified_at){
    try{await notify(env,b);await env.CMS_DB.prepare('UPDATE workshop_bookings SET notified_at=CURRENT_TIMESTAMP WHERE id=?').bind(bId).run()}catch(err){console.error('Workshop notification failed',err)}
   }
  }else if(event.type==='checkout.session.expired'||event.type==='checkout.session.async_payment_failed'){await release(env.CMS_DB,bId,'expired');}
