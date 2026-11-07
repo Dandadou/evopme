@@ -1,3 +1,5 @@
+import { workshopAdmin } from './workshops.js';
+
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const allowedKeys=new Set([
 'home.hero.eyebrow','home.hero.title_line_1','home.hero.title_line_2','home.hero.title_line_3','home.hero.text','home.hero.image',
@@ -138,6 +140,12 @@ export async function handleCms(request,env){
  const url=new URL(request.url);
 
 
+
+ if(url.pathname==='/api/cms/workshops'&&['GET','PATCH'].includes(request.method)){
+  const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
+  if(auth.response)return auth.response;
+  return workshopAdmin(request,env);
+ }
 
  // Configuration des catalogues Heyzine (par organisation, publication opt-in).
  if(url.pathname==='/api/cms/heyzine-selection'&&['GET','POST'].includes(request.method)){
