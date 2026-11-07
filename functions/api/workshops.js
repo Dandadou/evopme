@@ -94,6 +94,13 @@ export async function onWorkshopStripeEvent(event,env){
  const b=await env.CMS_DB.prepare('SELECT * FROM workshop_bookings WHERE id=?').bind(bId).first();
  if(!b)return true;
  if((event.type==='checkout.session.completed'&&session.payment_status==='paid')||event.type==='checkout.session.async_payment_succeeded'){
+  if(!['pending','processing','paid'].includes(b.status)){
+   // Un paiement peut arriver tardivement après la libération des places.
+   // Ne pas prétendre qu'une place est confirmée : intervention humaine requise.
+   await env.CMS_DB.prepare("UPDATE workshop_bookings SET status='paid_review',paid_at=COALESCE(paid_at,CURRENT_TIMESTAMP),checkout_session_id=?,payment_intent_id=? WHERE id=?").bind(session.id||null,session.payment_intent||null,bId).run();
+   console.error('Atelier payé après expiration : vérification/remboursement manuel requis',bId);
+   return true;
+  }
   const updated=await env.CMS_DB.prepare("UPDATE workshop_bookings SET status='paid',paid_at=COALESCE(paid_at,CURRENT_TIMESTAMP),checkout_session_id=?,payment_intent_id=? WHERE id=? AND status IN ('pending','processing')").bind(session.id||null,session.payment_intent||null,bId).run();
   if(updated.meta?.changes){
    const people=JSON.parse(b.participants_json);
