@@ -9,7 +9,8 @@ const allowedKeys=new Set([
 'home.why.eyebrow','home.why.title','home.why1.label','home.why1.title','home.why1.text','home.why2.label','home.why2.title','home.why2.text','home.why3.label','home.why3.title','home.why3.text','home.why4.label','home.why4.title','home.why4.text',
 'home.evoot.eyebrow','home.evoot.title','home.evoot.text','home.evoot.image',
 'home.training.eyebrow','home.training.title','home.training.text1','home.training.text2',
-'home.cta.eyebrow','home.cta.title','home.cta.text'
+'home.cta.eyebrow','home.cta.title','home.cta.text',
+'services.hero.title','services.hero.intro','services.branding.title','services.branding.text','services.textile.title','services.textile.text','services.digital.title','services.digital.text','services.cta.title','services.cta.text','formations.hero.title','formations.hero.intro','formations.approach.title','formations.approach.text','formations.autonomous.title','formations.autonomous.text','formations.live.title','formations.live.text','formations.onsite.title','formations.onsite.text','formations.cta.text','etudes.intro.title','etudes.intro.text','etudes.case1.client','etudes.case1.title','etudes.case1.text','etudes.case1.image','etudes.case2.client','etudes.case2.title','etudes.case2.text','etudes.case2.image','etudes.case3.client','etudes.case3.title','etudes.case3.text','etudes.case3.image'
 ]);
 
 let accessKeysCache={expires:0,keys:null};
