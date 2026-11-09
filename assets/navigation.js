@@ -52,7 +52,7 @@
   const link=(label,href,cls)=>{const a=document.createElement('a');a.textContent=label;a.href=href;if(cls)a.className=cls;return a};
   nav.replaceChildren(
     group('Nos services',[['Tous nos services','/services.html'],['Vêtements corporatifs','/services.html'],['Produits promotionnels','/catalogues.html?categorie=produits'],['Graphisme et image de marque','/services.html'],['Formations','/formations.html'],['Accompagnement','/accompagnement-entreprise.html']]),
-    link('Évoot!','/evoot.html','nav-evoot'),
+    link('Tenue de livres','/tenue-de-livres.html','nav-bookkeeping'),
     group('Catalogues',[['Tous les catalogues','/catalogues.html'],['Vêtements','/catalogues.html?categorie=vetements'],['Produits promotionnels','/catalogues.html?categorie=produits']]),
     group('À propos',[['Notre entreprise','/a-propos.html'],['Études de cas','/etudes-de-cas.html'],['Nous joindre','/#contact']]),
     group('Espace client',[['Portail client','https://portail.evolutionpme.ca'],['Payer une facture','/paiement.html']]),
