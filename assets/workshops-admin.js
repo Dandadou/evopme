@@ -10,7 +10,7 @@
  function render(){
   const all=snapshot.bookings||[],garments=snapshot.garments||[];
   const paid=all.filter(b=>b.status==='paid');
-  const dates=[...new Set(['2026-11-21','2026-11-28','2026-12-04','2026-12-05','2026-12-11','2026-12-12','2026-12-18','2026-12-19'])];
+  const dates=[...new Set(['2026-11-28','2026-12-04','2026-12-05','2026-12-11','2026-12-12','2026-12-18','2026-12-19'])];
   const total=paid.reduce((s,b)=>s+b.amount_cents,0);
   root.innerHTML=`<div class="pricing-grid">
     <article class="pricing-kpi"><span>Inscriptions payées</span><strong>${paid.length}</strong></article>
