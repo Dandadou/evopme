@@ -185,9 +185,22 @@ body{--orange:#c52939;--pine:#0d422e}
 .noel-groups .group-benefits h3{font-size:1.45rem;margin:18px 0 12px;color:#fff7ec}
 .noel-groups .group-benefits p{font-size:.98rem;line-height:1.6;margin:0}
 @media(max-width:850px){.noel-groups{padding:76px 5vw 85px!important}.noel-groups .group-intro{grid-template-columns:1fr}.noel-groups .group-benefits{grid-template-columns:1fr;margin-top:40px}.noel-groups .group-feature{transform:none}.noel-groups .group-actions a{width:100%}}
+
+/* Tempête de Noël : flocons au premier plan, sans bloquer les interactions */
+.noel-blizzard{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:5000;contain:layout style paint}
+.noel-blizzard .flake{position:absolute;top:-12vh;left:var(--left);width:var(--size);height:var(--size);opacity:var(--opacity);border-radius:50%;background:rgba(255,255,255,.97);box-shadow:0 0 5px 1px rgba(255,255,255,.55),0 0 17px rgba(230,250,255,.24);filter:blur(var(--blur));animation:noel-blizzard-fall var(--duration) linear var(--delay) infinite;will-change:transform}
+.noel-blizzard .flake:nth-child(7n){background:#e9f7ff;box-shadow:0 0 9px #fff9}
+.noel-blizzard .flake:nth-child(13n){border-radius:30% 70% 60% 40%}
+@keyframes noel-blizzard-fall{
+  from{transform:translate3d(0,-12vh,0) rotate(0deg)}
+  50%{transform:translate3d(calc(var(--wind) * .4),52vh,0) rotate(160deg)}
+  to{transform:translate3d(var(--wind),120vh,0) rotate(320deg)}
+}
+@media(prefers-reduced-motion:reduce){.noel-blizzard .flake{animation:none;display:none}}
 </style>
 </head>
 <body>
+<div class="noel-blizzard" aria-hidden="true"></div>
 <header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/services.html">Services</a><a href="/formations.html">Formations</a><a href="/catalogues.html">Catalogues</a><a href="/a-propos.html">À propos</a><a href="/contact.html">Contact</a><a class="pill" href="/">Accueil</a></nav></header>
 <div class="noel-lights" aria-hidden="true"><div class="bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 <main>
@@ -371,6 +384,32 @@ body{--orange:#c52939;--pine:#0d422e}
     } finally {btn.disabled=false;btn.textContent='PROCÉDER AU PAIEMENT →';status.focus();}
 
   });
+})();
+</script>
+
+<script>
+/* Bordée festive : les flocons sont purement décoratifs. */
+(()=>{
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const container=document.querySelector('.noel-blizzard');
+  if(!container)return;
+  const count=window.matchMedia('(max-width: 700px)').matches?65:145;
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<count;i++){
+    const flake=document.createElement('i');
+    flake.className='flake';
+    const size=(i%9===0?7+Math.random()*9:2+Math.random()*7).toFixed(1);
+    const speed=5+Math.random()*10;
+    flake.style.setProperty('--left',(Math.random()*110-5).toFixed(2)+'%');
+    flake.style.setProperty('--size',size+'px');
+    flake.style.setProperty('--opacity',(0.35+Math.random()*0.53).toFixed(2));
+    flake.style.setProperty('--blur',(Math.random()<.13?1.4:0)+'px');
+    flake.style.setProperty('--duration',speed.toFixed(2)+'s');
+    flake.style.setProperty('--delay',(-Math.random()*speed).toFixed(2)+'s');
+    flake.style.setProperty('--wind',(Math.random()*250-20).toFixed(0)+'px');
+    frag.appendChild(flake);
+  }
+  container.appendChild(frag);
 })();
 </script>
 </body></html>
