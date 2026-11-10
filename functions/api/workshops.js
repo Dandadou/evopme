@@ -1,5 +1,5 @@
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
-const DATES=new Set(['2026-11-21','2026-11-28','2026-12-04','2026-12-05','2026-12-11','2026-12-12','2026-12-18','2026-12-19']);
+const DATES=new Set(['2026-11-28','2026-12-04','2026-12-05','2026-12-11','2026-12-12','2026-12-18','2026-12-19']);
 const CAPACITY=24, MIN_TARGET=10;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const kinds=new Set(['tshirt','manches','ouate','cache','bavette','sac']);
