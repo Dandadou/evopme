@@ -37,36 +37,66 @@ async function load(){
  }catch(e){say('Impossible de charger les scènes : '+e.message,false)}
 }
 root.addEventListener('change',e=>{if(e.target?.matches('[data-custom-key$=".qr_enabled"]'))updateQr()});
+function loadFileAsText(file){
+ if(typeof file.text==='function')return file.text();
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(String(reader.result||''));
+  reader.onerror=()=>reject(Error('La lecture du fichier a échoué.'));
+  reader.readAsText(file,'UTF-8');
+ });
+}
+async function importFile(i,file){
+ const statusEl=root.querySelector('[data-custom-import-status="'+i+'"]');
+ const inform=(msg,ok=true)=>{if(statusEl){statusEl.textContent=msg;statusEl.dataset.state=ok?'ok':'error'}say(msg,ok)};
+ inform('Lecture de « '+file.name+' »…');
+ try{
+  if(!/\.html?$/i.test(file.name))throw Error('Sélectionne un fichier .html ou .htm.');
+  if(file.size>250*1024)throw Error('Le fichier dépasse 250 Ko.');
+  const raw=await loadFileAsText(file);
+  if(!raw.trim())throw Error('Le fichier est vide.');
+  const doc=new DOMParser().parseFromString(raw,'text/html');
+  doc.querySelectorAll('script,iframe,object,embed,base,meta[http-equiv="refresh"]').forEach(el=>el.remove());
+  const styles=Array.from(doc.head.querySelectorAll('style')).map(el=>el.outerHTML).join('\n');
+  const markup=[styles,doc.body.innerHTML].filter(Boolean).join('\n').trim();
+  if(!markup)throw Error('Aucun HTML affichable dans le fichier.');
+  const editor=field('vitrine.custom'+i+'.html');
+  if(markup.length>(editor.maxLength||20000))throw Error('HTML trop long : '+markup.length+' caractères (maximum 20 000).');
+  if(editor.value.trim()&&!confirm('Remplacer la scène HTML '+i+' par le fichier « '+file.name+' » ?')){inform('Importation annulée.');return}
+  editor.value=markup;
+  const nameField=field('vitrine.custom'+i+'.name');
+  if(!nameField.value.trim()||/^Scène personnalisée \d+$/.test(nameField.value.trim()))
+   nameField.value=file.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
+  preview(i);
+  inform('Fichier lu! Enregistrement automatique de la scène '+i+'…');
+  const prefix='vitrine.custom'+i+'.';
+  const content={};
+  for(const f of fields){
+   if(!f.dataset.customKey.startsWith(prefix))continue;
+   content[f.dataset.customKey]={type:'text',value:f.type==='checkbox'?String(f.checked):f.value.trim()};
+  }
+  const result=await api('/api/cms/content',{method:'PUT',body:JSON.stringify({content})});
+  if(!result.ok||result.saved<Object.keys(content).length)throw Error('Le CMS n’a pas confirmé l’enregistrement.');
+  inform('✓ « '+file.name+' » importé et enregistré dans le CMS. Coche « Ajouter cette scène à la rotation » puis enregistre les scènes HTML pour la publier.');
+ }catch(e){inform('Importation : '+e.message,false)}
+}
 for(let i=1;i<=4;i++){
  const upload=root.querySelector('[data-custom-import="'+i+'"]');
- if(!upload)continue;
+ const open=root.querySelector('[data-custom-open="'+i+'"]');
+ const drop=root.querySelector('[data-custom-drop="'+i+'"]');
+ if(!upload||!open||!drop)continue;
+ open.addEventListener('click',()=>upload.click());
  upload.addEventListener('change',async()=>{
   const file=upload.files&&upload.files[0];
-  if(!file)return;
-  say('Lecture de « '+file.name+' » en cours…');
-  try{
-   if(!/\.html?$/i.test(file.name))throw Error('Le fichier doit se terminer par .html ou .htm.');
-   if(file.size>250*1024)throw Error('Fichier trop volumineux (maximum 250 Ko).');
-   const raw=await file.text();
-   if(!raw.trim())throw Error('Le fichier est vide.');
-   const doc=new DOMParser().parseFromString(raw,'text/html');
-   doc.querySelectorAll('script,iframe,object,embed,base,meta[http-equiv="refresh"]').forEach(el=>el.remove());
-   // Conserver les styles et les contenus du document sans le JavaScript.
-   const styles=Array.from(doc.head.querySelectorAll('style')).map(el=>el.outerHTML).join('\n');
-   const markup=[styles,doc.body.innerHTML].filter(Boolean).join('\n').trim();
-   if(!markup)throw Error('Aucun contenu HTML à afficher.');
-   const editor=field('vitrine.custom'+i+'.html');
-   const limit=Number(editor.maxLength)||20000;
-   if(markup.length>limit)throw Error('Le HTML contient '+markup.length+' caractères; limite actuelle : '+limit+'.');
-   if(editor.value.trim()&&!confirm('Remplacer le HTML actuel de la scène '+i+' par « '+file.name+' » ?'))return;
-   editor.value=markup;
-   const nameField=field('vitrine.custom'+i+'.name');
-   if(!nameField.value.trim()||/^Scène personnalisée \d+$/.test(nameField.value.trim()))
-    nameField.value=file.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
-   preview(i);
-   say('✓ Fichier « '+file.name+' » importé ('+markup.length+' caractères). Vérifie l’aperçu, coche « Ajouter cette scène » et clique sur ENREGISTRER LES SCÈNES HTML.');
-  }catch(e){say('Importation impossible : '+e.message,false)}
-  finally{upload.value=''}
+  if(file)await importFile(i,file);
+  upload.value='';
+ });
+ drop.addEventListener('dragover',event=>{event.preventDefault();drop.style.borderColor='#79df95'});
+ drop.addEventListener('dragleave',()=>{drop.style.borderColor='#ef9c37'});
+ drop.addEventListener('drop',async event=>{
+  event.preventDefault();drop.style.borderColor='#ef9c37';
+  const file=event.dataTransfer?.files?.[0];
+  if(file)await importFile(i,file);
  });
 }
 for(let i=1;i<=4;i++){
