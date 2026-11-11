@@ -52,7 +52,7 @@ async function importFile(i,file){
  inform('Lecture de « '+file.name+' »…');
  try{
   if(!/\.html?$/i.test(file.name))throw Error('Sélectionne un fichier .html ou .htm.');
-  if(file.size>250*1024)throw Error('Le fichier dépasse 250 Ko.');
+  if(file.size>1024*1024)throw Error('Le fichier dépasse 1 Mo. Pour les images volumineuses, utilise des liens vers des images hébergées plutôt que des images incorporées en base64.');
   const raw=await loadFileAsText(file);
   if(!raw.trim())throw Error('Le fichier est vide.');
   const doc=new DOMParser().parseFromString(raw,'text/html');
@@ -61,7 +61,7 @@ async function importFile(i,file){
   const markup=[styles,doc.body.innerHTML].filter(Boolean).join('\n').trim();
   if(!markup)throw Error('Aucun HTML affichable dans le fichier.');
   const editor=field('vitrine.custom'+i+'.html');
-  if(markup.length>(editor.maxLength||20000))throw Error('HTML trop long : '+markup.length+' caractères (maximum 20 000).');
+  if(markup.length>(editor.maxLength||1000000))throw Error('HTML trop long : '+markup.length+' caractères (maximum 1 million).');
   if(editor.value.trim()&&!confirm('Remplacer la scène HTML '+i+' par le fichier « '+file.name+' » ?')){inform('Importation annulée.');return}
   editor.value=markup;
   field('vitrine.custom'+i+'.enabled').checked=true;
