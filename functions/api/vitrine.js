@@ -43,7 +43,7 @@ for(let i=1;i<=6;i++){
 }
 defaults['vitrine.settings.seconds_v2']='11';
 defaults['vitrine.trusted.noel.enabled']='true';
-for(let i=1;i<=4;i++){const p='vitrine.custom'+i+'.';Object.assign(defaults,{[p+'name']:'Scène personnalisée '+i,[p+'enabled']:'false',[p+'html']:'',[p+'qr_enabled']:'false',[p+'qr_url']:'',[p+'qr_label']:'Scannez pour découvrir'});}
+for(let i=1;i<=12;i++){const p='vitrine.custom'+i+'.';Object.assign(defaults,{[p+'name']:'Scène HTML '+i,[p+'enabled']:'false',[p+'html']:'',[p+'seconds']:'11',[p+'order']:String(i),[p+'qr_enabled']:'false',[p+'qr_url']:'',[p+'qr_label']:'Scannez pour découvrir'});}
 
 export async function onRequestGet({env}){
  const headers={"content-type":"application/json; charset=utf-8","cache-control":"public, max-age=25","access-control-allow-origin":"*"};
