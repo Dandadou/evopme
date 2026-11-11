@@ -38,6 +38,31 @@ async function load(){
 }
 root.addEventListener('change',e=>{if(e.target?.matches('[data-custom-key$=".qr_enabled"]'))updateQr()});
 for(let i=1;i<=4;i++){
+ const upload=root.querySelector('[data-custom-import="'+i+'"]');
+ upload?.addEventListener('change',async()=>{
+  const file=upload.files?.[0];if(!file)return;
+  try{
+   if(!/\\.html?$/i.test(file.name))throw Error('Choisis un fichier .html ou .htm.');
+   if(file.size>200*1024)throw Error('Le fichier HTML dépasse 200 Ko.');
+   const raw=await file.text();
+   const parsed=new DOMParser().parseFromString(raw,'text/html');
+   parsed.querySelectorAll('script,iframe,object,embed,base,meta[http-equiv="refresh"]').forEach(x=>x.remove());
+   const style=[...parsed.head.querySelectorAll('style')].map(x=>x.outerHTML).join('\\n');
+   const markup=style+'\\n'+parsed.body.innerHTML;
+   if(!markup.trim())throw Error('Ce fichier ne contient pas de HTML affichable.');
+   if(markup.length>20000)throw Error('Le contenu dépasse 20 000 caractères après importation.');
+   const editor=field('vitrine.custom'+i+'.html');
+   if(editor.value.trim()&&!confirm('Remplacer le code actuel de cette scène par le fichier '+file.name+'?'))return;
+   editor.value=markup;
+   const nameField=field('vitrine.custom'+i+'.name');
+   if(!nameField.value.trim()||/^Scène personnalisée \\d+$/.test(nameField.value.trim()))nameField.value=file.name.replace(/\\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
+   preview(i);
+   say('Fichier « '+file.name+' » importé dans la scène '+i+'. Vérifie l’aperçu, active la scène et enregistre pour publier.');
+  }catch(e){say('Importation impossible : '+e.message,false)}
+  finally{upload.value=''}
+ });
+}
+for(let i=1;i<=4;i++){
  root.querySelector('[data-custom-preview="'+i+'"]').addEventListener('click',()=>preview(i));
  root.querySelector('[data-custom-example="'+i+'"]').addEventListener('click',()=>{
   const html=field('vitrine.custom'+i+'.html');
