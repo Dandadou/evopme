@@ -18,8 +18,8 @@ color.addEventListener('change',()=>{if(currentValue)generate()});
 panel.querySelector('[data-qr-use]').addEventListener('click',()=>{
  if(!generate())return;
  const scene=panel.querySelector('[data-qr-scene]')?.value||'4';
- const target=document.querySelector('[data-vitrine-key="vitrine.slide'+scene+'.qr_url"]');
- const toggle=document.querySelector('[data-vitrine-key="vitrine.slide'+scene+'.qr_enabled"]');
+ const target=document.querySelector('[data-vitrine-key="vitrine.page'+scene+'.qr_url"]');
+ const toggle=document.querySelector('[data-vitrine-key="vitrine.page'+scene+'.qr_enabled"]');
  if(!target||!toggle){message('Les réglages QR de cette scène sont introuvables.',false);return}
  target.value=currentValue;
  toggle.checked=true;
