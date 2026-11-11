@@ -60,6 +60,7 @@ form.addEventListener('submit',async event=>{
    if(String(response.content?.[key]??'')!==item.value)throw Error('Le site public ne reçoit pas encore la nouvelle valeur de '+key+'.');
   }
   say('Les six scènes sont enregistrées et vérifiées. La TCL se mettra à jour automatiquement.');
+  const preview=document.querySelector('[data-vitrine-preview-live]');if(preview)preview.src='/vitrine.html?cms-preview='+Date.now();
  }catch(e){say('Échec : '+e.message,false)}
  finally{submit.disabled=false}
 });
