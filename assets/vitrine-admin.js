@@ -18,7 +18,13 @@ async function checkPublicVitrine(expected={}){
  if(!data.content||typeof data.content!=='object')throw Error('La vitrine publique ne retourne pas les données du CMS.');
  for(const [key,value] of Object.entries(expected)){
   const received=String(data.content[key]??'');
-  if(received!==String(value))throw Error('Le site public ne reçoit pas la valeur enregistrée pour la scène '+key.match(/slide(\d)/)?.[1]+'. Vérifie le déploiement de /api/vitrine.');
+  const scene=key.match(/slide(\d)/)?.[1];
+  if(received!==String(value))throw Error('La scène '+scene+' n’est pas à jour sur le site public : vérifier l’API /api/vitrine.');
+  const url=new URL(received,location.origin);
+  if(url.origin!==location.origin)throw Error('Image de la scène '+scene+' : adresse externe non prise en charge.');
+  const picture=await fetch(url.href,{method:'GET',cache:'no-store'});
+  const type=picture.headers.get('content-type')||'';
+  if(!picture.ok||!type.startsWith('image/'))throw Error('L’image de la scène '+scene+' ne charge pas (HTTP '+picture.status+'). Vérifie le stockage R2 et l’adresse '+url.pathname+'.');
  }
  return data.content;
 }
