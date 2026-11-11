@@ -142,34 +142,116 @@ p.lead{font-size:clamp(18px,1.55vw,31px);font-weight:500;line-height:1.48;max-wi
 const slides=[...document.querySelectorAll('.scene')];
 const footer=document.getElementById('footer-detail');
 const qrWrap=document.getElementById('qrbox');
+const qrLabel=qrWrap.querySelector('span');
+const qrNode=document.getElementById('qr');
 const snow=document.getElementById('snow');
-let current=0;
-let interval=null;
-const dwell=11000;
-for(let n=0;n<80;n++){const flake=document.createElement('i');flake.style.setProperty('--x',((n*47)%101)+'%');flake.style.setProperty('--s',(2+n%6)+'px');flake.style.setProperty('--o',(0.3+(n%5)*.14).toFixed(2));flake.style.setProperty('--t',(7+n%10)+'s');flake.style.setProperty('--d',(-n*.39)+'s');flake.style.setProperty('--w',((n%9)-4)*28+'px');snow.appendChild(flake)}
-function setupQr(){
- const node=document.getElementById('qr');
- if(typeof QRCode!=='function')return;
- try{
- const holder=document.createElement('div');
- new QRCode(holder,{text:'https://evolutionpme.ca/ateliers-noel.html',width:108,height:108,colorDark:'#161b1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
- const canvas=holder.querySelector('canvas');
- const img=holder.querySelector('img');
- if(canvas){const photo=document.createElement('img');photo.width=100;photo.height=100;photo.alt='Code QR pour les ateliers';photo.src=canvas.toDataURL('image/png');node.append(photo)}
- else if(img){img.alt='Code QR pour les ateliers';node.append(img.cloneNode(true))}
- }catch(e){qrWrap.hidden=true}
+let current=0,interval=null,dwell=11000,lastPayload='';
+const originals=slides.map(slide=>{
+ const title=slide.querySelector('h1');
+ return {
+ eyebrow:slide.querySelector('.eyebrow')?.textContent||'',
+ title:[...title.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').trim(),
+ accent:title.querySelector('em')?.textContent||'',
+ description:slide.querySelector('.lead')?.textContent||'',
+ tags:[...slide.querySelectorAll('.chips span')].map(x=>x.textContent).join(' | '),
+ enabled:true,
+ qr_enabled:slide.dataset.qr==='yes',
+ qr_url:slide.dataset.link?new URL(slide.dataset.link,location.origin).href:location.origin,
+ qr_label:slide.dataset.qr==='yes'?'Inscription aux ateliers':'Scannez pour découvrir'
+ }
+});
+for(let n=0;n<80;n++){
+ const flake=document.createElement('i');
+ flake.style.setProperty('--x',((n*47)%101)+'%');
+ flake.style.setProperty('--s',(2+n%6)+'px');
+ flake.style.setProperty('--o',(0.3+(n%5)*.14).toFixed(2));
+ flake.style.setProperty('--t',(7+n%10)+'s');
+ flake.style.setProperty('--d',(-n*.39)+'s');
+ flake.style.setProperty('--w',((n%9)-4)*28+'px');
+ snow.append(flake)
 }
+function apply(slide,original,i,data){
+ const p='vitrine.page'+(i+1)+'.';
+ const read=(k,def)=>{const v=data[p+k];return v===undefined||v===null||String(v).trim()===''?def:String(v)};
+ const head=slide.querySelector('h1');
+ const eyebrow=slide.querySelector('.eyebrow');
+ const description=slide.querySelector('.lead');
+ const chips=slide.querySelector('.chips');
+ eyebrow.textContent=read('eyebrow',original.eyebrow).slice(0,100);
+ head.replaceChildren();
+ head.append(document.createTextNode(read('title',original.title)+' '));
+ const accent=document.createElement('em');
+ accent.textContent=read('accent',original.accent);
+ head.append(accent);
+ description.textContent=read('description',original.description).slice(0,430);
+ chips.replaceChildren();
+ for(const part of read('tags',original.tags).split('|').map(s=>s.trim()).filter(Boolean).slice(0,6)){
+  const el=document.createElement('span');el.textContent=part.slice(0,52);chips.append(el)
+ }
+ slide.dataset.enabled=read('enabled','true');
+ slide.dataset.qr=read('qr_enabled',original.qr_enabled?'true':'false');
+ slide.dataset.qrUrl=read('qr_url',original.qr_url);
+ slide.dataset.qrLabel=read('qr_label',original.qr_label);
+}
+function renderQr(url,label){
+ qrLabel.textContent=label;
+ if(qrNode.dataset.value===url&&qrNode.querySelector('img'))return true;
+ qrNode.replaceChildren();qrNode.dataset.value='';
+ if(typeof QRCode!=='function')return false;
+ try{
+  const temp=document.createElement('div');
+  new QRCode(temp,{text:url,width:108,height:108,colorDark:'#161b1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  const canvas=temp.querySelector('canvas');
+  const img=temp.querySelector('img');
+  if(canvas){const out=document.createElement('img');out.src=canvas.toDataURL('image/png');out.alt='Code QR';qrNode.append(out)}
+  else if(img){const out=img.cloneNode(true);out.alt='Code QR';qrNode.append(out)}
+  qrNode.dataset.value=url;
+  return !!qrNode.querySelector('img')
+ }catch(e){return false}
+}
+function usable(){return slides.map((slide,i)=>i).filter(i=>slides[i].dataset.enabled!=='false')}
 function show(i){
- current=(i+slides.length)%slides.length;
+ const available=usable();
+ if(!available.length){slides.forEach(x=>x.classList.remove('active'));qrWrap.hidden=true;return}
+ current=available.includes(i)?i:available[0];
  slides.forEach((slide,j)=>slide.classList.toggle('active',j===current));
  const selected=slides[current];
  footer.textContent=selected.dataset.label==='Ateliers de Noël'?'Vêtement et matériel inclus · 60 $ taxes incluses':selected.dataset.label;
- qrWrap.hidden=selected.dataset.qr!=='yes'||!document.querySelector('#qr img');
+ const enabled=selected.dataset.qr==='true';
+ let link=null;
+ try{link=new URL(selected.dataset.qrUrl||location.origin,location.origin);if(!['http:','https:'].includes(link.protocol))link=null}catch{}
+ qrWrap.hidden=!(enabled&&link&&renderQr(link.href,selected.dataset.qrLabel||'Scannez pour découvrir'))
 }
-function start(){clearInterval(interval);interval=setInterval(()=>show(current+1),dwell)}
-setupQr();show(0);start();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){show(current);start()}else clearInterval(interval)});
-window.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){show(current+1);start()}else if(e.key==='ArrowLeft'){show(current-1);start()}});
+function next(){
+ const active=usable();if(!active.length)return;
+ const at=active.indexOf(current);
+ show(active[(at+1+active.length)%active.length])
+}
+function start(){clearInterval(interval);if(usable().length>1)interval=setInterval(next,dwell)}
+async function refresh(){
+ try{
+  const res=await fetch('/api/vitrine?screen='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});
+  if(!res.ok)throw Error('api');
+  const data=(await res.json()).content||{};
+  const payload=JSON.stringify(data);
+  if(payload===lastPayload)return;
+  lastPayload=payload;
+  slides.forEach((slide,i)=>apply(slide,originals[i],i,data));
+  dwell=Math.max(5000,Math.min(30000,(Number(data['vitrine.settings.seconds_v2'])||11)*1000));
+  if(!usable().includes(current))current=usable()[0]||0;
+  show(current);start();
+ }catch(e){/* Keep native scenes when offline */}
+}
+slides.forEach((slide,i)=>{
+ slide.dataset.enabled='true';
+ slide.dataset.qr=originals[i].qr_enabled?'true':'false';
+ slide.dataset.qrUrl=originals[i].qr_url;
+ slide.dataset.qrLabel=originals[i].qr_label
+});
+show(0);start();refresh();
+setInterval(refresh,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();show(current);start()}else clearInterval(interval)});
+window.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){next();start()}else if(e.key==='ArrowLeft'){const active=usable();show(active[(active.indexOf(current)-1+active.length)%active.length]);start()}});
 })();
 </script>
 </body></html>
