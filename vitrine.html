@@ -1,306 +1,48 @@
 <!doctype html>
-<html lang="fr-CA">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Vitrine animée — Évolution PME</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Mochiy+Pop+One&display=swap" rel="stylesheet">
-<style>
-:root{--orange:#f7941d;--paper:#fff8ed;--ink:#09090b;--green:#4ec08c}
-*{box-sizing:border-box}
-html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--ink);color:#fff;font-family:"Fredoka",Arial,sans-serif}
-body{user-select:none}
-main{position:relative;width:100vw;height:100vh;overflow:hidden;isolation:isolate}
-.scene{position:absolute;inset:0;overflow:hidden;opacity:0;visibility:hidden;transform:scale(1.018);transition:opacity 1.05s ease,transform 1.8s cubic-bezier(.19,1,.22,1),visibility 1.05s;contain:layout paint;z-index:0}
-.scene.active{opacity:1;visibility:visible;transform:scale(1);z-index:2}
-.scene::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.19;background-image:radial-gradient(circle,#ffb458 1px,transparent 1.5px);background-size:58px 63px;z-index:1}
-.scene::after{content:"";position:absolute;width:75vw;height:85vh;right:-17vw;top:-18vh;border-radius:50%;background:radial-gradient(circle,rgba(255,153,39,.13),transparent 70%);z-index:0;pointer-events:none}
-.warm{background:radial-gradient(ellipse at 86% 34%,#372113 0,transparent 53%),linear-gradient(120deg,#09090c,#161115 73%,#161111)}
-.threads{background:radial-gradient(ellipse at 87% 50%,#55301a 0,transparent 56%),linear-gradient(114deg,#0b0b10,#181219 73%)}
-.branding{background:radial-gradient(ellipse at 85% 33%,#1b3737 0,transparent 48%),linear-gradient(120deg,#090b0f,#17131d)}
-.digital{background:radial-gradient(ellipse at 78% 38%,#143741,transparent 53%),linear-gradient(120deg,#080c11,#17101c)}
-.training{background:radial-gradient(ellipse at 75% 38%,#343028,transparent 54%),linear-gradient(120deg,#0b0b0d,#17131b)}
-.christmas{background:radial-gradient(ellipse at 80% 43%,#19503b 0,transparent 52%),linear-gradient(115deg,#12100f,#211116 70%)}
-.scene .inner{position:absolute;inset:0;display:grid;grid-template-columns:49% 51%;align-items:center;padding:11.5vh 5.7vw 12vh;gap:1.5vw;z-index:3}
-.copy{position:relative;z-index:8;max-width:52vw;min-width:0;transform:translateY(35px);opacity:0;transition:transform 1s .15s cubic-bezier(.18,1,.25,1),opacity 1s .15s}
-.active .copy{transform:translateY(0);opacity:1}
-.eyebrow{display:block;font-size:clamp(13px,1.18vw,24px);font-weight:700;letter-spacing:.13em;color:#ffae40;margin-bottom:2.5vh;text-transform:uppercase}
-h1{font-family:"Mochiy Pop One","Fredoka",sans-serif;font-weight:400;font-size:clamp(32px,4.2vw,82px);line-height:1.32;letter-spacing:-.045em;margin:0 0 2.4vh;text-shadow:0 7px 25px #0009}
-h1 em{font-style:normal;color:#ff981e}
-p.lead{font-size:clamp(18px,1.55vw,31px);font-weight:500;line-height:1.48;max-width:37ch;margin:0;color:#f2e8dd;text-wrap:pretty}
-.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:3.3vh}
-.chips span{display:inline-flex;align-items:center;padding:9px 16px;border-radius:100px;border:1px solid #f7a7487c;background:#1e1a1bc9;color:#ffe8c6;font-size:clamp(12px,1vw,19px);font-weight:700;letter-spacing:.015em}
-.sky{position:relative;height:72vh;min-width:0;opacity:0;transform:translateY(20px) scale(.97);transition:opacity 1.2s .35s,transform 1.25s .35s cubic-bezier(.18,1,.25,1);isolation:isolate}
-.active .sky{opacity:1;transform:none}
-.halo{position:absolute;inset:7% 0;background:radial-gradient(circle,rgba(255,144,33,.27),rgba(255,144,33,.07) 38%,transparent 68%);filter:blur(3px);animation:breathe 9s ease-in-out infinite}
-@keyframes breathe{50%{opacity:.68;transform:scale(1.08)}}
-.floating{animation:drift 8.5s ease-in-out infinite}
-.floating.delay{animation-delay:-3.3s}
-@keyframes drift{50%{transform:translate3d(0,-13px,0) rotate(.8deg)}}
-.poster-card{position:absolute;background:#14151a;border:1px solid #f5a34f7a;border-radius:20px;box-shadow:0 20px 60px #000b,0 0 45px #ff97251a;overflow:hidden}
-.poster-card img{width:100%;height:100%;object-fit:contain}
-.stamp{position:absolute;z-index:6;background:#fc9225;color:#17100b;font-weight:700;padding:13px 20px;transform:rotate(-7deg);border-radius:12px;box-shadow:0 10px 25px #0008;font-size:clamp(14px,1.3vw,26px)}
-.sitehead{position:absolute;left:5.6vw;top:3vh;z-index:12;display:flex;align-items:center;gap:20px;font-size:clamp(17px,1.7vw,32px);font-weight:700;text-shadow:0 3px 12px #000a}
-.sitehead strong{color:#ff981e}
-.sitehead small{font-size:.55em;color:#cfcacc;letter-spacing:.05em}
-.sitefoot{position:absolute;bottom:3.5vh;left:5.7vw;right:5.7vw;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #ffffff3a;padding-top:1.8vh;color:#ffae45;font-weight:700;font-size:clamp(16px,1.35vw,26px)}
-.sitefoot .detail{color:#fff8ec;font-size:.87em;font-weight:500}
-.qrbox{display:flex;align-items:center;gap:12px;background:#fff9f1;color:#24201d;border-radius:13px;padding:7px 10px;box-shadow:0 12px 35px #0008;max-width:310px}
-.qrbox img{width:100px;height:100px;object-fit:contain;display:block;background:white}
-.qrbox span{font-size:clamp(12px,1vw,19px);max-width:13ch;line-height:1.2;color:#222;font-weight:700}
-.qrbox[hidden]{display:none}
-.hero-logo{position:absolute;inset:10% 9% 12%;width:82%;height:78%;object-fit:contain;filter:drop-shadow(0 24px 36px #0008)}
-.hero-logo.illustration{object-fit:contain}
-.glow-ring{position:absolute;border:2px solid #ffa02a44;border-radius:50%;inset:4% 8%;transform:rotate(-15deg)}
-.glow-ring.second{inset:13% 18%;border-color:#ffa02a22;transform:rotate(20deg)}
-.wood{position:absolute;inset:15% 1% 8%;border-radius:30px;background:linear-gradient(135deg,#332015,#141116 48%,#100d11);border:1px solid #d6934d55;box-shadow:inset 0 0 70px #0008,0 22px 45px #0006;transform:rotate(-4deg)}
-.mannequin{position:absolute;filter:drop-shadow(0 16px 24px #000c);animation:drift 8s ease-in-out infinite;z-index:2}
-.tee{clip-path:polygon(24% 0,37% 0,42% 7%,58% 7%,63% 0,76% 0,100% 19%,84% 40%,78% 32%,78% 100%,22% 100%,22% 32%,16% 40%,0 19%);border-radius:12px}
-.tee:after{content:"";position:absolute;left:42%;top:23%;width:16%;height:9%;border-radius:5px;background:#f7941d;box-shadow:0 0 18px #f7941d55}
-.tee.one{width:41%;height:58%;left:7%;top:19%;background:linear-gradient(125deg,#f3f1ec,#c4c2bd 67%,#92929b);transform:rotate(-10deg);animation-delay:-1s}
-.tee.two{width:43%;height:61%;right:6%;top:17%;background:linear-gradient(120deg,#f28c20,#ae4d1e 70%,#813d28);transform:rotate(7deg);animation-delay:-3s}
-.hoodie{position:absolute;width:48%;height:64%;left:26%;top:28%;z-index:4;clip-path:polygon(31% 0%,69% 0%,79% 9%,96% 14%,100% 50%,88% 55%,85% 35%,83% 100%,17% 100%,15% 35%,12% 55%,0 50%,4% 14%,21% 9%);border-radius:12px;background:linear-gradient(110deg,#30323b,#111319 60%,#03060a);filter:drop-shadow(0 16px 24px #000b);animation:drift 10s ease-in-out infinite}
-.hoodie::before{content:"";position:absolute;width:28%;height:23%;top:4%;left:36%;border:4px solid #9d9da4;border-radius:0 0 60% 60%}
-.hoodie:after{content:"✦";color:#ff9626;font-size:3.1vw;position:absolute;left:47%;top:40%}
-.ribbon{position:absolute;z-index:5;left:10%;right:7%;bottom:5%;padding:10px 25px;text-align:center;background:#f7941d;color:#131015;font-family:"Mochiy Pop One",sans-serif;font-size:clamp(13px,1.45vw,28px);transform:rotate(-4deg);border-radius:12px}
-.brandproject{position:absolute;z-index:4;background:#101318;border:2px solid #a9cacc55;border-radius:20px;display:grid;place-items:center;padding:15px;box-shadow:0 24px 40px #000c;overflow:hidden}
-.brandproject img{object-fit:contain;max-width:90%;max-height:85%;filter:drop-shadow(0 5px 8px #000b)}
-.brandproject.a{width:55%;height:43%;top:7%;left:6%;transform:rotate(-8deg)}
-.brandproject.b{width:55%;height:39%;top:24%;right:2%;transform:rotate(7deg);background:#10242b}
-.brandproject.c{width:58%;height:32%;bottom:7%;left:13%;transform:rotate(-3deg);background:#24272d}
-.brandproject:hover{filter:brightness(1.15)}
-.colorstrip{position:absolute;display:flex;gap:10px;right:0;bottom:1%;z-index:6;padding:12px;border-radius:20px;background:#f5f0e8;transform:rotate(6deg);box-shadow:0 15px 30px #0009}
-.colorstrip i{display:block;width:2.4vw;height:2.4vw;border-radius:50%}
-.device{position:absolute;left:12%;right:6%;top:11%;height:72%;border:9px solid #22262c;border-radius:28px;transform:rotate(-4deg);background:linear-gradient(145deg,#222838,#101923);box-shadow:0 25px 65px #000b,0 0 45px #29c1c532;overflow:hidden}
-.device .topbar{height:10%;background:#202931;display:flex;align-items:center;gap:9px;padding:0 22px}
-.device .topbar i{width:11px;height:11px;border-radius:50%;background:#e16a5f}
-.device .topbar i:nth-child(2){background:#f5b34c}.device .topbar i:nth-child(3){background:#55bb99}
-.screenview{height:90%;display:grid;grid-template-columns:30% 70%;padding:2.8%}
-.screenview aside{background:#182633;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px}
-.screenview aside i{display:block;height:12px;border-radius:10px;background:#4c686e}
-.screenview section{padding:5%;display:grid;gap:10px;grid-template-columns:1fr 1fr;grid-template-rows:22% 35% 26%;align-items:stretch}
-.screenview section .tile{background:linear-gradient(140deg,#ff9c29,#f1742f);border-radius:12px}
-.screenview section .tile:nth-child(2){background:linear-gradient(135deg,#3eb7b6,#17707e)}
-.screenview section .tile:nth-child(3){grid-column:span 2;background:linear-gradient(120deg,#252e3d,#38546b);display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2vw,38px);font-weight:700}
-.screenview section .tile:nth-child(4){grid-column:span 2;background:#283b48}
-.device-caption{position:absolute;left:2%;bottom:5%;z-index:6;padding:15px 18px;background:#ff9727;border-radius:13px;color:#121116;font-size:clamp(17px,1.6vw,32px);font-weight:700;transform:rotate(4deg);box-shadow:0 15px 25px #0008}
-.bubble{position:absolute;z-index:5;display:grid;place-items:center;text-align:center;line-height:1.2;border:2px solid #ffbd6b75;box-shadow:0 15px 35px #0008;font-weight:700}
-.bubble.one{width:31%;aspect-ratio:1;top:8%;left:1%;border-radius:45% 55% 53% 47%;background:#f79327;color:#1a100d;font-size:clamp(15px,1.7vw,30px);transform:rotate(-10deg)}
-.bubble.two{width:42%;aspect-ratio:1;top:21%;right:2%;border-radius:51% 49% 44% 56%;background:#252b35;color:white;font-size:clamp(16px,1.45vw,28px);transform:rotate(9deg)}
-.bubble.three{width:38%;aspect-ratio:1;left:20%;bottom:6%;border-radius:56% 44% 50% 50%;background:#397968;color:#fff;font-size:clamp(17px,1.5vw,29px);transform:rotate(-7deg)}
-.connectline{position:absolute;left:12%;top:42%;width:69%;height:21%;border:3px dashed #ffad48a0;border-radius:50%;transform:rotate(-10deg)}
-.christmas::after{background:radial-gradient(circle,#ff85302b,transparent 67%)}
-.christmas .eyebrow{color:#b8f6cc}.christmas h1 em{color:#ff6664}
-.christmas .chips span{background:#1e452fba;border-color:#9ed7a4}
-.pine{position:absolute;top:-10%;left:-5%;right:-5%;height:24%;z-index:8;pointer-events:none;background:repeating-linear-gradient(122deg,transparent 0 35px,#184833 37px 48px,#37714b 51px 57px,transparent 61px 100px);clip-path:polygon(0 0,100% 0,100% 68%,93% 43%,82% 69%,72% 44%,63% 69%,50% 44%,39% 70%,30% 42%,18% 71%,7% 42%,0 65%);opacity:.9}
-.lights{position:absolute;top:8%;left:0;right:0;height:9%;z-index:9;display:flex;justify-content:space-around;pointer-events:none}
-.lights i{width:11px;height:18px;border-radius:50%;background:#ffcc70;box-shadow:0 0 13px 7px #ffb23c8a;animation:twinkle 3.2s ease-in-out infinite}
-.lights i:nth-child(3n){background:#f76b6b;box-shadow:0 0 13px 7px #d23b3b80;animation-delay:-1.4s}
-.lights i:nth-child(3n+2){background:#bdf3bd;box-shadow:0 0 13px 7px #6ec99175;animation-delay:-2s}
-@keyframes twinkle{50%{opacity:.55}}
-.xmas-card{position:absolute;left:10%;right:5%;top:11%;bottom:5%;border-radius:30px;background:linear-gradient(145deg,#293c2e,#153126 60%,#191c22);border:3px solid #b58b50;box-shadow:0 24px 50px #000a;transform:rotate(3deg);overflow:hidden}
-.xmas-card::before{content:"";position:absolute;inset:0;opacity:.45;background:radial-gradient(circle at 70% 20%,#e3b86e70,transparent 45%),repeating-linear-gradient(95deg,transparent 0 35px,#ffffff08 36px 37px)}
-.xmas-shirt{position:absolute;left:17%;top:12%;width:61%;height:73%;background:linear-gradient(120deg,#fdf4e8,#c9c3b8);clip-path:polygon(25% 0,38% 0,43% 8%,57% 8%,62% 0,75% 0,100% 19%,83% 42%,77% 32%,77% 100%,23% 100%,23% 32%,17% 42%,0 19%);border-radius:15px;filter:drop-shadow(0 20px 30px #000c);animation:drift 8.5s ease-in-out infinite}
-.xmas-shirt::after{content:"★";position:absolute;top:33%;left:34%;font-size:9vw;color:#bf3539;text-shadow:2px 5px #396344}
-.price{position:absolute;bottom:10%;right:0;z-index:4;font-family:"Mochiy Pop One",sans-serif;font-size:clamp(24px,3vw,56px);color:#fff7e9;background:#c42d39;padding:12px 25px;border-radius:14px;transform:rotate(-6deg);box-shadow:0 12px 30px #0009}
-.snow{position:absolute;inset:0;overflow:hidden;z-index:11;pointer-events:none}
-.snow i{position:absolute;top:-10%;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:white;opacity:var(--o);box-shadow:0 0 4px #fff5;animation:snowfall var(--t) linear var(--d) infinite}
-@keyframes snowfall{to{transform:translate3d(var(--w),115vh,0)}}
-@media(max-width:1000px){.scene .inner{grid-template-columns:52% 48%;padding-left:5vw;padding-right:5vw}h1{font-size:clamp(26px,4vw,52px)}.chips span{padding:7px 10px}}
-@media(prefers-reduced-motion:reduce){.scene,.copy,.sky{transition:none;transform:none}.active .copy,.active .sky{opacity:1}.floating,.hoodie,.halo,.xmas-shirt,.lights i,.snow i{animation:none}}
-.custom-html-scene{background:#09090b!important}.custom-html-scene::before,.custom-html-scene::after{display:none!important}.custom-html-scene iframe{display:block;position:absolute;inset:0;width:100%;height:100%;border:0;background:#09090b}.custom-html-scene .custom-overlay{position:absolute;bottom:1vh;right:2vw;z-index:2;pointer-events:none}
-</style>
-</head>
-<body>
-<main>
-<div class="sitehead">ÉVOLUTION <strong>PME.</strong> <small>CRÉATEUR DE MARQUES</small></div>
-<section class="scene warm active" data-label="Évolution PME" data-link="/" aria-label="Évolution PME">
- <div class="inner"><div class="copy"><span class="eyebrow">Créateur de marques et de solutions pour les PME</span><h1>Vos idées.<br>Vos défis.<br><em>Nos solutions.</em></h1><p class="lead">Nous transformons vos idées en marques fortes et en solutions concrètes, pensées pour votre réalité, vos équipes et votre croissance.</p><div class="chips"><span>Image de marque</span><span>Solutions numériques</span><span>Formations</span></div></div><div class="sky"><div class="halo"></div><div class="glow-ring"></div><div class="glow-ring second"></div><img class="hero-logo floating" src="/assets/%C3%89tiquette%20EVOPME.png" alt="Logo Évolution PME"></div></div>
-</section>
-<section class="scene threads" data-label="Vêtements corporatifs" data-link="/services.html" aria-label="Vêtements corporatifs">
- <div class="inner"><div class="copy"><span class="eyebrow">Des idées qui prennent vie</span><h1>Vos équipes.<br><em>Votre image.</em></h1><p class="lead">Vêtements corporatifs, impression et outils de marque conçus pour que votre entreprise soit reconnue partout où elle travaille.</p><div class="chips"><span>T-shirts</span><span>Polos</span><span>Cotons ouatés</span><span>Personnalisation</span></div></div><div class="sky"><div class="halo"></div><div class="wood"></div><div class="mannequin tee one"></div><div class="mannequin tee two"></div><div class="hoodie"></div><div class="ribbon">UNE MARQUE QUI SE PORTE.</div></div></div>
-</section>
-<section class="scene branding" data-label="Identité de marque" data-link="/services.html" aria-label="Identité visuelle et marques">
- <div class="inner"><div class="copy"><span class="eyebrow">Identité visuelle · marques · impression</span><h1>Une entreprise<br>qu’on <em>reconnaît.</em></h1><p class="lead">Une image cohérente, du premier regard aux outils utilisés sur le terrain. Pas seulement du beau : du clair, du crédible et du mémorable.</p><div class="chips"><span>Création de logos</span><span>Identité visuelle</span><span>Objets promotionnels</span></div></div><div class="sky"><div class="halo"></div><div class="brandproject a floating"><img src="/assets/CPPauto1.png" alt="Identité CPP Auto"></div><div class="brandproject b floating delay"><img src="/assets/les%20pros%20du%20chiffre.png" alt="Réalisation de marque"></div><div class="brandproject c floating"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME"></div><div class="colorstrip"><i style="background:#f7941d"></i><i style="background:#20afb9"></i><i style="background:#252734"></i><i style="background:#ef5683"></i></div></div></div>
-</section>
-<section class="scene digital" data-label="Solutions numériques" data-link="/services.html" aria-label="Solutions numériques">
- <div class="inner"><div class="copy"><span class="eyebrow">Solutions numériques pour les PME</span><h1>Des outils<br>qui <em>travaillent.</em></h1><p class="lead">Logiciels, automatisations et solutions numériques sur mesure. Nous partons d’un besoin concret pour construire un outil vraiment utile.</p><div class="chips"><span>Sites Web</span><span>Automatisation</span><span>Logiciels sur mesure</span></div></div><div class="sky"><div class="halo"></div><div class="device floating"><div class="topbar"><i></i><i></i><i></i></div><div class="screenview"><aside><i></i><i></i><i></i><i></i></aside><section><div class="tile"></div><div class="tile"></div><div class="tile">VOTRE ENTREPRISE</div><div class="tile"></div></section></div></div><div class="device-caption">PENSÉ POUR VOTRE RÉALITÉ.</div></div></div>
-</section>
-<section class="scene training" data-label="Formations" data-link="/formations.html" aria-label="Formations en entreprise">
- <div class="inner"><div class="copy"><span class="eyebrow">Formations humaines et concrètes</span><h1>Faire évoluer<br><em>les gens.</em></h1><p class="lead">Le service à la clientèle, c’est aussi le service employé. Des formations adaptées à vos équipes, à votre milieu et à vos situations réelles.</p><div class="chips"><span>Communication</span><span>Écoute active</span><span>Situations difficiles</span><span>Formation continue</span></div></div><div class="sky"><div class="halo"></div><div class="connectline"></div><div class="bubble one floating">NOUS<br>SERVONS.</div><div class="bubble two floating delay">NOUS SOMMES<br>SERVIS.</div><div class="bubble three floating">NOUS SOMMES<br>TOUS CLIENTS.</div></div></div>
-</section>
-<section class="scene christmas" data-label="Ateliers de Noël" data-link="/ateliers-noel.html" data-qr="yes" aria-label="Ateliers de Noël">
- <div class="pine"></div><div class="lights"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
- <div class="inner"><div class="copy"><span class="eyebrow">Événement créatif · Noël 2026</span><h1>Viens faire ton<br><em>chandail de Noël!</em></h1><p class="lead">Un moment festif pour personnaliser ton vêtement et créer un souvenir à ton image. Vêtement, matériel et chocolat chaud inclus.</p><div class="chips"><span>Pour petits et grands</span><span>Atelier de 2 heures</span><span>Groupes et entreprises</span></div></div><div class="sky"><div class="halo"></div><div class="xmas-card"><div class="xmas-shirt"></div></div><div class="price">60 $ · taxes incluses</div></div></div><div id="snow" class="snow" aria-hidden="true"></div>
-</section>
-<footer class="sitefoot"><span>evolutionpme.ca</span><span class="detail" id="footer-detail">Créateur de marques · Lanaudière</span><div class="qrbox" id="qrbox" hidden><span>Inscription aux ateliers</span><div id="qr"></div></div></footer>
-</main>
-<script src="/assets/qrcode.min.js"></script>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vitrine · Évolution PME</title>
+<style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060708}#screen{position:fixed;inset:0;background:#060708}.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease,visibility .8s}.slide.active{opacity:1;visibility:visible}.slide iframe{display:block;width:100%;height:100%;border:0}#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#aaa;font:600 20px system-ui,sans-serif;text-align:center}#empty small{font-size:13px;font-weight:400;margin-top:10px;opacity:.7}#empty[hidden]{display:none}@media(prefers-reduced-motion:reduce){.slide{transition:none}}</style></head>
+<body><main id="screen"><div id="empty">ÉVOLUTION PME<small>Vitrine prête · Ajoutez vos scènes HTML dans le CMS.</small></div></main>
 <script>
 (()=>{
-let slides=[...document.querySelectorAll('.scene')];
-const nativeSlides=slides.slice();
-const footer=document.getElementById('footer-detail');
-const qrWrap=document.getElementById('qrbox');
-const qrLabel=qrWrap.querySelector('span');
-const qrNode=document.getElementById('qr');
-const snow=document.getElementById('snow');
-let current=0,interval=null,dwell=11000,lastPayload='';
-const originals=slides.map(slide=>{
- const title=slide.querySelector('h1');
- return {
- eyebrow:slide.querySelector('.eyebrow')?.textContent||'',
- title:[...title.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').trim(),
- accent:title.querySelector('em')?.textContent||'',
- description:slide.querySelector('.lead')?.textContent||'',
- tags:[...slide.querySelectorAll('.chips span')].map(x=>x.textContent).join(' | '),
- enabled:true,
- qr_enabled:slide.dataset.qr==='yes',
- qr_url:slide.dataset.link?new URL(slide.dataset.link,location.origin).href:location.origin,
- qr_label:slide.dataset.qr==='yes'?'Inscription aux ateliers':'Scannez pour découvrir'
- }
-});
-for(let n=0;n<80;n++){
- const flake=document.createElement('i');
- flake.style.setProperty('--x',((n*47)%101)+'%');
- flake.style.setProperty('--s',(2+n%6)+'px');
- flake.style.setProperty('--o',(0.3+(n%5)*.14).toFixed(2));
- flake.style.setProperty('--t',(7+n%10)+'s');
- flake.style.setProperty('--d',(-n*.39)+'s');
- flake.style.setProperty('--w',((n%9)-4)*28+'px');
- snow.append(flake)
+const screen=document.getElementById('screen'),empty=document.getElementById('empty');
+const csp="default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https: data:; media-src https: data:; connect-src 'none'; frame-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'";
+let slides=[],current=-1,timer=null,signature='';
+function stop(){if(timer!==null)clearTimeout(timer);timer=null}
+function show(index){
+ stop();if(!slides.length){empty.hidden=false;return}
+ current=(index+slides.length)%slides.length;
+ slides.forEach((s,i)=>{s.node.classList.toggle('active',i===current);s.node.setAttribute('aria-hidden',i===current?'false':'true')});
+ empty.hidden=true;
+ if(slides.length>1)timer=setTimeout(()=>show(current+1),slides[current].seconds*1000)
 }
-function apply(slide,original,i,data){
- const p='vitrine.page'+(i+1)+'.';
- const read=(k,def)=>{const v=data[p+k];return v===undefined||v===null||String(v).trim()===''?def:String(v)};
- const head=slide.querySelector('h1');
- const eyebrow=slide.querySelector('.eyebrow');
- const description=slide.querySelector('.lead');
- const chips=slide.querySelector('.chips');
- eyebrow.textContent=read('eyebrow',original.eyebrow).slice(0,100);
- head.replaceChildren();
- head.append(document.createTextNode(read('title',original.title)+' '));
- const accent=document.createElement('em');
- accent.textContent=read('accent',original.accent);
- head.append(accent);
- description.textContent=read('description',original.description).slice(0,430);
- chips.replaceChildren();
- for(const part of read('tags',original.tags).split('|').map(s=>s.trim()).filter(Boolean).slice(0,6)){
-  const el=document.createElement('span');el.textContent=part.slice(0,52);chips.append(el)
+function render(data){
+ const oldSlot=slides[current]?.slot,items=[];
+ for(let i=1;i<=12;i++){
+  const p='vitrine.custom'+i+'.',html=String(data[p+'html']||'');
+  if(data[p+'enabled']!=='true'||!html.trim())continue;
+  items.push({slot:i,name:String(data[p+'name']||'Scène '+i),html:html.slice(0,1000000),order:Number(data[p+'order'])||i,seconds:Math.max(5,Math.min(120,Number(data[p+'seconds'])||11))})
  }
- slide.dataset.enabled=read('enabled','true');
- slide.dataset.qr=read('qr_enabled',original.qr_enabled?'true':'false');
- slide.dataset.qrUrl=read('qr_url',original.qr_url);
- slide.dataset.qrLabel=read('qr_label',original.qr_label);
-}
-function renderQr(url,label){
- qrLabel.textContent=label;
- if(qrNode.dataset.value===url&&qrNode.querySelector('img'))return true;
- qrNode.replaceChildren();qrNode.dataset.value='';
- if(typeof QRCode!=='function')return false;
- try{
-  const temp=document.createElement('div');
-  new QRCode(temp,{text:url,width:108,height:108,colorDark:'#161b1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-  const canvas=temp.querySelector('canvas');
-  const img=temp.querySelector('img');
-  if(canvas){const out=document.createElement('img');out.src=canvas.toDataURL('image/png');out.alt='Code QR';qrNode.append(out)}
-  else if(img){const out=img.cloneNode(true);out.alt='Code QR';qrNode.append(out)}
-  qrNode.dataset.value=url;
-  return !!qrNode.querySelector('img')
- }catch(e){return false}
-}
-function buildCustomScenes(data){
- for(const old of document.querySelectorAll('.custom-html-scene'))old.remove();
- slides=nativeSlides.slice();
- const container=document.querySelector('main');
- for(let i=1;i<=4;i++){
-  const key='vitrine.custom'+i+'.';
-  const html=String(data[key+'html']||'').slice(0,1000000);
-  if(String(data[key+'enabled']||'false')!=='true'||!html.trim())continue;
-  const section=document.createElement('section');section.className='scene custom-html-scene';
-  section.dataset.enabled='true';section.dataset.label=String(data[key+'name']||'Scène personnalisée '+i).slice(0,90);
-  section.dataset.qr=String(data[key+'qr_enabled']||'false');
-  section.dataset.qrUrl=String(data[key+'qr_url']||'');
-  section.dataset.qrLabel=String(data[key+'qr_label']||'Scannez pour découvrir');
-  const frame=document.createElement('iframe');
-  frame.title=section.dataset.label;
-  frame.setAttribute('sandbox','');
-  frame.setAttribute('tabindex','-1');
-  frame.setAttribute('loading','eager');
-  frame.srcdoc='<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https: data:; media-src https:; form-action &#39;none&#39;; base-uri &#39;none&#39;; connect-src &#39;none&#39;;"><style>*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;margin:0;background:#09090b;color:white}</style></head><body>'+html+'</body></html>';
-  section.append(frame);
-  container.insertBefore(section,container.querySelector('.sitefoot'));
-  slides.push(section)
- }
- // Scène vérifiée dans le dépôt : JavaScript autorisé uniquement dans ce document isolé.
- if(String(data['vitrine.trusted.noel.enabled']??'true')==='true'){
-  const section=document.createElement('section');
-  section.className='scene custom-html-scene trusted-holiday';
-  section.dataset.enabled='true';
-  section.dataset.label='Publicité ateliers de Noël · neige animée';
-  section.dataset.qr='false'; // Le document contient déjà son propre code QR.
-  const frame=document.createElement('iframe');
-  frame.title=section.dataset.label;
-  frame.setAttribute('sandbox','allow-scripts');
-  frame.setAttribute('tabindex','-1');
-  frame.dataset.src='/publicite-atelier-noel.html';
-  section.append(frame);
-  container.insertBefore(section,container.querySelector('.sitefoot'));
-  slides.push(section);
- }
-}
-function usable(){return slides.map((slide,i)=>i).filter(i=>slides[i].dataset.enabled!=='false')}
-function show(i){
- const available=usable();
- if(!available.length){slides.forEach(x=>x.classList.remove('active'));qrWrap.hidden=true;return}
- current=available.includes(i)?i:available[0];
- slides.forEach((slide,j)=>{
-  const active=j===current;slide.classList.toggle('active',active);
-  const frame=slide.classList.contains('trusted-holiday')?slide.querySelector('iframe'):null;
-  if(frame){if(active&&frame.getAttribute('src')!==frame.dataset.src)frame.setAttribute('src',frame.dataset.src);else if(!active&&frame.hasAttribute('src'))frame.removeAttribute('src')}
+ items.sort((a,b)=>a.order-b.order||a.slot-b.slot);
+ stop();slides.forEach(s=>s.node.remove());
+ slides=items.map(item=>{
+  const node=document.createElement('section');node.className='slide';
+  const frame=document.createElement('iframe');frame.title=item.name;frame.setAttribute('sandbox','');frame.setAttribute('tabindex','-1');frame.setAttribute('scrolling','no');
+  const htmlHead='<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="'+csp+'"><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060708;color:white}</style></head><body>';
+  frame.srcdoc='<!doctype html>'+htmlHead+item.html+'</body></html>';
+  node.append(frame);screen.append(node);return {...item,node}
  });
- const selected=slides[current];
- footer.textContent=selected.dataset.label==='Ateliers de Noël'?'Vêtement et matériel inclus · 60 $ taxes incluses':selected.dataset.label;
- const enabled=selected.dataset.qr==='true';
- let link=null;
- try{link=new URL(selected.dataset.qrUrl||location.origin,location.origin);if(!['http:','https:'].includes(link.protocol))link=null}catch{}
- qrWrap.hidden=!(enabled&&link&&renderQr(link.href,selected.dataset.qrLabel||'Scannez pour découvrir'))
+ show(Math.max(0,slides.findIndex(s=>s.slot===oldSlot)))
 }
-function next(){
- const active=usable();if(!active.length)return;
- const at=active.indexOf(current);
- show(active[(at+1+active.length)%active.length])
-}
-function start(){clearInterval(interval);if(usable().length>1)interval=setInterval(next,dwell)}
 async function refresh(){
  try{
-  const res=await fetch('/api/vitrine?screen='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});
-  if(!res.ok)throw Error('api');
+  const res=await fetch('/api/vitrine?t='+Date.now(),{cache:'no-store'});if(!res.ok)throw Error('API');
   const data=(await res.json()).content||{};
-  const payload=JSON.stringify(data);
-  if(payload===lastPayload)return;
-  lastPayload=payload;
-  nativeSlides.forEach((slide,i)=>apply(slide,originals[i],i,data));
-  const previous=slides[current];
-  buildCustomScenes(data);
-  const previousIndex=slides.indexOf(previous);if(previousIndex>=0)current=previousIndex;
-  dwell=Math.max(5000,Math.min(30000,(Number(data['vitrine.settings.seconds_v2'])||11)*1000));
-  if(!usable().includes(current))current=usable()[0]||0;
-  show(current);start();
- }catch(e){/* Keep native scenes when offline */}
+  const next=JSON.stringify(Array.from({length:12},(_,i)=>{const p='vitrine.custom'+(i+1)+'.';return [data[p+'name'],data[p+'html'],data[p+'enabled'],data[p+'order'],data[p+'seconds']]}));
+  if(next!==signature){signature=next;render(data)}
+ }catch(e){/* Conserver les scènes précédemment chargées. */}
 }
-slides.forEach((slide,i)=>{
- slide.dataset.enabled='true';
- slide.dataset.qr=originals[i].qr_enabled?'true':'false';
- slide.dataset.qrUrl=originals[i].qr_url;
- slide.dataset.qrLabel=originals[i].qr_label
-});
-show(0);start();refresh();
-setInterval(refresh,60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();show(current);start()}else clearInterval(interval)});
-window.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){next();start()}else if(e.key==='ArrowLeft'){const active=usable();show(active[(active.indexOf(current)-1+active.length)%active.length]);start()}});
+window.addEventListener('keydown',e=>{if(e.key==='ArrowRight'&&slides.length)show(current+1);if(e.key==='ArrowLeft'&&slides.length)show(current-1)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else{refresh();if(slides.length)show(Math.max(current,0))}});
+refresh();setInterval(refresh,30000);
 })();
-</script>
-</body></html>
+</script></body></html>
