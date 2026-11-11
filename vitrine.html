@@ -20,7 +20,7 @@ function render(data){
  for(let i=1;i<=12;i++){
   const p='vitrine.custom'+i+'.',html=String(data[p+'html']||'');
   if(data[p+'enabled']!=='true'||!html.trim())continue;
-  items.push({slot:i,name:String(data[p+'name']||'Scène '+i),html:html.slice(0,1000000),order:Number(data[p+'order'])||i,seconds:Math.max(5,Math.min(120,Number(data[p+'seconds'])||11))})
+  items.push({slot:i,name:String(data[p+'name']||'Scène '+i),html:html.slice(0,5*1024*1024),order:Number(data[p+'order'])||i,seconds:Math.max(5,Math.min(120,Number(data[p+'seconds'])||11))})
  }
  items.sort((a,b)=>a.order-b.order||a.slot-b.slot);
  stop();slides.forEach(s=>s.node.remove());
