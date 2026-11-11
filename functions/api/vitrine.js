@@ -1,7 +1,7 @@
 // Contenu public et non sensible pour l'écran de vitrine.
 const defaults={
- "vitrine.slide1.title":"VOS IDÉES. NOTRE CRÉATIVITÉ.",
- "vitrine.slide1.subtitle":"Évolution PME · Créateur de marques",
+ "vitrine.slide1.title":"VOS IDÉES. NOS SOLUTIONS. VOTRE ÉVOLUTION.",
+ "vitrine.slide1.subtitle":"Nous transformons vos idées en marques fortes et en solutions concrètes.",
  "vitrine.slide1.image":"/assets/%C3%89tiquette%20EVOPME.png",
  "vitrine.slide1.enabled":"true",
  "vitrine.slide2.title":"DES VÊTEMENTS À VOTRE IMAGE.",
