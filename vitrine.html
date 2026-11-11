@@ -217,7 +217,7 @@ function buildCustomScenes(data){
  const container=document.querySelector('main');
  for(let i=1;i<=4;i++){
   const key='vitrine.custom'+i+'.';
-  const html=String(data[key+'html']||'').slice(0,20000);
+  const html=String(data[key+'html']||'').slice(0,1000000);
   if(String(data[key+'enabled']||'false')!=='true'||!html.trim())continue;
   const section=document.createElement('section');section.className='scene custom-html-scene';
   section.dataset.enabled='true';section.dataset.label=String(data[key+'name']||'Scène personnalisée '+i).slice(0,90);
