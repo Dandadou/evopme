@@ -234,13 +234,33 @@ function buildCustomScenes(data){
   container.insertBefore(section,container.querySelector('.sitefoot'));
   slides.push(section)
  }
+ // Scène vérifiée dans le dépôt : JavaScript autorisé uniquement dans ce document isolé.
+ if(String(data['vitrine.trusted.noel.enabled']??'true')==='true'){
+  const section=document.createElement('section');
+  section.className='scene custom-html-scene trusted-holiday';
+  section.dataset.enabled='true';
+  section.dataset.label='Publicité ateliers de Noël · neige animée';
+  section.dataset.qr='false'; // Le document contient déjà son propre code QR.
+  const frame=document.createElement('iframe');
+  frame.title=section.dataset.label;
+  frame.setAttribute('sandbox','allow-scripts');
+  frame.setAttribute('tabindex','-1');
+  frame.dataset.src='/publicite-atelier-noel.html';
+  section.append(frame);
+  container.insertBefore(section,container.querySelector('.sitefoot'));
+  slides.push(section);
+ }
 }
 function usable(){return slides.map((slide,i)=>i).filter(i=>slides[i].dataset.enabled!=='false')}
 function show(i){
  const available=usable();
  if(!available.length){slides.forEach(x=>x.classList.remove('active'));qrWrap.hidden=true;return}
  current=available.includes(i)?i:available[0];
- slides.forEach((slide,j)=>slide.classList.toggle('active',j===current));
+ slides.forEach((slide,j)=>{
+  const active=j===current;slide.classList.toggle('active',active);
+  const frame=slide.classList.contains('trusted-holiday')?slide.querySelector('iframe'):null;
+  if(frame){if(active&&frame.getAttribute('src')!==frame.dataset.src)frame.setAttribute('src',frame.dataset.src);else if(!active&&frame.hasAttribute('src'))frame.removeAttribute('src')}
+ });
  const selected=slides[current];
  footer.textContent=selected.dataset.label==='Ateliers de Noël'?'Vêtement et matériel inclus · 60 $ taxes incluses':selected.dataset.label;
  const enabled=selected.dataset.qr==='true';
