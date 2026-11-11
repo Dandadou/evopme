@@ -42,6 +42,8 @@ for(let i=1;i<=6;i++){
  Object.assign(defaults,{[p+'eyebrow']:'',[p+'title']:'',[p+'accent']:'',[p+'description']:'',[p+'tags']:'',[p+'enabled']:'true',[p+'qr_enabled']:i===6?'true':'false',[p+'qr_url']:i===6?'https://evolutionpme.ca/ateliers-noel.html':'',[p+'qr_label']:i===6?'Inscription aux ateliers':'Scannez pour en savoir plus'});
 }
 defaults['vitrine.settings.seconds_v2']='11';
+for(let i=1;i<=4;i++){const p='vitrine.custom'+i+'.';Object.assign(defaults,{[p+'name']:'Scène personnalisée '+i,[p+'enabled']:'false',[p+'html']:'',[p+'qr_enabled']:'false',[p+'qr_url']:'',[p+'qr_label']:'Scannez pour découvrir'});}
+
 export async function onRequestGet({env}){
  const headers={"content-type":"application/json; charset=utf-8","cache-control":"public, max-age=25","access-control-allow-origin":"*"};
  if(!env.CMS_DB)return new Response(JSON.stringify({content:defaults}),{headers});
