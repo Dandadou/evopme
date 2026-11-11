@@ -64,6 +64,7 @@ async function importFile(i,file){
   if(markup.length>(editor.maxLength||20000))throw Error('HTML trop long : '+markup.length+' caractères (maximum 20 000).');
   if(editor.value.trim()&&!confirm('Remplacer la scène HTML '+i+' par le fichier « '+file.name+' » ?')){inform('Importation annulée.');return}
   editor.value=markup;
+  field('vitrine.custom'+i+'.enabled').checked=true;
   const nameField=field('vitrine.custom'+i+'.name');
   if(!nameField.value.trim()||/^Scène personnalisée \d+$/.test(nameField.value.trim()))
    nameField.value=file.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
@@ -77,7 +78,10 @@ async function importFile(i,file){
   }
   const result=await api('/api/cms/content',{method:'PUT',body:JSON.stringify({content})});
   if(!result.ok||result.saved<Object.keys(content).length)throw Error('Le CMS n’a pas confirmé l’enregistrement.');
-  inform('✓ « '+file.name+' » importé et enregistré dans le CMS. Coche « Ajouter cette scène à la rotation » puis enregistre les scènes HTML pour la publier.');
+  const response=await api('/api/vitrine?import-check='+Date.now());
+  for(const [key,val] of Object.entries(content))if(String(response.content?.[key]??'')!==val.value)throw Error('Le fichier est enregistré, mais le site public ne confirme pas encore la scène.');
+  const live=document.querySelector('[data-vitrine-preview-live]');if(live)live.src='/vitrine.html?cms-preview='+Date.now();
+  inform('✓ « '+file.name+' » importé, enregistré et activé dans la vitrine. La TCL récupérera la scène automatiquement.');
  }catch(e){inform('Importation : '+e.message,false)}
 }
 for(let i=1;i<=4;i++){
