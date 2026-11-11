@@ -90,6 +90,38 @@ h1{font-family:"Mochiy Pop One","Fredoka",sans-serif;font-size:clamp(31px,4.1vw,
 .qr-wrap #qr a{color:#17442b}
 @keyframes qr-glow{0%,100%{box-shadow:0 8px 26px #0005}50%{box-shadow:0 8px 28px #0005,0 0 22px #ffa94c77}}
 @media(prefers-reduced-motion:reduce){.scene .kicker,.scene h1,.scene .lead,.scene .visual{opacity:1;transform:none;transition:none!important}.scene .visual img,.scene .visual .art-badge,.scene-deco i,.qr-wrap{animation:none!important}}
+
+/* Palette officielle : noir, orange vif, accents joyeux */
+html,body,.stage{background:#0b0b0f!important}
+.stage:before{right:-12vw;top:-25vh;width:73vw;height:110vh;background:radial-gradient(circle,#ff8f192e,transparent 62%)}
+.stage:after{opacity:.24;background-image:radial-gradient(circle,#ffb34e 1px,transparent 2px);background-size:59px 65px}
+.scene{background:linear-gradient(108deg,#0b0b0f 0%,#15151d 61%,#1c1721 100%)!important}
+.scene:nth-child(2){background:radial-gradient(circle at 80% 45%,#ff8b2238,transparent 43%),linear-gradient(115deg,#0b0b0f,#1b1421)!important}
+.scene:nth-child(3){background:radial-gradient(circle at 80% 45%,#00b6ac30,transparent 45%),linear-gradient(115deg,#0b0b0f,#15172a)!important}
+.scene-noel{background:radial-gradient(circle at 80% 40%,#126b4948,transparent 48%),linear-gradient(110deg,#0b0b0f,#19131e)!important}
+.scene .scene-deco{--accent:#ff981f}
+.scene:nth-child(2) .scene-deco{--accent:#ff4f86}
+.scene:nth-child(3) .scene-deco{--accent:#36d8ca}
+.scene-noel .scene-deco{--accent:#75df99}
+.scene .kicker{color:#ffa72c}
+.scene h1,.brand{color:#fff8ee;text-shadow:none}
+.scene h1 em,.brand strong,.url{color:#ff951c}
+.scene:nth-child(2) h1 em{color:#ff729b}
+.scene:nth-child(3) h1 em{color:#62e7d8}
+.scene-noel h1 em{color:#a8efbd}
+.scene .lead{color:#efedf1}
+.visual:before{background:radial-gradient(circle,#ff8a2230,transparent 70%)}
+.art-badge{background:linear-gradient(135deg,#ff8b2238,#f5567e19);border-color:#ffab3d;box-shadow:0 20px 35px #0005}
+.art-badge span{color:#fff2d9}
+.scene:nth-child(2) .art-badge{background:linear-gradient(135deg,#b62d5a4a,#ff9b3229);border-color:#ff70ac}
+.scene:nth-child(3) .art-badge{background:linear-gradient(135deg,#087c744c,#2c5ae23a);border-color:#52e4d5}
+.scene-noel .art-badge{background:linear-gradient(135deg,#0b6a4455,#ba284b44);border-color:#83deb2}
+.bottom{border-color:#ff951c59;color:#fff5e7;gap:12px}
+.qr-wrap{box-sizing:border-box;min-width:0;max-width:min(70vw,430px);overflow:hidden;background:#fff9ef;color:#103b2c;border:2px solid #ff951c;border-radius:16px;padding:8px 10px;gap:10px;animation:none;box-shadow:0 0 22px #ff951c3a}
+#qr-label{font-size:clamp(11px,1.45vw,20px);line-height:1.2;font-weight:700;min-width:0;max-width:19ch;overflow-wrap:break-word}
+.qr-wrap #qr{box-sizing:border-box;width:clamp(90px,12vw,155px);height:clamp(90px,12vw,155px);min-width:0;max-width:155px;max-height:155px;flex:0 0 auto;overflow:hidden;padding:5px;border:0;border-radius:6px;background:#fff}
+.qr-wrap #qr img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain}
+@media(max-width:750px){.bottom{left:4vw;right:4vw}.qr-wrap{max-width:73vw;padding:6px 8px;gap:7px}.qr-wrap #qr{width:clamp(80px,16vw,115px);height:clamp(80px,16vw,115px)}#qr-label{font-size:clamp(11px,2vw,15px)}}
 </style></head>
 <body><main class="stage"><div class="brand">ÉVOLUTION <strong>PME.</strong> <span style="font-size:.45em;letter-spacing:.09em;color:#aaa;vertical-align:middle">CRÉATEUR DE MARQUES</span></div><div id="scenes" aria-live="off"></div><footer class="bottom"><span class="url">evolutionpme.ca</span><div class="qr-wrap" id="qr-wrap" hidden><span id="qr-label">Découvrez nos ateliers</span><div id="qr" role="img" aria-label="Code QR menant à notre site"></div></div></footer></main>
 <script src="/assets/qrcode.min.js"></script>
@@ -110,25 +142,32 @@ function play(){clearInterval(timer);if(slides.length>1)timer=setInterval(()=>{i
 
 function updateQR(url,label){
  const wrap=document.getElementById('qr-wrap'),node=document.getElementById('qr');
- let parsed;try{parsed=new URL(url||'https://evolutionpme.ca/ateliers-noel.html',location.href);if(!['https:','http:'].includes(parsed.protocol))throw Error('url')}catch{parsed=new URL('https://evolutionpme.ca')}
+ let parsed;
+ try{parsed=new URL(url||'https://evolutionpme.ca/ateliers-noel.html',location.href);if(!['https:','http:'].includes(parsed.protocol))throw Error('url')}
+ catch{parsed=new URL('https://evolutionpme.ca')}
  wrap.hidden=false;
  document.getElementById('qr-label').textContent=label||'Scannez pour découvrir';
- if(node.dataset.value===parsed.href&&node.querySelector('canvas,img'))return;
+ if(node.dataset.value===parsed.href&&node.querySelector('img'))return;
  node.replaceChildren();
- let ok=false;
+ const img=document.createElement('img');img.alt='Code QR à scanner pour ouvrir le lien';
+ img.width=220;img.height=220;img.style.cssText='display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain';
+ let ready=false;
  try{
   if(typeof QRCode==='function'){
-   new QRCode(node,{text:parsed.href,width:256,height:256,colorDark:'#143a2c',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-   ok=!!node.querySelector('canvas,img');
+   const temp=document.createElement('div');
+   new QRCode(temp,{text:parsed.href,width:220,height:220,colorDark:'#123b2e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+   const canvas=temp.querySelector('canvas');
+   if(canvas&&typeof canvas.toDataURL==='function'){
+    img.src=canvas.toDataURL('image/png');
+    ready=true;
+   }else{
+    const generated=temp.querySelector('img');
+    if(generated&&generated.src){img.src=generated.src;ready=true}
+   }
   }
- }catch(e){ok=false}
- if(!ok){
-  node.replaceChildren();
-  const img=document.createElement('img');
-  img.src='https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data='+encodeURIComponent(parsed.href);
-  img.alt='Code QR à scanner';
-  node.append(img);
- }
+ }catch(e){ready=false}
+ if(!ready)img.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='+encodeURIComponent(parsed.href);
+ node.appendChild(img);
  node.dataset.value=parsed.href;
 }
 async function refresh(){try{const response=await fetch('/api/vitrine',{cache:'no-store'});if(!response.ok)throw Error('offline');const {content:c}=await response.json();if(!c)return;const payload=JSON.stringify(c);if(payload===lastPayload&&stage.children.length)return;lastPayload=payload;const next=defaults.map((d,i)=>({title:String(c['vitrine.slide'+(i+1)+'.title']??d.title).slice(0,125),subtitle:String(c['vitrine.slide'+(i+1)+'.subtitle']??d.subtitle).slice(0,220),image:String(c['vitrine.slide'+(i+1)+'.image']??d.image),enabled:String(c['vitrine.slide'+(i+1)+'.enabled']??'true')!=='false',position:i})).filter(s=>s.enabled);slides=next.length?next:[{...defaults[0],position:0}];seconds=Math.max(5,Math.min(30,Number(c['vitrine.settings.seconds'])||9));const qrUrl=String(c['vitrine.settings.qr_url']||'https://evolutionpme.ca/ateliers-noel.html');updateQR(qrUrl,String(c['vitrine.settings.qr_label']||'Balayez pour découvrir').slice(0,100));build();play()}catch(e){updateQR('https://evolutionpme.ca/ateliers-noel.html','Scannez pour réserver');if(!stage.children.length){slides=defaults.map((s,i)=>({...s,position:i}));build();play()}}}
