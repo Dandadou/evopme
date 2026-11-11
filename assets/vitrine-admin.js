@@ -11,6 +11,27 @@ const defaults={
 };
 async function request(path,opts={}){const isForm=typeof FormData!=='undefined'&&opts.body instanceof FormData;const headers={Accept:'application/json',...(!isForm&&opts.body?{'Content-Type':'application/json'}:{})};const response=await fetch(path,{...opts,headers});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'Impossible de communiquer avec le CMS.');return data}
 function say(value,ok){status.textContent=value;status.dataset.state=ok?'ok':'error'}
+async function checkPublicVitrine(expected={}){
+ const response=await fetch('/api/vitrine?check='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});
+ if(!response.ok)throw Error('La vitrine publique ne répond pas (HTTP '+response.status+').');
+ const data=await response.json();
+ if(!data.content||typeof data.content!=='object')throw Error('La vitrine publique ne retourne pas les données du CMS.');
+ for(const [key,value] of Object.entries(expected)){
+  const received=String(data.content[key]??'');
+  if(received!==String(value))throw Error('Le site public ne reçoit pas la valeur enregistrée pour la scène '+key.match(/slide(\d)/)?.[1]+'. Vérifie le déploiement de /api/vitrine.');
+ }
+ return data.content;
+}
+function collectContent(){const content={};for(const f of fields){content[f.dataset.vitrineKey]={type:'text',value:f.type==='checkbox'?String(f.checked):f.value.trim()}}return content}
+async function saveContent(message='Vitrine enregistrée'){
+ const content=collectContent();
+ const result=await request('/api/cms/content',{method:'PUT',body:JSON.stringify({content})});
+ const check={};for(let i=1;i<=4;i++){const key='vitrine.slide'+i+'.image';if(content[key]?.value)check[key]=content[key].value}
+ await checkPublicVitrine(check);
+ say(message+' et confirmée par le site public. Actualise la TCL.',true);
+ return result;
+}
+
 function preview(key){
  const input=fields.find(f=>f.dataset.vitrineKey===key);
  const img=form.querySelector('[data-vitrine-preview="'+key+'"]');
@@ -49,7 +70,8 @@ for(let i=1;i<=4;i++){
    field.value=data.url;
    preview(key);
    fileInput.value='';
-   say('Image téléversée! Enregistre la vitrine pour afficher le changement sur la TCL.',true);
+   say('Image téléversée : vérification de la vitrine publique…',true);
+   await saveContent('Image téléversée et enregistrée');
   }catch(e){say(e.message,false)}
   finally{btn.disabled=false}
  });
@@ -65,6 +87,6 @@ function updateQrFields(){
 }
 for(let i=1;i<=4;i++)form.querySelector('[data-vitrine-key="vitrine.slide'+i+'.qr_enabled"]')?.addEventListener('change',updateQrFields);
 async function load(){try{const data=await request('/api/cms/content');for(const f of fields){const key=f.dataset.vitrineKey;const val=data.content?.[key]?.value??defaults[key];if(val===undefined)continue;if(f.type==='checkbox')f.checked=String(val)!=='false';else f.value=val}for(let i=1;i<=4;i++)preview('vitrine.slide'+i+'.image');updateQrFields();say('La vitrine est prête à être modifiée.',true)}catch(e){say(e.message,false)}}
-form.addEventListener('submit',async e=>{e.preventDefault();const content={};for(const f of fields){const key=f.dataset.vitrineKey;content[key]={type:'text',value:f.type==='checkbox'?String(f.checked):f.value.trim()}}const btn=form.querySelector('[type="submit"]');btn.disabled=true;say('Enregistrement en cours…',true);try{await request('/api/cms/content',{method:'PUT',body:JSON.stringify({content})});say('Vitrine enregistrée. La télévision affichera les changements automatiquement.',true)}catch(e){say(e.message,false)}finally{btn.disabled=false}});
+form.addEventListener('submit',async e=>{e.preventDefault();const btn=form.querySelector('[type="submit"]');btn.disabled=true;say('Enregistrement et vérification du site public…',true);try{await saveContent('Vitrine enregistrée')}catch(e){say(e.message,false)}finally{btn.disabled=false}});
 load();
 })();
