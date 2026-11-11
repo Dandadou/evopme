@@ -31,6 +31,33 @@ h1 em{color:#f7941d;font-style:normal}
 .scene-noel .kicker{color:#b9edc8}
 .scene-noel .lead{color:#f8ede4}
 .scene-noel{background:radial-gradient(ellipse at 78% 34%,#1e6d4545,transparent 48%)}
+
+/* Direction artistique chaleureuse, en continuité avec le site */
+.stage{background:linear-gradient(122deg,#14100d 0%,#221a16 55%,#2b1c13 100%)}
+.stage:before{right:-10vw;top:-15vh;width:70vw;height:105vh;background:radial-gradient(circle,#e89a4830 0%,#a4561620 42%,transparent 72%)}
+.stage:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.2;background-image:radial-gradient(circle,#ffdfb8 1px,transparent 2px);background-size:66px 68px}
+.scene{z-index:2}
+.scene.active{z-index:3}
+.kicker{color:#ffbd76}
+h1{color:#fff4e7;text-shadow:0 5px 28px #0e090877}
+h1 em{color:#ffae4d}
+.lead{color:#f3e1ce}
+.visual:before{background:radial-gradient(circle,#eb994038 0%,#eb994016 44%,transparent 70%)}
+.brand{color:#ffeddb}
+.brand strong,.url{color:#ffb05b}
+.bottom{border-color:#e8bf8d55;color:#f6e9da}
+.qr-wrap{background:#fff3e5;color:#283527;border-radius:18px;padding:12px 16px;box-shadow:0 12px 35px #0004}
+.qr-wrap #qr{background:#fff;border:5px solid #ffffff;border-radius:9px}
+.scene-noel{background:radial-gradient(ellipse at 82% 42%,#246d494d,transparent 55%),linear-gradient(120deg,#14251d,#1f3729 55%,#4b2627 100%)}
+.scene-noel .kicker{color:#bde7c7}
+.scene-noel h1{color:#fff7e9}
+.scene-noel h1 em{color:#fbd4ab}
+.scene-noel .lead{color:#f6ede3}
+.scene-noel .visual:before{background:radial-gradient(circle,#c69d5540,transparent 70%)}
+.snow{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
+.snow i{position:absolute;top:-12vh;left:var(--x);width:var(--size);height:var(--size);border-radius:50%;background:#ffffffd9;opacity:var(--opacity);animation:snowfall var(--speed) linear var(--delay) infinite}
+@keyframes snowfall{to{transform:translate3d(var(--wind),115vh,0)}}
+@media(prefers-reduced-motion:reduce){.snow i{animation:none;display:none}}
 </style></head>
 <body><main class="stage"><div class="brand">ÉVOLUTION <strong>PME.</strong> <span style="font-size:.45em;letter-spacing:.09em;color:#aaa;vertical-align:middle">CRÉATEUR DE MARQUES</span></div><div id="scenes" aria-live="off"></div><footer class="bottom"><span class="url">evolutionpme.ca</span><div class="qr-wrap" id="qr-wrap" hidden><span id="qr-label">Découvrez nos ateliers</span><div id="qr" role="img" aria-label="Code QR menant à notre site"></div></div></footer></main>
 <script src="/assets/qrcode.min.js"></script>
@@ -45,7 +72,7 @@ const icons=["✨","👕","🎨","🎄"];
 let slides=defaults,seconds=9,index=0,timer=null,lastPayload="";
 const stage=document.getElementById('scenes');
 function safeImage(src){try{const u=new URL(src,location.href);return u.origin===location.origin&&(/^\/assets\//.test(u.pathname)||/^\/media\//.test(u.pathname))?u.href:null}catch{return null}}
-function build(){stage.replaceChildren();for(let i=0;i<slides.length;i++){const s=slides[i];const item=document.createElement('section');item.className='scene'+(s.position===3?' scene-noel':'');const copy=document.createElement('div');const kicker=document.createElement('div');kicker.className='kicker';kicker.textContent='ÉVOLUTION PME · CRÉATEUR DE MARQUES';const title=document.createElement('h1');const segments=s.title.split('. ').map((v,i,a)=>i<a.length-1?v+'.':v);if(segments.length===3){title.append(document.createTextNode(segments[0]+' '),document.createElement('br'),document.createTextNode(segments[1]+' '),document.createElement('br'));const em=document.createElement('em');em.textContent=segments[2];title.append(em)}else{const words=s.title.split(' ');if(words.length>=3){title.append(document.createTextNode(words.slice(0,-2).join(' ')+' '));const em=document.createElement('em');em.textContent=words.slice(-2).join(' ');title.append(em)}else title.textContent=s.title}const lead=document.createElement('p');lead.className='lead';lead.textContent=s.subtitle;copy.append(kicker,title,lead);const visual=document.createElement('div');visual.className='visual';const url=safeImage(s.image);if(url){const img=document.createElement('img');img.src=url;img.alt='';img.onerror=()=>{img.remove();const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)};visual.append(img)}else{const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)}item.append(copy,visual);stage.append(item)}index=0;show()}
+function build(){stage.replaceChildren();for(let i=0;i<slides.length;i++){const s=slides[i];const item=document.createElement('section');item.className='scene'+(s.position===3?' scene-noel':'');const copy=document.createElement('div');const kicker=document.createElement('div');kicker.className='kicker';kicker.textContent='ÉVOLUTION PME · CRÉATEUR DE MARQUES';const title=document.createElement('h1');const segments=s.title.split('. ').map((v,i,a)=>i<a.length-1?v+'.':v);if(segments.length===3){title.append(document.createTextNode(segments[0]+' '),document.createElement('br'),document.createTextNode(segments[1]+' '),document.createElement('br'));const em=document.createElement('em');em.textContent=segments[2];title.append(em)}else{const words=s.title.split(' ');if(words.length>=3){title.append(document.createTextNode(words.slice(0,-2).join(' ')+' '));const em=document.createElement('em');em.textContent=words.slice(-2).join(' ');title.append(em)}else title.textContent=s.title}const lead=document.createElement('p');lead.className='lead';lead.textContent=s.subtitle;copy.append(kicker,title,lead);const visual=document.createElement('div');visual.className='visual';const url=safeImage(s.image);if(url){const img=document.createElement('img');img.src=url;img.alt='';img.onerror=()=>{img.remove();const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)};visual.append(img)}else{const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)}item.append(copy,visual);if(s.position===3){const snow=document.createElement('div');snow.className='snow';for(let n=0;n<34;n++){const flake=document.createElement('i');const seed=(n*37%101)/100;flake.style.setProperty('--x',(n*73%103)+'%');flake.style.setProperty('--size',(2+n%5)+'px');flake.style.setProperty('--opacity',(0.35+(n%6)*.1).toFixed(2));flake.style.setProperty('--speed',(7+n%9)+'s');flake.style.setProperty('--delay',(-n*.63)+'s');flake.style.setProperty('--wind',((n%7-3)*30)+'px');snow.append(flake)}item.append(snow)}stage.append(item)}index=0;show()}
 function show(){[...stage.children].forEach((x,i)=>x.classList.toggle('active',i===index))}
 function play(){clearInterval(timer);if(slides.length>1)timer=setInterval(()=>{index=(index+1)%slides.length;show()},seconds*1000)}
 async function refresh(){try{const response=await fetch('/api/vitrine',{cache:'no-store'});if(!response.ok)throw Error('offline');const {content:c}=await response.json();if(!c)return;const payload=JSON.stringify(c);if(payload===lastPayload&&stage.children.length)return;lastPayload=payload;const next=defaults.map((d,i)=>({title:String(c['vitrine.slide'+(i+1)+'.title']??d.title).slice(0,125),subtitle:String(c['vitrine.slide'+(i+1)+'.subtitle']??d.subtitle).slice(0,220),image:String(c['vitrine.slide'+(i+1)+'.image']??d.image),enabled:String(c['vitrine.slide'+(i+1)+'.enabled']??'true')!=='false',position:i})).filter(s=>s.enabled);slides=next.length?next:[{...defaults[0],position:0}];seconds=Math.max(5,Math.min(30,Number(c['vitrine.settings.seconds'])||9));const qrUrl=String(c['vitrine.settings.qr_url']||'');const qrWrap=document.getElementById('qr-wrap');let parsed=null;try{parsed=new URL(qrUrl);if(!['https:','http:'].includes(parsed.protocol))parsed=null}catch{}qrWrap.hidden=!parsed;if(parsed){const node=document.getElementById('qr');if(node.dataset.value!==parsed.href){node.replaceChildren();if(typeof QRCode==='function'){new QRCode(node,{text:parsed.href,width:220,height:220,colorDark:'#10211a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});node.dataset.value=parsed.href}else{node.textContent='evolutionpme.ca'}}document.getElementById('qr-label').textContent=String(c['vitrine.settings.qr_label']||'Découvrez nos services').slice(0,100)}build();play()}catch(e){if(!stage.children.length){slides=defaults.map((s,i)=>({...s,position:i}));build();play()}}}
