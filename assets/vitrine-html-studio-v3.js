@@ -89,7 +89,6 @@ function sceneCard(item){
   el('[data-enabled]').checked=false;el('[data-html]').value='';
   if(await saveScene()){map.delete(n);card.remove();message('Scène retirée de la vitrine.')}
  });
- el('[data-move]').forEach?.(()=>{});
  for(const b of card.querySelectorAll('[data-move]'))b.addEventListener('click',()=>move(n,Number(b.dataset.move)));
  if(item.html)renderQRlessPreview(el('[data-frame]'),item.html);
  return card;
@@ -97,13 +96,13 @@ function sceneCard(item){
 function reloadLive(){const frame=document.querySelector('[data-vitrine-preview-live]');if(frame)frame.src='/vitrine.html?cms-preview='+Date.now()}
 function display(){
  list.replaceChildren();
- const items=[...map.values()].filter(x=>x.html.trim()||x.enabled).sort((a,b)=>a.order-b.order||a.slot-b.slot);
+ const items=[...map.values()].sort((a,b)=>a.order-b.order||a.slot-b.slot);
  if(!items.length){const p=document.createElement('p');p.style.cssText='color:#bbb;padding:26px 10px;text-align:center';p.textContent='Aucune scène HTML pour le moment. Clique sur « + Ajouter une scène HTML ».';list.append(p)}
  else for(const x of items)list.append(sceneCard(x));
  add.disabled=items.length>=MAX;
 }
 async function move(n,direction){
- const sorted=[...map.values()].filter(x=>x.html.trim()||x.enabled).sort((a,b)=>a.order-b.order||a.slot-b.slot);
+ const sorted=[...map.values()].sort((a,b)=>a.order-b.order||a.slot-b.slot);
  const at=sorted.findIndex(x=>x.slot===n),other=sorted[at+direction];
  if(at<0||!other)return;
  // Preserve unsaved edits: require explicit save before reordering.
@@ -117,7 +116,7 @@ async function move(n,direction){
  try{const result=await api('/api/cms/content',{method:'PUT',body:JSON.stringify({content})});if(!result.ok)throw Error('Sauvegarde impossible');display();reloadLive();message('Ordre des scènes mis à jour.')}catch(e){a.order=oldA;b.order=oldB;message('Impossible de modifier l’ordre : '+e.message,false)}
 }
 add.addEventListener('click',()=>{
- const n=Array.from({length:MAX},(_,i)=>i+1).find(i=>!map.get(i)||!map.get(i).html.trim());
+ const n=Array.from({length:MAX},(_,i)=>i+1).find(i=>!map.has(i));
  if(!n){message('Les 12 emplacements sont utilisés.',false);return}
  const obj=initial(n);obj.order=Math.max(0,...[...map.values()].map(x=>x.order||0))+1;
  map.set(n,obj);display();const card=list.querySelector('[data-scene="'+n+'"]');card?.scrollIntoView({behavior:'smooth',block:'start'});message('Nouvelle scène prête : importe ton fichier HTML.');
