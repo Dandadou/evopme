@@ -36,6 +36,12 @@ const defaults={
  "vitrine.settings.qr_url":"https://evolutionpme.ca/ateliers-noel.html",
  "vitrine.settings.qr_label":"Inscrivez-vous en ligne"
 };
+// Nouvelle vitrine : six scènes indépendantes gérées depuis le CMS.
+for(let i=1;i<=6;i++){
+ const p='vitrine.page'+i+'.';
+ Object.assign(defaults,{[p+'eyebrow']:'',[p+'title']:'',[p+'accent']:'',[p+'description']:'',[p+'tags']:'',[p+'enabled']:'true',[p+'qr_enabled']:i===6?'true':'false',[p+'qr_url']:i===6?'https://evolutionpme.ca/ateliers-noel.html':'',[p+'qr_label']:i===6?'Inscription aux ateliers':'Scannez pour en savoir plus'});
+}
+defaults['vitrine.settings.seconds_v2']='11';
 export async function onRequestGet({env}){
  const headers={"content-type":"application/json; charset=utf-8","cache-control":"public, max-age=25","access-control-allow-origin":"*"};
  if(!env.CMS_DB)return new Response(JSON.stringify({content:defaults}),{headers});
