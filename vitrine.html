@@ -110,6 +110,7 @@ p.lead{font-size:clamp(18px,1.55vw,31px);font-weight:500;line-height:1.48;max-wi
 @keyframes snowfall{to{transform:translate3d(var(--w),115vh,0)}}
 @media(max-width:1000px){.scene .inner{grid-template-columns:52% 48%;padding-left:5vw;padding-right:5vw}h1{font-size:clamp(26px,4vw,52px)}.chips span{padding:7px 10px}}
 @media(prefers-reduced-motion:reduce){.scene,.copy,.sky{transition:none;transform:none}.active .copy,.active .sky{opacity:1}.floating,.hoodie,.halo,.xmas-shirt,.lights i,.snow i{animation:none}}
+.custom-html-scene{background:#09090b!important}.custom-html-scene::before,.custom-html-scene::after{display:none!important}.custom-html-scene iframe{display:block;position:absolute;inset:0;width:100%;height:100%;border:0;background:#09090b}.custom-html-scene .custom-overlay{position:absolute;bottom:1vh;right:2vw;z-index:2;pointer-events:none}
 </style>
 </head>
 <body>
@@ -139,7 +140,8 @@ p.lead{font-size:clamp(18px,1.55vw,31px);font-weight:500;line-height:1.48;max-wi
 <script src="/assets/qrcode.min.js"></script>
 <script>
 (()=>{
-const slides=[...document.querySelectorAll('.scene')];
+let slides=[...document.querySelectorAll('.scene')];
+const nativeSlides=slides.slice();
 const footer=document.getElementById('footer-detail');
 const qrWrap=document.getElementById('qrbox');
 const qrLabel=qrWrap.querySelector('span');
@@ -209,6 +211,30 @@ function renderQr(url,label){
   return !!qrNode.querySelector('img')
  }catch(e){return false}
 }
+function buildCustomScenes(data){
+ for(const old of document.querySelectorAll('.custom-html-scene'))old.remove();
+ slides=nativeSlides.slice();
+ const container=document.querySelector('main');
+ for(let i=1;i<=4;i++){
+  const key='vitrine.custom'+i+'.';
+  const html=String(data[key+'html']||'').slice(0,20000);
+  if(String(data[key+'enabled']||'false')!=='true'||!html.trim())continue;
+  const section=document.createElement('section');section.className='scene custom-html-scene';
+  section.dataset.enabled='true';section.dataset.label=String(data[key+'name']||'Scène personnalisée '+i).slice(0,90);
+  section.dataset.qr=String(data[key+'qr_enabled']||'false');
+  section.dataset.qrUrl=String(data[key+'qr_url']||'');
+  section.dataset.qrLabel=String(data[key+'qr_label']||'Scannez pour découvrir');
+  const frame=document.createElement('iframe');
+  frame.title=section.dataset.label;
+  frame.setAttribute('sandbox','');
+  frame.setAttribute('tabindex','-1');
+  frame.setAttribute('loading','eager');
+  frame.srcdoc='<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https: data:; media-src https:; form-action &#39;none&#39;; base-uri &#39;none&#39;; connect-src &#39;none&#39;;"><style>*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;margin:0;background:#09090b;color:white}</style></head><body>'+html+'</body></html>';
+  section.append(frame);
+  container.insertBefore(section,container.querySelector('.sitefoot'));
+  slides.push(section)
+ }
+}
 function usable(){return slides.map((slide,i)=>i).filter(i=>slides[i].dataset.enabled!=='false')}
 function show(i){
  const available=usable();
@@ -236,7 +262,10 @@ async function refresh(){
   const payload=JSON.stringify(data);
   if(payload===lastPayload)return;
   lastPayload=payload;
-  slides.forEach((slide,i)=>apply(slide,originals[i],i,data));
+  nativeSlides.forEach((slide,i)=>apply(slide,originals[i],i,data));
+  const previous=slides[current];
+  buildCustomScenes(data);
+  const previousIndex=slides.indexOf(previous);if(previousIndex>=0)current=previousIndex;
   dwell=Math.max(5000,Math.min(30000,(Number(data['vitrine.settings.seconds_v2'])||11)*1000));
   if(!usable().includes(current))current=usable()[0]||0;
   show(current);start();
