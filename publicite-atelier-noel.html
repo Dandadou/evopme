@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>Publicité atelier Noël</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,500;0,600;0,700;0,800;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        background: #020604;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Nunito", system-ui, sans-serif;
+        overflow: hidden;
+      }
+
+      /* ---------- Scène 16:9 (plein écran télé) ---------- */
+      .stage {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        height: min(100dvh, 56.25vw);
+        width: min(100vw, 177.78dvh);
+        container-type: size;
+        overflow: hidden;
+        background:
+          radial-gradient(120% 55% at 50% -8%, #0d4a2d 0%, rgba(13, 74, 45, 0) 60%),
+          radial-gradient(90% 40% at 85% 108%, #0a3d24 0%, rgba(10, 61, 36, 0) 65%),
+          linear-gradient(178deg, #082a1a 0%, #061f13 55%, #04150c 100%);
+        color: #f4ecd9;
+        padding: 5.5cqh 4.5cqw 6cqh;
+      }
+
+      #snow {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 3;
+      }
+      .sparkles {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+      }
+      .sparkles i {
+        position: absolute;
+        border-radius: 50%;
+        background: #fffbe9;
+        box-shadow: 0 0 6px 2px rgba(255, 250, 220, .55);
+        animation: twinkle 3.4s ease-in-out infinite;
+      }
+      @keyframes twinkle {
+        0%, 100% { opacity: .15; transform: scale(.7); }
+        50% { opacity: .95; transform: scale(1.15); }
+      }
+
+      /* Guirlande de lumières en haut de l'écran */
+      .garland {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 11cqh;
+        pointer-events: none;
+        z-index: 1;
+        opacity: .85;
+      }
+
+      /* ---------- Grille deux colonnes ---------- */
+      .content {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 57% 43%;
+        column-gap: 4cqw;
+        height: 100%;
+      }
+      .left {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .right {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        padding-right: 2cqw;
+      }
+
+      /* ---------- Marque (vrai logo) ---------- */
+      .brand { line-height: 1.05; }
+      .brand .logo {
+        display: block;
+        height: 13.5cqh;
+        width: auto;
+        max-width: 100%;
+      }
+      .brand .rule {
+        width: 9cqw;
+        height: 2px;
+        margin-top: 1.4cqh;
+        background: linear-gradient(90deg, #d9a441, transparent);
+      }
+
+      .kicker {
+        margin: 3cqh 0 0;
+        font-size: 2.9cqh;
+        font-weight: 800;
+        letter-spacing: .3em;
+        text-transform: uppercase;
+        color: #e8b34b;
+      }
+
+      /* ---------- Titre ---------- */
+      h1 {
+        margin: 1.4cqh 0 0;
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 800;
+        text-transform: uppercase;
+        line-height: .98;
+      }
+      h1 .white {
+        display: block;
+        font-size: 10.6cqh;
+        color: #ffffff;
+        letter-spacing: .01em;
+      }
+      h1 .cream {
+        display: block;
+        font-size: 11.8cqh;
+        color: #f7ead0;
+        text-shadow:
+          .35cqh .35cqh 0 #a01224,
+          .7cqh .7cqh 0 rgba(90, 6, 16, .55);
+      }
+
+      .lede {
+        margin: 2.4cqh 0 0;
+        max-width: 94%;
+        font-size: 3.3cqh;
+        font-weight: 600;
+        line-height: 1.45;
+        color: #e9e2cf;
+      }
+
+      /* ---------- Pastilles ---------- */
+      .chips {
+        margin-top: 2.6cqh;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1cqw;
+      }
+      .chip {
+        padding: 1.1cqh 1.1cqw;
+        border: 1.5px solid rgba(244, 236, 217, .55);
+        border-radius: 999px;
+        font-size: 2.9cqh;
+        font-weight: 700;
+        color: #f4ecd9;
+        white-space: nowrap;
+      }
+      .chip b { color: #e8b34b; font-weight: 800; }
+
+      .spacer { flex: 1; }
+
+      /* ---------- Dates (bas de la colonne gauche) ---------- */
+      .dates .when {
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 700;
+        font-size: 4.4cqh;
+        color: #ffffff;
+        line-height: 1.3;
+      }
+      .dates .when .dot { color: #e8b34b; }
+      .dates .where {
+        margin-top: .8cqh;
+        font-size: 3.1cqh;
+        font-weight: 600;
+        color: #cfc5ab;
+        line-height: 1.5;
+      }
+
+      /* ---------- Carte prix ---------- */
+      .price {
+        background: linear-gradient(155deg, #a8162a 0%, #7d0e1e 58%, #5f0a17 100%);
+        border: 2px solid #d9a441;
+        border-radius: 2.2cqw;
+        box-shadow: 0 3cqh 7cqh rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .18);
+        padding: 4.2cqh 2.2cqw 4.6cqh;
+        text-align: center;
+      }
+      .price .label {
+        font-family: "Baloo 2", sans-serif;
+        font-size: 3.2cqh;
+        font-weight: 700;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: #fdf3dd;
+      }
+      .price .amount {
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 800;
+        font-size: 17.5cqh;
+        line-height: 1;
+        color: #f9efce;
+        text-shadow: 0 .8cqh 0 rgba(60, 4, 12, .45);
+        margin: 1.2cqh 0 1.6cqh;
+      }
+      .price .amount sup {
+        font-size: 9cqh;
+        vertical-align: super;
+      }
+      .price .note {
+        font-size: 3.2cqh;
+        font-weight: 600;
+        line-height: 1.45;
+        color: #f6e8d8;
+        max-width: 88%;
+        margin: 0 auto;
+      }
+
+      /* ---------- Code QR (sous la carte, centré) ---------- */
+      .qr-row {
+        margin-top: 3.2cqh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2.2cqh;
+      }
+      .qr-card {
+        background: #ffffff;
+        border: 2px solid #d9a441;
+        border-radius: 1.2cqw;
+        padding: 1.4cqh 1.4cqh 1.1cqh;
+        text-align: center;
+        box-shadow: 0 2cqh 5cqh rgba(0, 0, 0, .45);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .qr-card img {
+        display: block;
+        width: 20.5cqh;
+        height: 20.5cqh;
+        margin: 0 auto;
+      }
+      .qr-card span {
+        display: block;
+        margin-top: 1cqh;
+        font-family: "Baloo 2", sans-serif;
+        font-weight: 700;
+        font-size: 2.5cqh;
+        letter-spacing: .04em;
+        color: #0b3d24;
+        white-space: nowrap;
+        text-align: center;
+      }
+      .site {
+        text-align: center;
+        font-size: 3.1cqh;
+        font-weight: 800;
+        letter-spacing: .22em;
+        color: #e8b34b;
+      }
+
+      .tree {
+        position: absolute;
+        right: 2.2cqw;
+        bottom: 3cqh;
+        width: 8.5cqw;
+        z-index: 1;
+        opacity: .9;
+        pointer-events: none;
+      }
+      .drift {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        width: 100%;
+        height: 9cqh;
+        z-index: 1;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage" aria-label="Publicité des ateliers de Noël d'Évolution PME">
+      <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+
+      <svg class="garland" viewBox="0 0 1600 110" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+        <path d="M0 0 Q 400 105 800 0" fill="none" stroke="rgba(217,164,65,.4)" stroke-width="2"/>
+        <path d="M800 0 Q 1200 105 1600 0" fill="none" stroke="rgba(217,164,65,.4)" stroke-width="2"/>
+        <g>
+          <circle cx="100" cy="24" r="6" fill="#e8b34b"/>
+          <circle cx="200" cy="41" r="6" fill="#c21730"/>
+          <circle cx="300" cy="52" r="6" fill="#f4ecd9"/>
+          <circle cx="400" cy="56" r="6" fill="#e8b34b"/>
+          <circle cx="500" cy="52" r="6" fill="#2e9e63"/>
+          <circle cx="600" cy="41" r="6" fill="#c21730"/>
+          <circle cx="700" cy="24" r="6" fill="#f4ecd9"/>
+          <circle cx="900" cy="24" r="6" fill="#c21730"/>
+          <circle cx="1000" cy="41" r="6" fill="#f4ecd9"/>
+          <circle cx="1100" cy="52" r="6" fill="#e8b34b"/>
+          <circle cx="1200" cy="56" r="6" fill="#2e9e63"/>
+          <circle cx="1300" cy="52" r="6" fill="#c21730"/>
+          <circle cx="1400" cy="41" r="6" fill="#e8b34b"/>
+          <circle cx="1500" cy="24" r="6" fill="#f4ecd9"/>
+        </g>
+      </svg>
+
+      <svg class="drift" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 8 L0 5.2 Q 12 2.4 26 4.6 Q 40 6.6 54 4.2 Q 70 1.6 84 4 Q 94 5.4 100 4 L100 8 Z" fill="rgba(240,246,238,.14)"/>
+        <path d="M0 8 L0 6.4 Q 16 4.4 34 6 Q 52 7.4 68 5.6 Q 86 3.8 100 5.6 L100 8 Z" fill="rgba(248,251,246,.22)"/>
+      </svg>
+
+      <svg class="tree" viewBox="0 0 60 84" aria-hidden="true">
+        <path d="M30 2 L33.4 9.4 L41.4 10.2 L35.4 15.8 L37.2 23.6 L30 19.2 L22.8 23.6 L24.6 15.8 L18.6 10.2 L26.6 9.4 Z" fill="#e8b34b"/>
+        <path d="M30 16 L44 36 L36 36 L50 54 L40 54 L54 72 L6 72 L20 54 L10 54 L24 36 L16 36 Z" fill="#0e4d2c"/>
+        <path d="M30 16 L44 36 L36 36 L50 54 L40 54 L54 72 L30 72 Z" fill="#116134"/>
+        <rect x="26.5" y="72" width="7" height="9" rx="1.5" fill="#5a3a1e"/>
+        <circle cx="24" cy="46" r="2.1" fill="#c21730"/>
+        <circle cx="37" cy="58" r="2.1" fill="#e8b34b"/>
+        <circle cx="29" cy="66" r="2.1" fill="#f4ecd9"/>
+      </svg>
+
+      <canvas id="snow" aria-hidden="true"></canvas>
+
+      <div class="content">
+        <div class="left">
+          <div class="brand">
+            <img class="logo" src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques" />
+            <div class="rule"></div>
+          </div>
+
+          <p class="kicker">Événement créatif · Noël 2026</p>
+
+          <h1>
+            <span class="white">Viens<br />faire ton</span>
+            <span class="cream">Chandail<br />de Noël.</span>
+          </h1>
+
+          <p class="lede">
+            Un moment festif pour personnaliser ton vêtement et créer un
+            souvenir à ton image. Les idées prennent vie, un chandail à la fois.
+          </p>
+
+          <div class="chips">
+            <span class="chip"><b>✦</b> Activité pour tous</span>
+            <span class="chip"><b>✦</b> Vêtement et matériel inclus</span>
+            <span class="chip"><b>✦</b> Atelier de 2 heures</span>
+          </div>
+
+          <div class="spacer"></div>
+
+          <div class="dates">
+            <div class="when">
+              Ven. 27 nov. <span class="dot">•</span> Sam. 28 nov. <span class="dot">•</span> 13 h à 15 h
+            </div>
+            <div class="where">
+              5, rue Industrielle, Saint-Roch-de-l'Achigan<br />
+              D'autres dates en novembre et décembre
+            </div>
+          </div>
+        </div>
+
+        <div class="right">
+          <section class="price" aria-label="Prix">
+            <div class="label">Prix par personne · Taxes incluses</div>
+            <div class="amount">60<sup>&nbsp;$</sup></div>
+            <p class="note">
+              Taxes, vêtement et matériel de création inclus. Une activité
+              conviviale pour petits et grands.
+            </p>
+          </section>
+
+          <div class="qr-row">
+            <div class="qr-card">
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA9gAAAPYAQMAAAAb5MMyAAAABlBMVEUKCgr///8hT0R+AAADiUlEQVR42u3dwW7rIBBA0VH//5/bXYRgZsBO2jTS8eIpTWzOwpv7LAzx/b4j2Gw2m81ms9lsNpvNZrPZbDabzWaz2Ww2m81ms9lsNpvNZrPZbDab/Zl2ZMf4/ePzdH4+dDHa4/iK9x1sNpvNZrPZbPZ/tOc+Xxt7+j4t9nSEajR9zmaz2Ww2m81mn/d5094xPDkff70xmj5ns9lsNpvNZrOf7POx0qcP61X6nM1ms9lsNpvN/r0+n1K8eroeyzN2fc5ms9lsNpvNZt/u8/SbsbGn5B7HCfPP2Ww2m81ms9ns1/V5esLtf3vO/Waz2Ww2m81ms5tg7tZh3L0Kej6UPmez2Ww2m81msw/7PIon6usM8+mnNePT5dD1OZvNZrPZbDabfdjna35XSymeT2Jp/i/gfrPZbDabzWaz2SctXc1ITx+wp21frcqoz9lsNpvNZrPZ7PM+T6e1VOufp8sqNm+b6nM2m81ms9lsNvtqn0e7cGLUS6an45h/zmaz2Ww2m81m3+vz6kXR/pIoprg8Tq6udb/ZbDabzWaz2extn09pXW0buo4Q2XaizQKM7jebzWaz2Ww2m930edQ7hFZbiE7R3mxRZP9QNpvNZrPZbDb7Xp9Xay1ul2Sp2j6du+5+s9lsNpvNZrPZ2z5P1zlvtis62asoPD9ns9lsNpvNZrMv9nm6G1G6nnm14mLzWZ+z2Ww2m81ms9mX+rwK6eal0WYVl8gmq+tzNpvNZrPZbDb7sM/7pVqqh+fVxkbNfBh9zmaz2Ww2m81mb/s82vnn2z+jnq8e2UKO7jebzWaz2Ww2m73t8zW5q4Y/3040Hcr9ZrPZbDabzWazt33e7ARaLX7ezIQZTwvzW9hsNpvNZrPZ7Ct9Pv0U9RP16pztBkb6nM1ms9lsNpvNPunz6thW+jRU7F4j1edsNpvNZrPZbPa2z6sTDpN+vaoqc33OZrPZbDabzWaf9HnzNuh0SVXj07AN536z2Ww2m81ms9nbPl+ru9pvqN9RtFL0OZvNZrPZbDab/WSfHz5Lb4Yy/5zNZrPZbDabzX5Vn6+ZXaV7urhiyrnfbDabzWaz2Wz2ts/7lVvS6S5pojeQPmez2Ww2m81ms0/6vDqhj/kp19NoD+ufs9lsNpvNZrPZV/r8jw82m81ms9lsNpvNZrPZbDabzWaz2Ww2m81ms9lsNpvNZrPZbDabzWZ/jv0DVqUxT6tMynIAAAAASUVORK5CYII=" alt="Code QR vers la page d'inscription des ateliers de Noël" />
+              <span>Scanne pour t'inscrire</span>
+            </div>
+            <div class="site">EVOLUTIONPME.CA</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        // --- Petites étoiles scintillantes dans le fond ---
+        var sparkBox = document.getElementById('sparkles');
+        var starCount = 46;
+        for (var i = 0; i < starCount; i++) {
+          var s = document.createElement('i');
+          var size = 1.5 + Math.random() * 2.6;
+          s.style.width = size + 'px';
+          s.style.height = size + 'px';
+          s.style.left = (Math.random() * 100) + '%';
+          s.style.top = (Math.random() * 100) + '%';
+          s.style.animationDelay = (Math.random() * 3.4) + 's';
+          s.style.animationDuration = (2.6 + Math.random() * 2.4) + 's';
+          sparkBox.appendChild(s);
+        }
+
+        // --- Neige qui tombe ---
+        var canvas = document.getElementById('snow');
+        var ctx = canvas.getContext('2d');
+        var stage = canvas.parentElement;
+        var flakes = [];
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var W = 0, H = 0, raf = null;
+
+        function resize() {
+          var r = stage.getBoundingClientRect();
+          var dpr = Math.min(window.devicePixelRatio || 1, 2);
+          W = r.width; H = r.height;
+          canvas.width = Math.round(W * dpr);
+          canvas.height = Math.round(H * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          seed();
+          if (reduceMotion) drawStatic();
+        }
+
+        function seed() {
+          var n = Math.round(W * H / 6500);
+          flakes = [];
+          for (var i = 0; i < n; i++) {
+            flakes.push({
+              x: Math.random() * W,
+              y: Math.random() * H,
+              r: 0.8 + Math.random() * 2.4,
+              sp: 0.35 + Math.random() * 1.05,
+              ph: Math.random() * Math.PI * 2,
+              sw: 0.3 + Math.random() * 0.9,
+              o: 0.35 + Math.random() * 0.6
+            });
+          }
+        }
+
+        function drawFlake(f) {
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,252,' + f.o + ')';
+          ctx.shadowColor = 'rgba(255,255,255,.8)';
+          ctx.shadowBlur = f.r * 2.2;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        function drawStatic() {
+          ctx.clearRect(0, 0, W, H);
+          flakes.forEach(drawFlake);
+        }
+
+        var t = 0;
+        function tick() {
+          t += 0.008;
+          ctx.clearRect(0, 0, W, H);
+          for (var i = 0; i < flakes.length; i++) {
+            var f = flakes[i];
+            f.y += f.sp;
+            f.x += Math.sin(t * 2 + f.ph) * f.sw * 0.4;
+            if (f.y - f.r > H) { f.y = -f.r; f.x = Math.random() * W; }
+            if (f.x < -4) f.x = W + 4;
+            if (f.x > W + 4) f.x = -4;
+            drawFlake(f);
+          }
+          raf = requestAnimationFrame(tick);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+        if (!reduceMotion) raf = requestAnimationFrame(tick);
+      })();
+    </script>
+  </body>
+</html>
