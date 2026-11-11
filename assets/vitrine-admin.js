@@ -9,7 +9,7 @@ const defaults={
 'vitrine.slide4.title':'ATELIERS DE NOËL','vitrine.slide4.subtitle':'Venez créer votre chandail de Noël! Inscription en ligne.',
 'vitrine.slide4.qr_url':'https://evolutionpme.ca/ateliers-noel.html','vitrine.slide4.qr_label':'Inscrivez-vous en ligne'
 };
-async function request(path,opts={}){const response=await fetch(path,{...opts,headers:{Accept:'application/json',...(opts.body?{'Content-Type':'application/json'}:{})}});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'Impossible de communiquer avec le CMS.');return data}
+async function request(path,opts={}){const isForm=typeof FormData!=='undefined'&&opts.body instanceof FormData;const headers={Accept:'application/json',...(!isForm&&opts.body?{'Content-Type':'application/json'}:{})};const response=await fetch(path,{...opts,headers});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'Impossible de communiquer avec le CMS.');return data}
 function say(value,ok){status.textContent=value;status.dataset.state=ok?'ok':'error'}
 function preview(key){
  const input=fields.find(f=>f.dataset.vitrineKey===key);
@@ -30,7 +30,7 @@ for(let i=1;i<=4;i++){
  const btn=form.querySelector('[data-vitrine-upload-button="'+key+'"]');
  const img=form.querySelector('[data-vitrine-preview="'+key+'"]');
  if(!field||!fileInput||!btn)continue;
- if(img)img.addEventListener('error',()=>{img.style.display='none'});
+ if(img)img.addEventListener('error',()=>{img.style.display='none';say('Cette image est introuvable. Vérifie son adresse ou téléverse-la à nouveau.',false)});
  field.addEventListener('input',()=>preview(key));
  btn.addEventListener('click',async()=>{
   const file=fileInput.files?.[0];
@@ -49,7 +49,7 @@ for(let i=1;i<=4;i++){
    field.value=data.url;
    preview(key);
    fileInput.value='';
-   say('Image téléversée! Clique sur « Enregistrer la vitrine » pour afficher le changement sur la TCL.',true);
+   say('Image téléversée! Enregistre la vitrine pour afficher le changement sur la TCL.',true);
   }catch(e){say(e.message,false)}
   finally{btn.disabled=false}
  });
