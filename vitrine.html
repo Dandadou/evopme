@@ -1,42 +1,50 @@
 <!doctype html><html lang="fr-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Vitrine | Évolution PME</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#09090c;color:white;font-family:Arial,Helvetica,sans-serif}
-.stage{position:relative;width:100vw;height:100vh;overflow:hidden;background:radial-gradient(ellipse at 85% 16%,#713a1c66,transparent 45%),linear-gradient(120deg,#060609,#16111b);isolation:isolate}
-.stage:before{content:"";position:absolute;inset:-40%;background:repeating-conic-gradient(#f7941d0c 0deg 15deg,transparent 18deg 35deg);animation:rotate 100s linear infinite;pointer-events:none}@keyframes rotate{to{transform:rotate(360deg)}}
-.scene{position:absolute;inset:0;display:grid;grid-template-columns:1.2fr .8fr;align-items:center;gap:3vw;padding:12vh 7vw 14vh;opacity:0;transform:scale(1.055);transition:opacity 1s ease,transform 9s linear;z-index:1;visibility:hidden}
-.scene.active{opacity:1;transform:scale(1);z-index:2;visibility:visible}
-.kicker{color:#ffa438;font-size:clamp(14px,1.5vw,28px);font-weight:900;letter-spacing:.2em;margin-bottom:4vh}
-h1{font-size:clamp(38px,5.8vw,112px);letter-spacing:-.07em;line-height:1.04;margin:0 0 4vh;overflow-wrap:anywhere;text-wrap:balance;text-shadow:0 5px 28px #0009}
-.lead{font-size:clamp(21px,2.4vw,46px);line-height:1.38;max-width:28ch;color:#f6eee8;margin:0}
-.visual{height:65vh;display:grid;place-items:center;position:relative}
-.visual:before{content:"";position:absolute;width:90%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#ff9a3455,transparent 68%);filter:blur(28px)}
-.visual img{max-width:100%;max-height:100%;object-fit:contain;position:relative;filter:drop-shadow(0 20px 40px #0008)}
-.visual .emoji{font-size:clamp(100px,19vw,340px);filter:drop-shadow(0 16px 40px #0009);animation:bob 6s ease-in-out infinite;z-index:1}
-@keyframes bob{50%{transform:translateY(-20px) rotate(4deg)}}
-.brand{position:absolute;left:7vw;top:3.8vh;z-index:5;font-size:clamp(18px,2vw,36px);font-weight:900}.brand strong{color:#ff9a34}
-.bottom{position:absolute;bottom:4vh;left:7vw;right:7vw;z-index:5;border-top:1px solid #ffffff33;padding-top:2vh;display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:clamp(14px,1.5vw,26px);font-weight:700}
-.url{color:#ffb354}.qr-wrap{display:flex;align-items:center;gap:16px}.qr-wrap #qr{width:clamp(85px,9vw,150px);height:clamp(85px,9vw,150px);background:white;padding:7px;border-radius:8px;display:flex;align-items:center;justify-content:center}.qr-wrap #qr img,.qr-wrap #qr canvas{display:block;width:100%!important;height:100%!important;object-fit:contain}.qr-wrap[hidden]{display:none!important}
-.progress{position:absolute;bottom:0;left:0;width:100%;height:5px;background:#ffffff22;z-index:6}.progress>div{height:100%;background:linear-gradient(90deg,#f7941d,#ff4f75);width:0}
-@media(max-aspect-ratio:1/1){.scene{grid-template-columns:1fr;padding:12vh 6vw}.visual{height:32vh}.bottom{left:6vw;right:6vw}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+:root{--orange:#f7941d;--black:#0d0d0f}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--black);color:#f7f7f7;font-family:Arial,Helvetica,sans-serif}
+.stage{position:relative;width:100%;height:100%;overflow:hidden;background:#0d0d0f}
+.stage:before{content:"";position:absolute;right:-20vw;top:-30vh;width:65vw;height:95vh;border-radius:50%;background:radial-gradient(circle,#f7941d13 0%,transparent 68%);pointer-events:none}
+.scene{position:absolute;inset:0;display:grid;grid-template-columns:1.06fr .94fr;align-items:center;gap:4vw;padding:10vh 6vw 16vh;opacity:0;visibility:hidden;transition:opacity .6s ease}
+.scene.active{opacity:1;visibility:visible}
+.kicker{color:#f7941d;font-size:clamp(15px,1.18vw,24px);font-weight:900;letter-spacing:.13em;margin-bottom:3vh}
+h1{font-size:clamp(38px,5.5vw,104px);letter-spacing:-.065em;line-height:.96;margin:0 0 3.7vh;overflow-wrap:break-word;font-weight:950;text-transform:uppercase}
+h1 em{color:#f7941d;font-style:normal}
+.lead{font-size:clamp(19px,1.6vw,34px);line-height:1.42;max-width:34ch;color:#d0d0d0;margin:0}
+.visual{height:60vh;display:flex;align-items:center;justify-content:center;position:relative}
+.visual:before{content:"";position:absolute;width:85%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#f7941d24 0%,transparent 68%)}
+.visual img{max-width:100%;max-height:100%;object-fit:contain;position:relative}
+.visual .emoji{font-size:clamp(90px,16vw,310px);position:relative}
+.brand{position:absolute;left:6vw;top:4vh;z-index:5;font-size:clamp(16px,1.7vw,34px);font-weight:950;letter-spacing:-.04em}
+.brand strong{color:#f7941d}
+.bottom{position:absolute;bottom:3vh;left:6vw;right:6vw;z-index:5;border-top:1px solid #303035;padding-top:2vh;display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:clamp(14px,1.25vw,24px);font-weight:800}
+.url{color:#f7941d}
+.qr-wrap{display:flex;align-items:center;gap:18px}
+.qr-wrap[hidden]{display:none!important}
+.qr-wrap #qr{width:clamp(86px,8.5vw,145px);height:clamp(86px,8.5vw,145px);background:white;padding:7px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.qr-wrap #qr img,.qr-wrap #qr canvas{display:block;width:100%!important;height:100%!important;object-fit:contain}
+.progress{position:absolute;bottom:0;left:0;width:100%;height:5px;background:#252529;z-index:6}
+.progress>div{height:100%;background:#f7941d;width:0}
+@media(max-aspect-ratio:1/1){.scene{grid-template-columns:1fr;padding:12vh 6vw 18vh}.visual{height:32vh}}
+@media(prefers-reduced-motion:reduce){.scene{transition:none!important}.progress>div{transition:none!important}}
 </style></head>
-<body><main class="stage"><div class="brand">ÉVOLUTION <strong>PME.</strong></div><div id="scenes" aria-live="off"></div><footer class="bottom"><span class="url">evolutionpme.ca</span><div class="qr-wrap" id="qr-wrap" hidden><span id="qr-label">Découvrez nos ateliers</span><div id="qr" role="img" aria-label="Code QR menant à notre site"></div></div></footer><div class="progress"><div id="progress"></div></div></main>
+<body><main class="stage"><div class="brand">ÉVOLUTION <strong>PME.</strong> <span style="font-size:.45em;letter-spacing:.09em;color:#aaa;vertical-align:middle">CRÉATEUR DE MARQUES</span></div><div id="scenes" aria-live="off"></div><footer class="bottom"><span class="url">evolutionpme.ca</span><div class="qr-wrap" id="qr-wrap" hidden><span id="qr-label">Découvrez nos ateliers</span><div id="qr" role="img" aria-label="Code QR menant à notre site"></div></div></footer><div class="progress"><div id="progress"></div></div></main>
 <script src="/assets/qrcode.min.js"></script>
 <script>
 (()=>{
 const defaults=[
-{title:"VOS IDÉES. NOTRE CRÉATIVITÉ.",subtitle:"Évolution PME · Créateur de marques",image:"/assets/%C3%89tiquette%20EVOPME.png",enabled:true},
+{title:"VOS IDÉES. NOS SOLUTIONS. VOTRE ÉVOLUTION.",subtitle:"Nous transformons vos idées en marques fortes et en solutions concrètes.",image:"/assets/%C3%89tiquette%20EVOPME.png",enabled:true},
 {title:"DES VÊTEMENTS À VOTRE IMAGE.",subtitle:"T-shirts, cotons ouatés et vêtements corporatifs personnalisés",image:"",enabled:true},
 {title:"DES MARQUES QUI SE DÉMARQUENT.",subtitle:"Identité visuelle, graphisme et produits promotionnels",image:"",enabled:true},
 {title:"ATELIERS DE NOËL",subtitle:"Venez créer votre chandail de Noël! Inscription en ligne.",image:"",enabled:true}];
 const icons=["✨","👕","🎨","🎄"];
-let slides=defaults,seconds=9,index=0,timer=null;
+let slides=defaults,seconds=9,index=0,timer=null,lastPayload="";
 const stage=document.getElementById('scenes'),progress=document.getElementById('progress');
 function safeImage(src){try{const u=new URL(src,location.href);return u.origin===location.origin&&(/^\/assets\//.test(u.pathname)||/^\/media\//.test(u.pathname))?u.href:null}catch{return null}}
-function build(){stage.replaceChildren();for(let i=0;i<slides.length;i++){const s=slides[i];const item=document.createElement('section');item.className='scene';const copy=document.createElement('div');const kicker=document.createElement('div');kicker.className='kicker';kicker.textContent='ÉVOLUTION PME · CRÉATEUR DE MARQUES';const title=document.createElement('h1');title.textContent=s.title;const lead=document.createElement('p');lead.className='lead';lead.textContent=s.subtitle;copy.append(kicker,title,lead);const visual=document.createElement('div');visual.className='visual';const url=safeImage(s.image);if(url){const img=document.createElement('img');img.src=url;img.alt='';img.onerror=()=>{img.remove();const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)};visual.append(img)}else{const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)}item.append(copy,visual);stage.append(item)}index=0;show()}
+function build(){stage.replaceChildren();for(let i=0;i<slides.length;i++){const s=slides[i];const item=document.createElement('section');item.className='scene';const copy=document.createElement('div');const kicker=document.createElement('div');kicker.className='kicker';kicker.textContent='ÉVOLUTION PME · CRÉATEUR DE MARQUES';const title=document.createElement('h1');const segments=s.title.split(/(?<=\.)\s+/);if(segments.length===3){title.append(document.createTextNode(segments[0]+' '),document.createElement('br'),document.createTextNode(segments[1]+' '),document.createElement('br'));const em=document.createElement('em');em.textContent=segments[2];title.append(em)}else{const words=s.title.split(' ');if(words.length>=3){title.append(document.createTextNode(words.slice(0,-2).join(' ')+' '));const em=document.createElement('em');em.textContent=words.slice(-2).join(' ');title.append(em)}else title.textContent=s.title}const lead=document.createElement('p');lead.className='lead';lead.textContent=s.subtitle;copy.append(kicker,title,lead);const visual=document.createElement('div');visual.className='visual';const url=safeImage(s.image);if(url){const img=document.createElement('img');img.src=url;img.alt='';img.onerror=()=>{img.remove();const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)};visual.append(img)}else{const e=document.createElement('div');e.className='emoji';e.textContent=icons[s.position]||'✨';visual.append(e)}item.append(copy,visual);stage.append(item)}index=0;show()}
 function show(){[...stage.children].forEach((x,i)=>x.classList.toggle('active',i===index));progress.style.transition='none';progress.style.width='0';void progress.offsetWidth;if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){progress.style.transition='width '+seconds+'s linear';progress.style.width='100%'}}
 function play(){clearInterval(timer);if(slides.length>1)timer=setInterval(()=>{index=(index+1)%slides.length;show()},seconds*1000)}
-async function refresh(){try{const response=await fetch('/api/vitrine',{cache:'no-store'});if(!response.ok)throw Error('offline');const {content:c}=await response.json();if(!c)return;const next=defaults.map((d,i)=>({title:String(c['vitrine.slide'+(i+1)+'.title']??d.title).slice(0,125),subtitle:String(c['vitrine.slide'+(i+1)+'.subtitle']??d.subtitle).slice(0,220),image:String(c['vitrine.slide'+(i+1)+'.image']??d.image),enabled:String(c['vitrine.slide'+(i+1)+'.enabled']??'true')!=='false',position:i})).filter(s=>s.enabled);slides=next.length?next:[{...defaults[0],position:0}];seconds=Math.max(5,Math.min(30,Number(c['vitrine.settings.seconds'])||9));const qrUrl=String(c['vitrine.settings.qr_url']||'');const qrWrap=document.getElementById('qr-wrap');let parsed=null;try{parsed=new URL(qrUrl);if(!['https:','http:'].includes(parsed.protocol))parsed=null}catch{}qrWrap.hidden=!parsed;if(parsed){const node=document.getElementById('qr');if(node.dataset.value!==parsed.href){node.replaceChildren();if(typeof QRCode==='function'){new QRCode(node,{text:parsed.href,width:220,height:220,colorDark:'#10211a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});node.dataset.value=parsed.href}else{node.textContent='evolutionpme.ca'}}document.getElementById('qr-label').textContent=String(c['vitrine.settings.qr_label']||'Découvrez nos services').slice(0,100)}build();play()}catch(e){if(!stage.children.length){slides=defaults.map((s,i)=>({...s,position:i}));build();play()}}}
+async function refresh(){try{const response=await fetch('/api/vitrine',{cache:'no-store'});if(!response.ok)throw Error('offline');const {content:c}=await response.json();if(!c)return;const payload=JSON.stringify(c);if(payload===lastPayload&&stage.children.length)return;lastPayload=payload;const next=defaults.map((d,i)=>({title:String(c['vitrine.slide'+(i+1)+'.title']??d.title).slice(0,125),subtitle:String(c['vitrine.slide'+(i+1)+'.subtitle']??d.subtitle).slice(0,220),image:String(c['vitrine.slide'+(i+1)+'.image']??d.image),enabled:String(c['vitrine.slide'+(i+1)+'.enabled']??'true')!=='false',position:i})).filter(s=>s.enabled);slides=next.length?next:[{...defaults[0],position:0}];seconds=Math.max(5,Math.min(30,Number(c['vitrine.settings.seconds'])||9));const qrUrl=String(c['vitrine.settings.qr_url']||'');const qrWrap=document.getElementById('qr-wrap');let parsed=null;try{parsed=new URL(qrUrl);if(!['https:','http:'].includes(parsed.protocol))parsed=null}catch{}qrWrap.hidden=!parsed;if(parsed){const node=document.getElementById('qr');if(node.dataset.value!==parsed.href){node.replaceChildren();if(typeof QRCode==='function'){new QRCode(node,{text:parsed.href,width:220,height:220,colorDark:'#10211a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});node.dataset.value=parsed.href}else{node.textContent='evolutionpme.ca'}}document.getElementById('qr-label').textContent=String(c['vitrine.settings.qr_label']||'Découvrez nos services').slice(0,100)}build();play()}catch(e){if(!stage.children.length){slides=defaults.map((s,i)=>({...s,position:i}));build();play()}}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 refresh();setInterval(refresh,60000);
 })();
