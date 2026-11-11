@@ -27,7 +27,7 @@ function sceneCard(item){
  +'<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0"><label class="cms-check"><input type="checkbox" data-enabled '+(item.enabled?'checked':'')+'> Afficher sur la TCL</label><label>Durée (secondes)<input type="number" data-seconds min="5" max="120" value="'+item.seconds+'" style="max-width:110px"></label></div>'
  +'<div style="border:2px dashed #d59a48;border-radius:13px;padding:13px;background:#27221d" data-drop><button type="button" class="pill" data-choose>CHOISIR UN FICHIER .HTML</button><input type="file" accept=".html,.htm,text/html" data-file style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"><span style="display:inline-block;margin:8px 0 0 12px;color:#ddd;font-size:.9rem">ou glisse le fichier ici</span><div data-file-note style="color:#ccc;font-size:.85rem;margin-top:8px">'+(item.html?'Un contenu HTML est déjà enregistré.':'Aucun fichier ajouté.')+'</div></div>'
  +'<details style="margin-top:14px"><summary style="cursor:pointer;color:#ffb654">Afficher ou modifier le code HTML</summary><textarea data-html rows="10" maxlength="5242880" spellcheck="false" style="font-family:monospace;font-size:12px;line-height:1.45;max-width:100%">'+escapeHTML(item.html)+'</textarea></details>'
- +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin:14px 0"><button class="pill" type="button" data-preview>PRÉVISUALISER</button><button type="button" class="cms-save" data-save>ENREGISTRER CETTE SCÈNE</button></div>'
+ +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin:14px 0"><button class="pill" type="button" data-preview>PRÉVISUALISER</button><button class="pill" type="button" data-restart>↻ RECOMMENCER LA SCÈNE</button><button type="button" class="cms-save" data-save>ENREGISTRER CETTE SCÈNE</button></div>'
  +'<div style="aspect-ratio:16/9;border:1px solid #555;border-radius:10px;overflow:hidden;background:#060708"><iframe title="Aperçu scène '+n+'" data-frame sandbox="" style="display:block;width:100%;height:100%;border:0"></iframe></div>'
  +'<p class="cms-status" data-result aria-live="polite" style="margin-top:12px">Prête à modifier.</p>';
  const el=sel=>card.querySelector(sel);
@@ -83,6 +83,7 @@ function sceneCard(item){
  drop.addEventListener('dragleave',()=>{drop.style.borderColor='#d59a48'});
  drop.addEventListener('drop',e=>{e.preventDefault();drop.style.borderColor='#d59a48';processFile(e.dataTransfer?.files?.[0])});
  el('[data-preview]').addEventListener('click',()=>{renderQRlessPreview(el('[data-frame]'),el('[data-html]').value);say('Aperçu HTML chargé. Aucun élément ne sera ajouté par-dessus sur la TCL.')});
+ el('[data-restart]').addEventListener('click',()=>{renderQRlessPreview(el('[data-frame]'),el('[data-html]').value);say('Animation de l’aperçu recommencée depuis le début.');});
  el('[data-save]').addEventListener('click',saveScene);
  el('[data-delete]').addEventListener('click',async()=>{
   if(!confirm('Retirer « '+collect().name+' » de la vitrine et effacer son HTML ?'))return;
