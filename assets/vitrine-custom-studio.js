@@ -39,25 +39,32 @@ async function load(){
 root.addEventListener('change',e=>{if(e.target?.matches('[data-custom-key$=".qr_enabled"]'))updateQr()});
 for(let i=1;i<=4;i++){
  const upload=root.querySelector('[data-custom-import="'+i+'"]');
- upload?.addEventListener('change',async()=>{
-  const file=upload.files?.[0];if(!file)return;
+ if(!upload)continue;
+ upload.addEventListener('change',async()=>{
+  const file=upload.files&&upload.files[0];
+  if(!file)return;
+  say('Lecture de « '+file.name+' » en cours…');
   try{
-   if(!/\.html?$/i.test(file.name))throw Error('Choisis un fichier .html ou .htm.');
-   if(file.size>200*1024)throw Error('Le fichier HTML dépasse 200 Ko.');
+   if(!/\.html?$/i.test(file.name))throw Error('Le fichier doit se terminer par .html ou .htm.');
+   if(file.size>250*1024)throw Error('Fichier trop volumineux (maximum 250 Ko).');
    const raw=await file.text();
-   const parsed=new DOMParser().parseFromString(raw,'text/html');
-   parsed.querySelectorAll('script,iframe,object,embed,base,meta[http-equiv="refresh"]').forEach(x=>x.remove());
-   const style=[...parsed.head.querySelectorAll('style')].map(x=>x.outerHTML).join('\n');
-   const markup=style+'\n'+parsed.body.innerHTML;
-   if(!markup.trim())throw Error('Ce fichier ne contient pas de HTML affichable.');
-   if(markup.length>20000)throw Error('Le contenu dépasse 20 000 caractères après importation.');
+   if(!raw.trim())throw Error('Le fichier est vide.');
+   const doc=new DOMParser().parseFromString(raw,'text/html');
+   doc.querySelectorAll('script,iframe,object,embed,base,meta[http-equiv="refresh"]').forEach(el=>el.remove());
+   // Conserver les styles et les contenus du document sans le JavaScript.
+   const styles=Array.from(doc.head.querySelectorAll('style')).map(el=>el.outerHTML).join('\n');
+   const markup=[styles,doc.body.innerHTML].filter(Boolean).join('\n').trim();
+   if(!markup)throw Error('Aucun contenu HTML à afficher.');
    const editor=field('vitrine.custom'+i+'.html');
-   if(editor.value.trim()&&!confirm('Remplacer le code actuel de cette scène par le fichier '+file.name+'?'))return;
+   const limit=Number(editor.maxLength)||20000;
+   if(markup.length>limit)throw Error('Le HTML contient '+markup.length+' caractères; limite actuelle : '+limit+'.');
+   if(editor.value.trim()&&!confirm('Remplacer le HTML actuel de la scène '+i+' par « '+file.name+' » ?'))return;
    editor.value=markup;
    const nameField=field('vitrine.custom'+i+'.name');
-   if(!nameField.value.trim()||/^Scène personnalisée \\d+$/.test(nameField.value.trim()))nameField.value=file.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
+   if(!nameField.value.trim()||/^Scène personnalisée \d+$/.test(nameField.value.trim()))
+    nameField.value=file.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
    preview(i);
-   say('Fichier « '+file.name+' » importé dans la scène '+i+'. Vérifie l’aperçu, active la scène et enregistre pour publier.');
+   say('✓ Fichier « '+file.name+' » importé ('+markup.length+' caractères). Vérifie l’aperçu, coche « Ajouter cette scène » et clique sur ENREGISTRER LES SCÈNES HTML.');
   }catch(e){say('Importation impossible : '+e.message,false)}
   finally{upload.value=''}
  });
