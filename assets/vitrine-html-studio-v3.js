@@ -1,7 +1,7 @@
 (()=>{
 const root=document.querySelector('[data-html-studio-v3]');if(!root)return;
 const list=root.querySelector('[data-html-list]'),status=root.querySelector('[data-html-status]'),add=root.querySelector('[data-html-add]');
-const MAX=12,MAX_CHARS=1000000,MAX_BYTES=1024*1024;
+const MAX=12,MAX_CHARS=5*1024*1024,MAX_BYTES=5*1024*1024;
 const map=new Map();
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function message(s,ok=true){status.textContent=s;status.dataset.state=ok?'ok':'error'}
@@ -26,7 +26,7 @@ function sceneCard(item){
  +'<label>Nom<input data-name maxlength="90" value="'+escapeHTML(item.name)+'"></label>'
  +'<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0"><label class="cms-check"><input type="checkbox" data-enabled '+(item.enabled?'checked':'')+'> Afficher sur la TCL</label><label>Durée (secondes)<input type="number" data-seconds min="5" max="120" value="'+item.seconds+'" style="max-width:110px"></label></div>'
  +'<div style="border:2px dashed #d59a48;border-radius:13px;padding:13px;background:#27221d" data-drop><button type="button" class="pill" data-choose>CHOISIR UN FICHIER .HTML</button><input type="file" accept=".html,.htm,text/html" data-file style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"><span style="display:inline-block;margin:8px 0 0 12px;color:#ddd;font-size:.9rem">ou glisse le fichier ici</span><div data-file-note style="color:#ccc;font-size:.85rem;margin-top:8px">'+(item.html?'Un contenu HTML est déjà enregistré.':'Aucun fichier ajouté.')+'</div></div>'
- +'<details style="margin-top:14px"><summary style="cursor:pointer;color:#ffb654">Afficher ou modifier le code HTML</summary><textarea data-html rows="10" maxlength="1000000" spellcheck="false" style="font-family:monospace;font-size:12px;line-height:1.45;max-width:100%">'+escapeHTML(item.html)+'</textarea></details>'
+ +'<details style="margin-top:14px"><summary style="cursor:pointer;color:#ffb654">Afficher ou modifier le code HTML</summary><textarea data-html rows="10" maxlength="5242880" spellcheck="false" style="font-family:monospace;font-size:12px;line-height:1.45;max-width:100%">'+escapeHTML(item.html)+'</textarea></details>'
  +'<div style="display:flex;gap:9px;flex-wrap:wrap;margin:14px 0"><button class="pill" type="button" data-preview>PRÉVISUALISER</button><button type="button" class="cms-save" data-save>ENREGISTRER CETTE SCÈNE</button></div>'
  +'<div style="aspect-ratio:16/9;border:1px solid #555;border-radius:10px;overflow:hidden;background:#060708"><iframe title="Aperçu scène '+n+'" data-frame sandbox="" style="display:block;width:100%;height:100%;border:0"></iframe></div>'
  +'<p class="cms-status" data-result aria-live="polite" style="margin-top:12px">Prête à modifier.</p>';
@@ -40,7 +40,7 @@ function sceneCard(item){
  async function saveScene(){
   const x=collect();
   if(x.enabled&&!x.html.trim()){say('Ajoute ton fichier HTML avant d’activer la scène.',false);return false}
-  if(x.html.length>MAX_CHARS){say('Le HTML dépasse un million de caractères.',false);return false}
+  if(x.html.length>MAX_CHARS){say('Le HTML dépasse la limite de 5 Mo.',false);return false}
   const values={};
   for(const k of ['name','html','enabled','seconds','order'])values[key(n,k)]={type:'text',value:String(x[k])};
   const button=el('[data-save]');button.disabled=true;say('Enregistrement en cours…');
@@ -59,14 +59,14 @@ function sceneCard(item){
   say('Lecture du fichier « '+file.name+' »…');
   try{
    if(!/\.html?$/i.test(file.name))throw Error('Choisis un fichier .html ou .htm.');
-   if(file.size>MAX_BYTES)throw Error('La taille maximale est de 1 Mo. Les gros visuels doivent être hébergés sur le site.');
+   if(file.size>MAX_BYTES)throw Error('La taille maximale est de 5 Mo par fichier HTML.');
    const raw=typeof file.text==='function'?await file.text():await new Promise((resolve,reject)=>{const rd=new FileReader();rd.onload=()=>resolve(rd.result);rd.onerror=()=>reject(Error('Lecture impossible'));rd.readAsText(file,'UTF-8')});
    const doc=new DOMParser().parseFromString(raw,'text/html');
    doc.querySelectorAll('script,iframe,object,embed,base,meta[http-equiv="refresh"]').forEach(e=>e.remove());
    const styles=[...doc.head.querySelectorAll('style')].map(e=>e.outerHTML).join('\n');
    const source=[styles,doc.body.innerHTML].filter(Boolean).join('\n').trim();
    if(!source)throw Error('Fichier HTML vide ou sans contenu visible.');
-   if(source.length>MAX_CHARS)throw Error('Le contenu HTML dépasse la limite de 1 million de caractères.');
+   if(source.length>MAX_CHARS)throw Error('Le contenu HTML dépasse la limite de 5 Mo.');
    if(el('[data-html]').value.trim()&&!confirm('Remplacer le HTML de cette scène par « '+file.name+' » ?'))return;
    el('[data-html]').value=source;
    if(!el('[data-name]').value.trim()||/^Scène HTML \d+$/.test(el('[data-name]').value.trim()))el('[data-name]').value=file.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ').slice(0,90);
