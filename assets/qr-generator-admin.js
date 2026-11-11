@@ -17,11 +17,14 @@ panel.querySelector('[data-qr-create]').addEventListener('click',generate);
 color.addEventListener('change',()=>{if(currentValue)generate()});
 panel.querySelector('[data-qr-use]').addEventListener('click',()=>{
  if(!generate())return;
- const target=document.querySelector('[data-vitrine-key="vitrine.settings.qr_url"]');
- if(!target){message('Le réglage QR de la vitrine est introuvable.',false);return}
+ const scene=panel.querySelector('[data-qr-scene]')?.value||'4';
+ const target=document.querySelector('[data-vitrine-key="vitrine.slide'+scene+'.qr_url"]');
+ const toggle=document.querySelector('[data-vitrine-key="vitrine.slide'+scene+'.qr_enabled"]');
+ if(!target||!toggle){message('Les réglages QR de cette scène sont introuvables.',false);return}
  target.value=currentValue;
- target.dispatchEvent(new Event('input',{bubbles:true}));
- message('Lien ajouté à la vitrine. Clique sur « Enregistrer la vitrine » pour le publier.');
+ toggle.checked=true;
+ toggle.dispatchEvent(new Event('change',{bubbles:true}));
+ message('QR ajouté à la scène '+scene+'. Clique sur « Enregistrer la vitrine » pour le publier.');
 });
 panel.querySelector('[data-qr-download]').addEventListener('click',()=>{
  if(!currentValue&&!generate())return;
