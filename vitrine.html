@@ -137,6 +137,63 @@ html,body,.stage{background:#0b0b0f!important}
 .stage.poster-active .qr-wrap #qr{width:100px;height:100px}
 .stage.poster-active #qr-label{font-size:clamp(12px,1.1vw,17px)}
 @media(prefers-reduced-motion:reduce){.scene.poster-mode .poster-image{transition:none!important;opacity:1;transform:none}.scene.poster-mode .poster-light{animation:none}}
+
+/* Évolution PME — scènes publicitaires composées et animées */
+.scene.live-scene{display:block;padding:0;overflow:hidden;isolation:isolate;background:#070709!important}
+.live-scene .backdrop{position:absolute;inset:0;background:radial-gradient(ellipse at 78% 40%,#f58e1830 0%,transparent 48%),radial-gradient(ellipse at 10% 90%,#ec4b651c 0%,transparent 45%),#09090c}
+.live-scene .backdrop:after{content:"";position:absolute;inset:0;opacity:.23;background-image:radial-gradient(circle,#f8b560 1px,transparent 1.8px);background-size:62px 68px}
+.live-scene .live-inner{position:absolute;inset:0;padding:10vh 6.6vw 15vh;display:grid;grid-template-columns:54% 46%;align-items:center;gap:0}
+.live-scene .live-copy{position:relative;z-index:5;min-width:0}
+.live-scene .overline{display:inline-block;color:#ffac38;font-size:clamp(13px,1.25vw,22px);font-weight:800;letter-spacing:.14em;margin:0 0 2vh}
+.live-scene .headline{font-family:"Mochiy Pop One","Fredoka",sans-serif;font-size:clamp(30px,4.1vw,76px);font-weight:400;line-height:1.3;letter-spacing:-.04em;text-wrap:balance;color:#fff;max-width:17ch;margin:0 0 2.5vh;text-shadow:0 5px 18px #0008}
+.live-scene .headline em{color:#ff971c;font-style:normal}
+.live-scene .subhead{font:600 clamp(18px,1.8vw,34px)/1.42 "Fredoka",sans-serif;color:#f2e8df;max-width:34ch;margin:0}
+.live-scene .visual-world{height:67vh;position:relative;display:grid;place-items:center;isolation:isolate}
+.live-scene .visual-world:before{content:"";position:absolute;inset:8% 4%;border-radius:50%;background:radial-gradient(circle,#f9911e35,transparent 70%)}
+.live-scene .visual-world .custom-art{max-width:100%;max-height:95%;object-fit:contain;filter:drop-shadow(0 20px 32px #0006);animation:live-bob 9s ease-in-out infinite;position:relative;z-index:2}
+.live-scene .live-copy,.live-scene .visual-world,.live-scene .highlights{opacity:0;transform:translateY(22px);transition:opacity .85s ease,transform 1.1s ease}
+.live-scene.active .live-copy,.live-scene.active .visual-world,.live-scene.active .highlights{opacity:1;transform:none}
+.live-scene.active .visual-world{transition-delay:.2s}.live-scene.active .highlights{transition-delay:.4s}
+@keyframes live-bob{50%{transform:translateY(-13px)}}
+.live-scene .orbit{position:absolute;border:2px solid #ff9b3447;border-radius:50%;width:70%;aspect-ratio:1;transform:rotate(-18deg);z-index:0}
+.live-scene .orbit.two{width:90%;border-color:#ffb15725;transform:rotate(27deg)}
+.live-scene .float-chip{position:absolute;background:#1d1d22;border:1px solid #ff982d77;box-shadow:0 16px 28px #0006;border-radius:17px;padding:12px 17px;color:#fff;font-size:clamp(13px,1.25vw,20px);font-weight:800;z-index:3;animation:live-bob 7s ease-in-out infinite}
+.live-scene .float-chip.c1{left:0;top:10%}.live-scene .float-chip.c2{right:3%;bottom:8%;animation-delay:-3s}
+.live-scene .highlights{position:absolute;bottom:5vh;left:6.6vw;display:flex;gap:1vw;z-index:6}
+.live-scene .highlights span{font-size:clamp(13px,1.25vw,20px);font-weight:700;padding:10px 18px;border-radius:30px;background:#1c1b20;border:1px solid #f9953f61;color:#ffe4c4}
+.live-scene .display-object{position:absolute;z-index:2;filter:drop-shadow(0 18px 22px #0009);animation:live-bob 8s ease-in-out infinite}
+.live-scene .shirt-shape{width:38%;height:58%;background:linear-gradient(130deg,#292e38,#11151b);clip-path:polygon(21% 0%,34% 0%,40% 8%,59% 8%,66% 0%,79% 0%,100% 16%,85% 39%,78% 30%,78% 100%,21% 100%,21% 30%,15% 39%,0% 16%);border-radius:8px}
+.live-scene .shirt-shape:after{content:"✦";position:absolute;top:26%;left:44%;color:#ff9825;font-size:2.5vw}
+.live-scene .shirt-shape.back{left:4%;top:17%;transform:rotate(-8deg);background:linear-gradient(130deg,#fa8d20,#9b401e);animation-delay:-2s}
+.live-scene .shirt-shape.front{right:6%;top:13%;width:52%;height:70%;background:linear-gradient(130deg,#272c38,#080a0f)}
+.live-scene .hoodie-shape{width:44%;height:64%;left:29%;top:26%;background:linear-gradient(130deg,#41454b,#11151d);clip-path:polygon(31% 0,69% 0,77% 11%,95% 15%,100% 45%,88% 51%,85% 32%,82% 100%,18% 100%,15% 32%,12% 51%,0 45%,5% 15%,23% 11%);border-radius:12px}
+.live-scene .hoodie-shape:before{content:"";position:absolute;top:8%;left:34%;width:32%;height:23%;border:3px solid #9da1a2;border-radius:0 0 50% 50%}
+.live-scene .hoodie-shape:after{content:"✦";position:absolute;top:35%;left:46%;color:#f7921d;font-size:3vw}
+.live-scene.theme-workwear .backdrop{background:radial-gradient(ellipse at 78% 43%,#fa852d45,transparent 47%),#09090c}
+.live-scene.theme-brand .backdrop{background:radial-gradient(ellipse at 80% 37%,#2bd5dc30,transparent 48%),radial-gradient(ellipse at 14% 75%,#fc7a2230,transparent 55%),#090b10}
+.live-scene.theme-brand .overline{color:#77ebe5}
+.live-scene.theme-brand .headline em{color:#81eee0}
+.live-scene .brand-board{position:absolute;width:58%;aspect-ratio:1.1;left:20%;top:15%;display:grid;place-items:center;border:1px solid #56dcd681;border-radius:22px;background:linear-gradient(140deg,#162e30,#0b131b);box-shadow:14px 18px 30px #0009;transform:rotate(-7deg)}
+.live-scene .brand-board span{font-family:"Mochiy Pop One",sans-serif;color:#fff;font-size:clamp(25px,3.4vw,58px);text-align:center}
+.live-scene .brand-board span b{color:#f99520}
+.live-scene .color-card{position:absolute;bottom:7%;right:5%;width:54%;height:24%;background:#efede7;border-radius:14px;transform:rotate(8deg);box-shadow:0 16px 24px #0009;display:flex;align-items:center;justify-content:center;gap:4%}
+.live-scene .color-card i{width:17%;aspect-ratio:1;border-radius:50%;background:var(--chip)}
+.live-scene.theme-noel .backdrop{background:radial-gradient(ellipse at 78% 33%,#27885c45,transparent 55%),linear-gradient(112deg,#080f0b,#141016)}
+.live-scene.theme-noel .headline{color:#fff8ef}
+.live-scene.theme-noel .headline em{color:#ff555b}
+.live-scene.theme-noel .overline{color:#8be2b1}
+.live-scene.theme-noel .ornament{position:absolute;top:-6%;width:25%;aspect-ratio:1;background:#c52e43;border-radius:50%;box-shadow:inset -15px -18px 25px #671323,0 0 22px #e4476c35;animation:live-bob 7s ease-in-out infinite}
+.live-scene.theme-noel .ornament:before{content:"";position:absolute;top:-12%;left:42%;width:16%;height:15%;background:#e4ba6c;border-radius:4px}
+.live-scene.theme-noel .ornament.o1{right:4%;width:16%;top:11%}.live-scene.theme-noel .ornament.o2{left:5%;top:3%;width:10%;background:#1d995d;animation-delay:-2s}
+.live-scene .snow-layer{position:absolute;inset:0;z-index:7;overflow:hidden;pointer-events:none}
+.live-scene .snow-layer i{position:absolute;top:-10vh;left:var(--x);width:var(--sz);height:var(--sz);background:#fff;border-radius:50%;opacity:var(--op);animation:fall-lite var(--t) linear var(--del) infinite}
+@keyframes fall-lite{to{transform:translate3d(var(--wind),118vh,0)}}
+.live-scene .noel-product{position:absolute;top:13%;left:18%;width:64%;height:74%;background:#f8f6f1;clip-path:polygon(21% 0%,36% 0%,42% 9%,59% 9%,65% 0%,79% 0%,100% 16%,84% 36%,78% 29%,78% 100%,22% 100%,22% 29%,16% 36%,0% 16%);filter:drop-shadow(0 18px 20px #0009)}
+.live-scene .noel-product:after{content:"✳";position:absolute;top:30%;left:40%;font-size:9vw;color:#b92e39;text-shadow:0 3px #28683d}
+.live-scene .noel-tag{position:absolute;right:0;bottom:7%;background:#c42d40;color:white;padding:14px 24px;border:3px solid #e7c38b;border-radius:16px;transform:rotate(-8deg);font-family:"Mochiy Pop One",sans-serif;font-size:clamp(21px,3vw,50px);box-shadow:0 15px 24px #0008}
+.live-scene .hero-cat{position:relative;width:min(28vw,450px);height:55vh;display:flex;align-items:center;justify-content:center}
+.live-scene .hero-cat img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 24px #0008)}
+@media(prefers-reduced-motion:reduce){.live-scene .live-copy,.live-scene .visual-world,.live-scene .highlights,.scene.poster-mode .poster-image{opacity:1;transform:none;transition:none}.live-scene .display-object,.live-scene .snow-layer i,.live-scene .float-chip,.live-scene .ornament,.live-scene .custom-art{animation:none}}
 </style></head>
 <body><main class="stage"><div class="brand">ÉVOLUTION <strong>PME.</strong> <span style="font-size:.45em;letter-spacing:.09em;color:#aaa;vertical-align:middle">CRÉATEUR DE MARQUES</span></div><div id="scenes" aria-live="off"></div><footer class="bottom"><span class="url">evolutionpme.ca</span><div class="qr-wrap" id="qr-wrap" hidden><span id="qr-label">Découvrez nos ateliers</span><div id="qr" role="img" aria-label="Code QR menant à notre site"></div></div></footer></main>
 <script src="/assets/qrcode.min.js"></script>
@@ -151,7 +208,66 @@ const icons=["ÉVOLUTION","CRÉATION","IMPACT","NOËL"];
 let slides=defaults,seconds=9,index=0,timer=null,lastPayload="";
 const stage=document.getElementById('scenes');
 function safeImage(src){try{const u=new URL(src,location.href);return u.origin===location.origin&&(/^\/assets\//.test(u.pathname)||/^\/media\//.test(u.pathname))?u.href:null}catch{return null}}
-function build(){stage.replaceChildren();for(let i=0;i<slides.length;i++){const s=slides[i];const item=document.createElement('section');item.className='scene'+(s.position===3?' scene-noel':'');if(s.fullscreen&&safeImage(s.image)){item.className+=' poster-mode';const poster=document.createElement('img');poster.className='poster-image';poster.src=safeImage(s.image);poster.alt=s.title||'Réalisation Évolution PME';poster.decoding='async';const light=document.createElement('div');light.className='poster-light';poster.onerror=()=>{item.classList.remove('poster-mode');light.remove();poster.remove();const fallback=document.createElement('p');fallback.style.cssText='color:white;margin:20vh auto;text-align:center;font-size:3vw';fallback.textContent=s.title;item.append(fallback)};item.append(poster,light);stage.append(item);continue}const copy=document.createElement('div');const kicker=document.createElement('div');kicker.className='kicker';kicker.textContent='ÉVOLUTION PME · CRÉATEUR DE MARQUES';const title=document.createElement('h1');const segments=s.title.split('. ').map((v,i,a)=>i<a.length-1?v+'.':v);if(segments.length===3){title.append(document.createTextNode(segments[0]+' '),document.createElement('br'),document.createTextNode(segments[1]+' '),document.createElement('br'));const em=document.createElement('em');em.textContent=segments[2];title.append(em)}else{const words=s.title.split(' ');if(words.length>=3){title.append(document.createTextNode(words.slice(0,-2).join(' ')+' '));const em=document.createElement('em');em.textContent=words.slice(-2).join(' ');title.append(em)}else title.textContent=s.title}const lead=document.createElement('p');lead.className='lead';lead.textContent=s.subtitle;copy.append(kicker,title,lead);const visual=document.createElement('div');visual.className='visual';const url=safeImage(s.image);if(url){const img=document.createElement('img');img.src=url;img.alt='';img.onerror=()=>{img.remove();const e=document.createElement('div');e.className='art-badge';const v=document.createElement('span');v.textContent=icons[s.position]||'ÉVOLUTION';e.append(v);visual.append(e)};visual.append(img)}else{const e=document.createElement('div');e.className='art-badge';const v=document.createElement('span');v.textContent=icons[s.position]||'ÉVOLUTION';e.append(v);visual.append(e)}item.append(copy,visual);const deco=document.createElement('div');deco.className='scene-deco';for(let d=0;d<13;d++){const shape=document.createElement('i');shape.style.setProperty('--top',((d*31+13)%98)+'%');shape.style.setProperty('--left',((d*67+9)%98)+'%');shape.style.setProperty('--size',(11+d%5*10)+'px');shape.style.setProperty('--duration',(7+d%8)+'s');deco.append(shape)}item.append(deco);if(s.position===3){const snow=document.createElement('div');snow.className='snow';for(let n=0;n<34;n++){const flake=document.createElement('i');const seed=(n*37%101)/100;flake.style.setProperty('--x',(n*73%103)+'%');flake.style.setProperty('--size',(2+n%5)+'px');flake.style.setProperty('--opacity',(0.35+(n%6)*.1).toFixed(2));flake.style.setProperty('--speed',(7+n%9)+'s');flake.style.setProperty('--delay',(-n*.63)+'s');flake.style.setProperty('--wind',((n%7-3)*30)+'px');snow.append(flake)}item.append(snow)}stage.append(item)}index=0;show()}
+function textEl(tag,cls,value){const el=document.createElement(tag);el.className=cls;el.textContent=value||'';return el}
+function addSnow(item,count=45){
+ const snow=document.createElement('div');snow.className='snow-layer';
+ for(let n=0;n<count;n++){const x=document.createElement('i');x.style.setProperty('--x',(n*47%101)+'%');x.style.setProperty('--sz',(2+n%6)+'px');x.style.setProperty('--op',(0.34+n%5*.12).toFixed(2));x.style.setProperty('--t',(7+n%9)+'s');x.style.setProperty('--del',(-n*.47)+'s');x.style.setProperty('--wind',((n%7-3)*30)+'px');snow.append(x)}
+ item.append(snow)
+}
+function build(){
+ stage.replaceChildren();
+ for(const slide of slides){
+  const item=document.createElement('section');const pos=slide.position;
+  const art=safeImage(slide.image);
+  // Affiche complète fournie par l'entreprise : on anime sans ajouter de texte dessus.
+  if(slide.fullscreen&&art){
+   item.className='scene poster-mode'+(pos===3?' scene-noel':'');
+   const poster=document.createElement('img');poster.className='poster-image';poster.src=art;poster.alt=slide.title;poster.decoding='async';
+   const light=document.createElement('div');light.className='poster-light';
+   item.append(poster,light);if(pos===3)addSnow(item,55);
+   poster.onerror=()=>{poster.style.display='none';light.style.display='none';item.append(textEl('h2','poster-error',slide.title))};
+   stage.append(item);continue;
+  }
+  const names=['theme-home','theme-workwear','theme-brand','theme-noel'];
+  item.className='scene live-scene '+names[pos];
+  const bg=document.createElement('div');bg.className='backdrop';item.append(bg);
+  const inner=document.createElement('div');inner.className='live-inner';
+  const copy=document.createElement('div');copy.className='live-copy';
+  copy.append(textEl('div','overline',pos===3?'ÉDITION DES FÊTES · ATELIER CRÉATIF':pos===1?'VÊTEMENTS CORPORATIFS & PERSONNALISATION':pos===2?'IDENTITÉ VISUELLE & OBJETS PROMOTIONNELS':'ÉVOLUTION PME · CRÉATEUR DE MARQUES'));
+  const headline=textEl('h1','headline','');
+  const words=slide.title.trim().split(/\s+/);
+  const split=pos===3?Math.max(1,words.length-2):Math.max(1,Math.ceil(words.length*.55));
+  headline.append(document.createTextNode(words.slice(0,split).join(' ')+' '));
+  const accent=document.createElement('em');accent.textContent=words.slice(split).join(' ');headline.append(accent);
+  copy.append(headline,textEl('p','subhead',slide.subtitle));
+  const visual=document.createElement('div');visual.className='visual-world';
+  const orbit=document.createElement('div');orbit.className='orbit';const orbit2=document.createElement('div');orbit2.className='orbit two';visual.append(orbit,orbit2);
+  if(art&&pos!==0){const img=document.createElement('img');img.className='custom-art';img.src=art;img.alt='Illustration '+slide.title;visual.append(img)}
+  else if(pos===0){
+    const cat=document.createElement('div');cat.className='hero-cat';
+    const logo=document.createElement('img');logo.src=art||'/assets/%C3%89tiquette%20EVOPME.png';logo.alt='Évolution PME';cat.append(logo);visual.append(cat)
+  }else if(pos===1){
+    for(const cls of ['shirt-shape back','hoodie-shape','shirt-shape front']){const el=document.createElement('div');el.className='display-object '+cls;visual.append(el)}
+    visual.append(textEl('div','float-chip c1','VÊTEMENTS D’ÉQUIPE'),textEl('div','float-chip c2','CRÉÉS POUR VOUS'))
+  }else if(pos===2){
+    const board=document.createElement('div');board.className='brand-board';board.innerHTML='<span>VOTRE<br><b>MARQUE.</b></span>';visual.append(board);
+    const colors=document.createElement('div');colors.className='color-card';for(const c of ['#f7941d','#1cbdbe','#1c202a','#d94564']){const dot=document.createElement('i');dot.style.setProperty('--chip',c);colors.append(dot)}visual.append(colors);
+    visual.append(textEl('div','float-chip c1','IMAGE DE MARQUE'))
+  }else{
+    for(const cl of ['ornament o1','ornament o2']){const x=document.createElement('div');x.className=cl;visual.append(x)}
+    const shirt=document.createElement('div');shirt.className='noel-product';visual.append(shirt);
+    visual.append(textEl('div','noel-tag','60 $ / personne'))
+  }
+  inner.append(copy,visual);item.append(inner);
+  const tags=document.createElement('div');tags.className='highlights';
+  const highlights=pos===0?['IMAGE DE MARQUE','VÊTEMENTS','ACCOMPAGNEMENT']:pos===1?['T-SHIRTS','COTONS OUATÉS','TENUES D’ÉQUIPE']:pos===2?['LOGOS','OBJETS PROMOTIONNELS','DESIGN']:['TOUT LE MATÉRIEL INCLUS','POUR TOUS','CHOCOLAT CHAUD'];
+  for(const tag of highlights)tags.append(textEl('span','',tag));
+  item.append(tags);
+  if(pos===3)addSnow(item,65);
+  stage.append(item);
+ }
+ index=0;show()
+}
 function show(){[...stage.children].forEach((x,i)=>x.classList.toggle('active',i===index));document.querySelector('.stage')?.classList.toggle('poster-active',!!stage.children[index]?.classList.contains('poster-mode'));const current=slides[index];if(current&&current.qrEnabled&&current.qrUrl){updateQR(current.qrUrl,current.qrLabel||'Scannez pour découvrir')}else{document.getElementById('qr-wrap').hidden=true}}
 function play(){clearInterval(timer);if(slides.length>1)timer=setInterval(()=>{index=(index+1)%slides.length;show()},seconds*1000)}
 
