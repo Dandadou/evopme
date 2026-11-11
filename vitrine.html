@@ -11,7 +11,7 @@ function stop(){if(timer!==null)clearTimeout(timer);timer=null}
 function show(index){
  stop();if(!slides.length){empty.hidden=false;return}
  current=(index+slides.length)%slides.length;
- slides.forEach((s,i)=>{s.node.classList.toggle('active',i===current);s.node.setAttribute('aria-hidden',i===current?'false':'true')});
+ slides.forEach((s,i)=>{const visible=i===current;s.node.classList.toggle('active',visible);s.node.setAttribute('aria-hidden',visible?'false':'true');const frame=s.node.querySelector('iframe');if(visible){frame.srcdoc=s.documentHTML}else if(frame.hasAttribute('srcdoc')){frame.removeAttribute('srcdoc')}});
  empty.hidden=true;
  if(slides.length>1)timer=setTimeout(()=>show(current+1),slides[current].seconds*1000)
 }
@@ -28,8 +28,8 @@ function render(data){
   const node=document.createElement('section');node.className='slide';
   const frame=document.createElement('iframe');frame.title=item.name;frame.setAttribute('sandbox','');frame.setAttribute('tabindex','-1');frame.setAttribute('scrolling','no');
   const htmlHead='<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="'+csp+'"><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060708;color:white}</style></head><body>';
-  frame.srcdoc='<!doctype html>'+htmlHead+item.html+'</body></html>';
-  node.append(frame);screen.append(node);return {...item,node}
+  const documentHTML='<!doctype html>'+htmlHead+item.html+'</body></html>';
+  node.append(frame);screen.append(node);return {...item,node,documentHTML}
  });
  show(Math.max(0,slides.findIndex(s=>s.slot===oldSlot)))
 }
