@@ -1,0 +1,142 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin — Créateur de logo — Évolution PME</title><meta name="description" content="Administration du Créateur de logo psychologique d'Évolution PME : configurer l'outil, pas surveiller des clients."><link rel="stylesheet" href="/assets/style.css"><style>
+/* Admin Créateur de logo — reprend le thème du site, fond noir, orange #f48a08 */
+.cl-wrap{max-width:980px;margin:0 auto}
+.cl-admin h1{font-size:clamp(2.2rem,4.5vw,3.8rem);line-height:.95}
+.cl-admin h1 em{color:var(--orange);font-style:normal}
+.cl-card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:30px;margin:22px 0}
+.cl-card h2{font-size:1.5rem;margin:0 0 8px}
+.cl-card h3{font-size:1.1rem;margin:24px 0 8px}
+.cl-note{background:#171719;border:1px solid var(--line);border-left:3px solid var(--orange);border-radius:12px;padding:14px 16px;color:#bbb;font-size:.92rem;line-height:1.6}
+.cl-note.red{border-left-color:#c0392b}
+.cl-card label{display:block;font-weight:800;font-size:.85rem;margin:16px 0 6px}
+.cl-card input[type=text],.cl-card input[type=color],.cl-card textarea,.cl-card select{width:100%;border:1px solid #3b3b40;background:#0f0f11;color:#fff;border-radius:13px;padding:12px 14px;font:inherit;outline:none}
+.cl-card input[type=color]{height:48px;padding:4px;cursor:pointer}
+.cl-card textarea{resize:vertical;min-height:64px}
+.cl-card input:focus,.cl-card textarea:focus{border-color:var(--orange)}
+.cl-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cl-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.cl-item{border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;background:#171719}
+.cl-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.cl-actions .button{border:0;cursor:pointer;font:inherit}
+.cl-ghost{background:transparent;border:1px solid #555;color:#eee}
+.cl-gold{background:#b7950b;color:#111}
+.cl-danger{background:transparent;border:1px solid #c0392b;color:#ff9a9a}
+.cl-switch{display:flex;gap:12px;align-items:center;font-weight:900}
+.cl-switch input{accent-color:var(--orange);width:22px;height:22px}
+.cl-status{margin-top:14px;color:#9ed69e;font-weight:800}
+@media(max-width:850px){.cl-row,.cl-row3{grid-template-columns:1fr}.cl-card{padding:22px}}
+</style></head><body><header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/admin/">← Retour à l'admin</a><a href="/createur-logo.html">Voir l'outil →</a><a class="pill" href="/soumission.html">Demander une soumission</a></nav></header><main>
+<section class="cl-admin"><div class="cl-wrap"><span class="eyebrow">ADMINISTRATION · CRÉATEUR DE LOGO</span><h1>CONFIGURER<br><em>L'OUTIL.</em></h1><p style="color:#bbb;line-height:1.7;max-width:720px">Cette page sert à configurer le Créateur de logo : les questions, les secteurs, les palettes, les formes, les polices et les textes. Elle ne sert pas à surveiller des clients.</p>
+
+<div class="cl-note red"><b>Loi 25 — on ne garde un lead que si le client a coché la case.</b><br>Par défaut, le Créateur de logo ne conserve rien : aucune réponse, aucune analyse et aucun lead ne sont envoyés ni conservés sur un serveur. Le parcours du client est 100 % local dans son navigateur, et la seule transmission, c'est le courriel qu'il choisit lui-même d'envoyer à info@evolutionpme.ca en cliquant « Fais-le peaufiner par un pro ». <b>Seule exception :</b> si le client coche la case « garder mes infos dans le CMS », le minimum utile (entreprise, courriel, archétype principal, date, mention du consentement) est gardé dans le CMS, table <code>cms_submissions</code>, et il apparaît dans les « Dernières demandes » de l'Admin principal. Il n'y a pas de liste de diffusion : Évolution PME n'en a pas. Ne pas ajouter d'autre stockage sans un nouveau go explicite et une mise à jour de la politique de confidentialité.</div>
+
+<div class="cl-card"><h2>1 · Activer ou désactiver l'outil</h2><label class="cl-switch"><input type="checkbox" id="cfgEnabled"> Outil activé (visible pour les visiteurs)</label><p class="cl-note">Si tu désactives l'outil, la page publique affiche un message qui renvoie vers info@evolutionpme.ca, au lieu du questionnaire.</p></div>
+
+<div class="cl-card"><h2>2 · Textes de la page</h2><label for="txtTitre">Titre</label><input type="text" id="txtTitre"><label for="txtSousTitre">Sous-titre</label><textarea id="txtSousTitre" rows="2"></textarea><label for="txtAvert">Avertissement d'honnêteté</label><textarea id="txtAvert" rows="3"></textarea><label for="txtLoi">Texte Loi 25</label><textarea id="txtLoi" rows="3"></textarea></div>
+
+<div class="cl-card"><h2>2b · Garder le lead dans le CMS (case optionnelle)</h2><p>Case décochée par défaut, jamais obligatoire. Si le client la coche, son entreprise, son courriel et son archétype principal sont gardés dans le CMS (table des soumissions, visible dans les « Dernières demandes » de l'Admin principal). Si elle n'est pas cochée, rien n'est gardé. Pas de liste de diffusion : Évolution PME n'en a pas.</p><label for="txtConservation">Texte de la case, affiché au client</label><textarea id="txtConservation" rows="3"></textarea><label for="txtConservationNote">Note affichée sous la case</label><textarea id="txtConservationNote" rows="3"></textarea><label for="txtConservationEmail">Libellé du champ courriel (seulement si la case est cochée)</label><input type="text" id="txtConservationEmail"></div>
+
+<div class="cl-card"><h2>3 · Secteurs d'activité</h2><p>Chaque secteur a un nom et une courte phrase d'exemple, affichée sous le choix. Ajoute, modifie ou retire des secteurs.</p><div id="secteursEditor"></div><div class="cl-actions"><button type="button" class="button cl-ghost" id="addSecteur">+ AJOUTER UN SECTEUR</button></div></div>
+
+<div class="cl-card"><h2>4 · Questions ouvertes</h2><p>Les 9 questions qui font parler le client. Modifie le texte ou l'indice. Attention : changer une question peut changer les mots-clés qui scorent, vérifie l'onglet « Pourquoi TON logo » après.</p><div id="questionsEditor"></div><div class="cl-actions"><button type="button" class="button cl-ghost" id="addQuestion">+ AJOUTER UNE QUESTION</button></div></div>
+
+<div class="cl-card"><h2>5 · Les 12 archétypes</h2><p>Nom, promesse, ombre à éviter et 3 couleurs par archétype. Les 3 palettes proposées dans l'éditeur se calculent à partir de ces couleurs (d'origine, plus sombre, plus claire).</p><div id="archetypesEditor"></div></div>
+
+<div class="cl-card"><h2>6 · Formes et polices</h2><p>Listes de référence utilisées par l'éditeur guidé. Elles se modifient dans le fichier de config, pas ici, pour éviter de casser le dessin SVG.</p><div id="formesList"></div><div id="policesList"></div></div>
+
+<div class="cl-card"><h2>7 · Appliquer tes changements</h2><p>Il n'y a pas de sauvegarde serveur ici, et c'est normal : la config vit dans le fichier <code>assets/createur-logo-config.js</code> du dépôt GitHub. Tes modifications ci-dessus sont dans ton navigateur seulement, jusqu'à ce que tu télécharges le fichier mis à jour et que tu le remplaces dans le dépôt (commit + PR).</p><div class="cl-actions"><button type="button" class="button" id="dlConfig">TÉLÉCHARGER LA CONFIG MISE À JOUR</button><button type="button" class="button cl-gold" id="copyJson">COPIER LE JSON</button><button type="button" class="button cl-ghost" id="saveDraft">SAUVER UN BROUILLON LOCAL</button><button type="button" class="button cl-danger" id="resetConfig">RECOMMENCER À ZÉRO</button></div><p class="cl-status" id="adminStatus"></p><p class="cl-note"><b>Étapes pour appliquer :</b> 1) Télécharge la config. 2) Dans GitHub, remplace <code>assets/createur-logo-config.js</code> sur la branche du créateur de logo. 3) Vérifie l'aperçu sur la branche. 4) Fusionne seulement quand Daniel a vu et approuvé. Le brouillon local, lui, reste dans TON navigateur seulement, il ne part nulle part.</p></div>
+</div></section></main>
+<footer class="site-footer"><span>© Évolution PME 2026 · Administration — Créateur de logo</span><span>info@evolutionpme.ca</span></footer>
+<script src="/assets/createur-logo-config.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CFG = window.EVOPME_LOGO_CONFIG;
+  if (!CFG) { document.body.innerHTML += "<p style='color:red'>Config introuvable : /assets/createur-logo-config.js</p>"; return; }
+  var draft = null;
+  try { draft = JSON.parse(localStorage.getItem("evopme-logo-config-draft") || "null"); } catch (e) { draft = null; }
+  if (draft && draft.secteurs) { CFG = draft; window.EVOPME_LOGO_CONFIG = CFG; }
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function status(msg) { $("adminStatus").textContent = msg; }
+
+  $("cfgEnabled").checked = !!CFG.enabled;
+  $("cfgEnabled").addEventListener("change", function (e) { CFG.enabled = e.target.checked; status("Modifié. Pense à télécharger la config pour l'appliquer."); });
+  $("txtTitre").value = CFG.textes.titre; $("txtSousTitre").value = CFG.textes.sousTitre; $("txtAvert").value = CFG.textes.avertissement; $("txtLoi").value = CFG.textes.loi25;
+  ["txtTitre", "txtSousTitre", "txtAvert", "txtLoi"].forEach(function (id) {
+    $(id).addEventListener("input", function (e) {
+      if (id === "txtTitre") CFG.textes.titre = e.target.value;
+      if (id === "txtSousTitre") CFG.textes.sousTitre = e.target.value;
+      if (id === "txtAvert") CFG.textes.avertissement = e.target.value;
+      if (id === "txtLoi") CFG.textes.loi25 = e.target.value;
+    });
+  });
+  if (!CFG.conservation) CFG.conservation = { texte: "", note: "", labelCourriel: "" };
+  $("txtConservation").value = CFG.conservation.texte || ""; $("txtConservationNote").value = CFG.conservation.note || ""; $("txtConservationEmail").value = CFG.conservation.labelCourriel || "";
+  ["txtConservation", "txtConservationNote", "txtConservationEmail"].forEach(function (id) {
+    $(id).addEventListener("input", function (e) {
+      if (id === "txtConservation") CFG.conservation.texte = e.target.value;
+      if (id === "txtConservationNote") CFG.conservation.note = e.target.value;
+      if (id === "txtConservationEmail") CFG.conservation.labelCourriel = e.target.value;
+    });
+  });
+
+  function renderSecteurs() {
+    $("secteursEditor").innerHTML = CFG.secteurs.map(function (s, i) {
+      return "<div class='cl-item'><div class='cl-row'><div><label>Nom</label><input type='text' data-sec='" + i + "' data-f='label' value=\"" + esc(s.label) + "\"></div><div><label>Exemple affiché</label><input type='text' data-sec='" + i + "' data-f='exemple' value=\"" + esc(s.exemple) + "\"></div></div><div class='cl-actions'><button type='button' class='button cl-danger' data-del-sec='" + i + "'>RETIRER</button></div></div>";
+    }).join("");
+  }
+  function renderQuestions() {
+    $("questionsEditor").innerHTML = CFG.questionsOuvertes.map(function (q, i) {
+      return "<div class='cl-item'><label>Question " + (i + 1) + "</label><input type='text' data-q='" + i + "' data-f='texte' value=\"" + esc(q.texte) + "\"><label>Indice</label><input type='text' data-q='" + i + "' data-f='indice' value=\"" + esc(q.indice || "") + "\"><div class='cl-actions'><button type='button' class='button cl-danger' data-del-q='" + i + "'>RETIRER</button></div></div>";
+    }).join("");
+  }
+  function renderArchetypes() {
+    $("archetypesEditor").innerHTML = CFG.archetypes.map(function (a, i) {
+      return "<div class='cl-item'><div class='cl-row'><div><label>Nom</label><input type='text' data-a='" + i + "' data-f='nom' value=\"" + esc(a.nom) + "\"></div><div><label>Promesse</label><input type='text' data-a='" + i + "' data-f='promesse' value=\"" + esc(a.promesse) + "\"></div></div><label>Ombre à éviter</label><input type='text' data-a='" + i + "' data-f='ombre' value=\"" + esc(a.ombre) + "\"><label>Couleurs (3)</label><div class='cl-row3'>" + a.couleurs.map(function (c, j) { return "<input type='color' data-a='" + i + "' data-c='" + j + "' value='" + c + "' title='" + c + "'>"; }).join("") + "</div></div>";
+    }).join("");
+  }
+  renderSecteurs(); renderQuestions(); renderArchetypes();
+  $("formesList").innerHTML = "<p><b>Formes :</b> " + CFG.formes.map(function (f) { return esc(f.label); }).join(", ") + "</p>";
+  $("policesList").innerHTML = "<p><b>Polices :</b> " + CFG.polices.map(function (f) { return esc(f.label); }).join(", ") + "</p>";
+
+  document.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.hasAttribute("data-sec")) { CFG.secteurs[+t.getAttribute("data-sec")][t.getAttribute("data-f")] = t.value; }
+    if (t.hasAttribute("data-q")) { CFG.questionsOuvertes[+t.getAttribute("data-q")][t.getAttribute("data-f")] = t.value; }
+    if (t.hasAttribute("data-a") && t.hasAttribute("data-f")) { CFG.archetypes[+t.getAttribute("data-a")][t.getAttribute("data-f")] = t.value; }
+    if (t.hasAttribute("data-a") && t.hasAttribute("data-c")) { CFG.archetypes[+t.getAttribute("data-a")].couleurs[+t.getAttribute("data-c")] = t.value; }
+  });
+  document.addEventListener("click", function (e) {
+    var ds = e.target.closest("[data-del-sec]"); if (ds) { CFG.secteurs.splice(+ds.getAttribute("data-del-sec"), 1); renderSecteurs(); status("Secteur retiré. Pense à télécharger la config."); return; }
+    var dq = e.target.closest("[data-del-q]"); if (dq) { CFG.questionsOuvertes.splice(+dq.getAttribute("data-del-q"), 1); renderQuestions(); status("Question retirée. Pense à télécharger la config."); }
+  });
+  $("addSecteur").addEventListener("click", function () { CFG.secteurs.push({ id: "secteur-" + (CFG.secteurs.length + 1), label: "Nouveau secteur", exemple: "Ex. : décris-le en une phrase." }); renderSecteurs(); });
+  $("addQuestion").addEventListener("click", function () { CFG.questionsOuvertes.push({ id: "question-" + (CFG.questionsOuvertes.length + 1), texte: "Nouvelle question ?", indice: "" }); renderQuestions(); });
+
+  function configFileContent() {
+    var header = "/* Créateur de logo psychologique — Évolution PME — config modifiée via l'Admin.\n * LOI 25 : aucune conservation par défaut. Seule exception, avec consentement explicite : le lead est gardé dans le CMS (table cms_submissions).\n * Parcours 100 % local, courriel seulement vers info@evolutionpme.ca. Pas de liste de diffusion.\n * Remplacer assets/createur-logo-config.js dans le dépôt, puis vérifier l'aperçu sur la branche avant de fusionner. */\nwindow.EVOPME_LOGO_CONFIG = ";
+    return header + JSON.stringify(CFG, null, 2) + ";\n";
+  }
+  $("dlConfig").addEventListener("click", function () {
+    var blob = new Blob([configFileContent()], { type: "text/javascript;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "createur-logo-config.js"; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    status("Config téléchargée. Remplace le fichier dans GitHub pour l'appliquer.");
+  });
+  $("copyJson").addEventListener("click", function () {
+    var done = function () { status("JSON copié dans le presse-papiers."); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(JSON.stringify(CFG, null, 2)).then(done, function () { status("Copie impossible dans ce navigateur, utilise le téléchargement."); });
+    else status("Copie impossible dans ce navigateur, utilise le téléchargement.");
+  });
+  $("saveDraft").addEventListener("click", function () {
+    try { localStorage.setItem("evopme-logo-config-draft", JSON.stringify(CFG)); status("Brouillon sauvé dans TON navigateur seulement. Il ne part nulle part."); }
+    catch (err) { status("Brouillon impossible à sauver dans ce navigateur."); }
+  });
+  $("resetConfig").addEventListener("click", function () {
+    try { localStorage.removeItem("evopme-logo-config-draft"); } catch (err) {}
+    location.reload();
+  });
+})();
+</script>
+<script src="/assets/cookies.js" defer></script><script src="/assets/navigation.js" defer></script></body></html>

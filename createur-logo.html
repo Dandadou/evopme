@@ -1,0 +1,144 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Créateur de logo psychologique — Évolution PME | Lanaudière</title><meta name="description" content="Outil gratuit d'Évolution PME : réponds à quelques questions, on te propose un logo qui raconte ta marque. Sans compte, sans envoi de tes réponses."><link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/assets/cookies.css"><link rel="canonical" href="https://evolutionpme.ca/createur-logo.html"><style>
+/* Créateur de logo — composants propres à l'outil (thème du site : fond noir, orange #f48a08) */
+.cl-wrap{max-width:980px;margin:0 auto}
+.cl-hero h1{font-size:clamp(2.6rem,5vw,4.6rem);line-height:.95}
+.cl-hero h1 em{color:var(--orange);font-style:normal}
+.cl-hero p{color:#bbb;font-size:1.08rem;line-height:1.7;max-width:720px}
+.cl-note{background:#171719;border:1px solid var(--line);border-left:3px solid var(--orange);border-radius:12px;padding:14px 16px;color:#bbb;font-size:.92rem;line-height:1.6}
+.cl-steps{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0}
+.cl-step-btn{border:1px solid var(--line);background:#171719;color:#ddd;border-radius:99px;padding:11px 18px;font-weight:900;font-size:.82rem;cursor:pointer}
+.cl-step-btn.active{background:var(--orange);color:#111;border-color:var(--orange)}
+.cl-card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:30px;margin:22px 0}
+.cl-card h2{font-size:1.7rem;margin:0 0 8px;letter-spacing:-.02em}
+.cl-card h3{font-size:1.15rem;margin:26px 0 10px}
+.cl-card label{display:block;font-weight:800;font-size:.85rem;margin:18px 0 6px}
+.cl-card input[type=text],.cl-card input[type=number],.cl-card select,.cl-card textarea{width:100%;border:1px solid #3b3b40;background:#0f0f11;color:#fff;border-radius:13px;padding:14px 16px;font:inherit;outline:none}
+.cl-card input:focus,.cl-card select:focus,.cl-card textarea:focus{border-color:var(--orange)}
+.cl-card textarea{resize:vertical;min-height:64px}
+.cl-radio{display:flex;gap:10px;align-items:baseline;background:#171719;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;cursor:pointer;font-weight:600}
+.cl-radio input{accent-color:var(--orange)}
+.cl-radio small{color:#999;font-weight:400}
+.cl-choices{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:12px}
+.cl-choice{border:1px solid var(--line);background:#171719;color:#eee;border-radius:14px;padding:14px;cursor:pointer;text-align:left;font:inherit}
+.cl-choice small{display:block;color:#999;font-size:.8rem;margin-top:6px;line-height:1.45}
+.cl-choice.active{border-color:var(--orange);box-shadow:0 0 0 2px rgba(244,138,8,.35)}
+.cl-swatches{display:flex;gap:4px;margin-bottom:8px}
+.cl-swatches i{width:26px;height:26px;border-radius:8px;display:block;border:1px solid #ffffff22}
+.cl-dot{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:-3px;margin-right:6px;border:1px solid #ffffff33}
+.cl-bar-row{display:grid;grid-template-columns:130px 1fr 30px;gap:10px;align-items:center;margin:7px 0;font-size:.88rem}
+.cl-bar{background:#0f0f11;border:1px solid var(--line);border-radius:99px;height:12px;overflow:hidden}
+.cl-bar i{display:block;height:100%;background:var(--orange)}
+.cl-logo-box{background:#fff;border-radius:24px;padding:26px;text-align:center;min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cl-logo-box.dark{background:#0d0d0f}
+.cl-logo-box.transparent{background:repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 0 0/24px 24px}
+.cl-logo-box svg{max-width:420px;width:100%;height:auto}
+.cl-bg-toggle{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.cl-bg-toggle button{border:1px solid var(--line);background:#171719;color:#ddd;border-radius:99px;padding:9px 15px;cursor:pointer;font-weight:800;font-size:.8rem}
+.cl-bg-toggle button.active{background:var(--orange);color:#111;border-color:var(--orange)}
+.cl-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.cl-actions .button{border:0;cursor:pointer;font:inherit}
+.cl-gold{background:#b7950b;color:#111}
+.cl-ghost{background:transparent;border:1px solid #555;color:#eee}
+.cl-consent{border:1px solid var(--line);border-radius:14px;padding:16px;margin:18px 0;background:#171719}
+.cl-consent input[type=email]{width:100%;border:1px solid #3b3b40;background:#0f0f11;color:#fff;border-radius:13px;padding:12px 14px;font:inherit;outline:none;margin-top:8px}
+.cl-consent input[type=email]:focus{border-color:var(--orange)}
+.cl-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 0}
+.cl-tabs button{border:1px solid var(--line);background:#171719;color:#ddd;border-radius:99px;padding:10px 16px;cursor:pointer;font-weight:800;font-size:.82rem}
+.cl-tabs button.active{background:var(--orange);color:#111;border-color:var(--orange)}
+.cl-panel{border-top:1px solid var(--line);padding-top:18px;margin-top:18px}
+.cl-panel h3{margin-top:0}
+.cl-trace{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;background:#171719}
+.cl-trace blockquote{margin:8px 0;color:#ddd;border-left:3px solid var(--orange);padding-left:12px;font-style:italic}
+.cl-slider{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;margin:12px 0}
+.cl-slider input{accent-color:var(--orange);width:100%}
+.cl-slider small{color:#999;font-weight:400}
+.cl-grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.cl-crash-flash{background:#fff;border-radius:16px;padding:10px;text-align:center}
+.cl-crash-flash svg{max-width:320px;width:100%}
+.cl-explorer{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.cl-explorer article{background:#171719;border:1px solid var(--line);border-radius:14px;padding:16px}
+.cl-explorer h4{margin:0 0 6px}
+.cl-explorer p{color:#aaa;font-size:.88rem;line-height:1.55;margin:6px 0}
+@media(max-width:850px){.cl-grid2{grid-template-columns:1fr}.cl-card{padding:22px}.cl-bar-row{grid-template-columns:100px 1fr 26px}}
+</style></head><body><header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/services.html">Services</a><a href="/formations.html">Formations</a><a href="/catalogues.html">Catalogues</a><a href="/etudes-de-cas.html">Études de cas</a><a href="/a-propos.html">À propos</a><a class="pill" href="https://portail.evolutionpme.ca">Portail client</a><a class="pill" href="/soumission.html">Demander une soumission</a></nav></header><main>
+<section class="cl-hero"><div class="cl-wrap"><span class="eyebrow">OUTIL GRATUIT · CRÉATEUR DE MARQUES</span><h1>TON LOGO.<br>TA PERSONNALITÉ.<br><em>TON HISTOIRE.</em></h1><p>Réponds à quelques questions, on te propose un logo qui raconte ta marque. Un logo n'illustre pas ton secteur, il évoque une personnalité. Pour les vrais fichiers (vectoriels, déclinaisons, charte), tu passes par Évolution PME.</p><p class="cl-note"><b>Important, et honnête :</b> ton logo raconte une histoire, il ne te diagnostique pas. Les 12 archétypes sont le vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung, pas une mesure scientifique. Le modèle mesuré, c'est celui d'Aaker (5 dimensions). Et tes réponses restent dans ton navigateur : <b>rien n'est envoyé ni conservé sur nos serveurs (Loi 25, courriel seulement)</b>. La seule chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca. Seule exception : si tu coches la case pour garder tes infos, ton entreprise, ton courriel et ton archétype sont gardés dans notre CMS, pour qu'on puisse te recontacter au cas où.</p><div class="cl-actions"><button type="button" class="button" onclick="document.getElementById('step1').scrollIntoView({behavior:'smooth'})">COMMENCER →</button><button type="button" class="button cl-ghost" id="btnExemple">REMPLIR UN EXEMPLE</button></div></div></section>
+
+<section><div class="cl-wrap">
+<div id="creatorDisabled" hidden><p class="cl-note">Le Créateur de logo est désactivé pour le moment. Écris-nous à info@evolutionpme.ca, on va t'aider directement.</p></div>
+<div class="cl-steps" role="tablist" aria-label="Étapes du créateur"><button type="button" class="cl-step-btn active" id="stepBtn1">1 · Ton entreprise</button><button type="button" class="cl-step-btn" id="stepBtn2">2 · Tes réponses</button><button type="button" class="cl-step-btn" id="stepBtn3">3 · Ton logo</button></div>
+
+<div class="cl-card" id="step1"><h2>Étape 1 · Ton entreprise</h2><p>Les questions fermées d'abord, pour réchauffer. Ça prend 1 minute.</p>
+<label for="nomEntreprise">Nom de l'entreprise</label><input type="text" id="nomEntreprise" placeholder="Ex. : Maison Bien-Être Lueur" autocomplete="organization">
+<label for="secteurSelect">Secteur d'activité</label><select id="secteurSelect"></select><p class="cl-note" id="secteurExemple"></p>
+<div id="secteurAutreWrap" hidden><label for="secteurAutre">Décris ton secteur</label><input type="text" id="secteurAutre" placeholder="Ex. : je fais des paniers cadeaux pour entreprises"></div>
+<label>Clientèle visée</label><div id="clienteleChoices"></div>
+<label>Type de logo</label><div id="typeChoices"></div>
+<label>Style visuel</label><div id="styleChoices"></div>
+<div class="cl-actions"><button type="button" class="button" id="toStep2">CONTINUER →</button></div></div>
+
+<div class="cl-card" id="step2" hidden><h2>Étape 2 · Tes réponses</h2><p>Écris comme tu parles. Il n'y a pas de bonne réponse, et il n'y a pas de mauvaise non plus. Ces questions sont des déclencheurs de conversation, pas un test de personnalité.</p><div id="questionsOuvertes"></div>
+<h3>Le double portrait : toi, et ta clientèle</h3><p>Il y a deux personnalités en jeu : la tienne (le fondateur) et celle que ta clientèle veut voir. Note chaque dimension de 1 à 5, des deux côtés. Si l'écart est grand, un logo qui te ressemble seulement risque de ne pas vendre.</p>
+<div class="cl-grid2"><div><h3>Toi, le fondateur</h3><div id="aakerFondateur"></div></div><div><h3>Ta clientèle visée</h3><div id="aakerClient"></div></div></div>
+<div id="aakerResult" class="cl-note">Bouge les curseurs : l'écart va se calculer ici.</div>
+<div class="cl-actions"><button type="button" class="button cl-ghost" id="backStep1">← RETOUR</button><button type="button" class="button" id="btnAnalyser">VOIR MON LOGO →</button></div></div>
+
+<div class="cl-card" id="step3" hidden><h2>Étape 3 · Ton logo</h2><div id="resArchetype"></div><div id="resBars"></div>
+<h3>Ton logo</h3><div class="cl-logo-box" id="logoPreview"></div><p id="logoCaption" style="text-align:center;color:#999"></p>
+<div class="cl-bg-toggle" role="group" aria-label="Fond de l'aperçu"><button type="button" data-bg="blanc" class="active">Fond blanc</button><button type="button" data-bg="transparent">Fond transparent</button><button type="button" data-bg="fonce">Fond foncé</button></div>
+<h3>Retouche guidée</h3><p>Tu peux changer la palette, la forme et la police, mais seulement parmi les choix compatibles avec ton archétype. C'est ça qui garde ton logo cohérent.</p>
+<label>Palette</label><div class="cl-choices" id="paletteChoices"></div>
+<label>Forme</label><div class="cl-choices" id="formeChoices"></div>
+<label>Police</label><div class="cl-choices" id="policeChoices"></div>
+<div class="cl-consent" id="consentBox">
+<label class="cl-radio"><input type="checkbox" id="consentGarder"> <span id="consentTexte">J'accepte qu'Évolution PME garde mes infos dans son CMS, au cas où, pour pouvoir me recontacter. Je peux demander la suppression en tout temps.</span></label>
+<div id="consentEmailWrap" hidden><label for="consentEmail" id="consentEmailLabel">Ton courriel (seulement si tu coches la case ci-dessus)</label><input type="email" id="consentEmail" placeholder="ton@courriel.ca" autocomplete="email"></div>
+<p class="cl-note" id="consentNote">Si tu coches la case, on garde seulement ton entreprise, ton courriel et ton archétype principal dans notre CMS, pour te recontacter au cas où. Si tu ne la coches pas, rien n'est gardé. Pas de liste de diffusion : Évolution PME n'en a pas.</p>
+<p class="cl-note" id="consentErreur" hidden></p>
+<p class="cl-note" id="consentStatut" hidden></p>
+</div>
+<div class="cl-actions"><button type="button" class="button" id="btnPngBlanc">EXPORT PNG · FOND BLANC</button><button type="button" class="button" id="btnPngTransparent">EXPORT PNG · TRANSPARENT</button><button type="button" class="button cl-gold" id="btnDlAnalyse">TÉLÉCHARGER L'ANALYSE COMPLÈTE</button><button type="button" class="button" id="btnPro">FAIS-LE PEAUFINER PAR UN PRO →</button></div>
+<p class="cl-note">L'export PNG est en 1280 px, utilisable pour ton site et tes réseaux. Pour les vrais fichiers (vectoriels, déclinaisons, charte), le bouton « Fais-le peaufiner par un pro » prépare un courriel vers info@evolutionpme.ca avec le résumé de ton analyse. Aucune de tes réponses n'est envoyée automatiquement.</p>
+
+<h3>Approfondir</h3><p>La profondeur est ici, derrière des onglets, pas dans ton chemin. Ouvre ce qui t'intéresse, le reste peut attendre.</p>
+<div class="cl-tabs" role="tablist" aria-label="Approfondir">
+<button type="button" class="active" data-tab-group="depth" data-tab="pourquoi">Pourquoi TON logo</button>
+<button type="button" data-tab-group="depth" data-tab="archetypes">Les 12 archétypes</button>
+<button type="button" data-tab-group="depth" data-tab="couleurs">Couleurs et formes</button>
+<button type="button" data-tab-group="depth" data-tab="mythes">Mythes à bannir</button>
+<button type="button" data-tab-group="depth" data-tab="idees">Ce qui n'existe pas ailleurs</button>
+</div>
+<div class="cl-panel" data-panel-group="depth" data-panel="pourquoi"><div id="pourquoiBox"><p>Remplis le questionnaire, puis reviens ici : cet onglet va expliquer ton logo à partir de TES réponses, pas de généralités.</p></div></div>
+<div class="cl-panel" data-panel-group="depth" data-panel="archetypes" hidden><h3>Les 12 archétypes</h3><p>Vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung. Un récit pour aligner ton équipe, pas un diagnostic. Chaque archétype a une ombre, un excès à éviter.</p><div class="cl-explorer" id="archetypesExplorer"></div></div>
+<div class="cl-panel" data-panel-group="depth" data-panel="couleurs" hidden><h3>Couleurs, formes et polices</h3><p>Ce qui est le mieux prouvé : la <b>congruence</b> (couleur, forme et police doivent correspondre à ta personnalité, à ton secteur et à ton public), et la <b>saturation et la luminosité</b>, qui influencent l'émotion plus fiablement que la teinte seule. Un bleu marine saturé et un bleu ciel pastel, ce n'est pas le même bleu.</p><div class="cl-explorer" id="couleursExplorer"></div><p class="cl-note">Formes : le rond est doux et accueillant, l'anguleux est dur et résistant, les courbes sont préférées aux angles vifs. Typographie : la serif fait professionnel et formel, la sans-serif fait moderne et amical, le script fait chaleureux mais peu professionnel. La lisibilité passe avant la personnalité de la police, surtout avec les accents français.</p></div>
+<div class="cl-panel" data-panel-group="depth" data-panel="mythes" hidden><h3>Mythes à bannir</h3><p>Si quelqu'un te sort ces chiffres-là, il te vend du vent.</p><div id="mythesList"></div></div>
+<div class="cl-panel" data-panel-group="depth" data-panel="idees" hidden><h3>Ce qui n'existe pas ailleurs</h3><p>Les autres créateurs de logo génèrent des logos. Personne ne teste le logo auprès de vrais clients. C'est là que cet outil veut être différent.</p><div id="ideesList"></div></div>
+
+<h3>Le crash-test : 1 seconde, pas plus</h3><p>Un logo ne se juge pas en le regardant longtemps. On te le montre 1 seconde, puis on te demande ce que tu as retenu. C'est le début d'un vrai test, pas une preuve.</p>
+<div class="cl-actions"><button type="button" class="button" id="btnCrash">LANCER LE CRASH-TEST →</button></div><div id="crashBox"></div>
+
+<h3>Ton histoire, en une page</h3><div id="storyBox" class="cl-note">Ton histoire va apparaître ici après l'analyse.</div>
+<div class="cl-actions"><button type="button" class="button cl-ghost" id="backStep2">← MODIFIER MES RÉPONSES</button><button type="button" class="button cl-ghost" id="btnRecommencer">RECOMMENCER</button></div></div>
+</div></section></main>
+<footer class="site-footer"><span>© Évolution PME 2026 · <a class="cookie-preferences-link" href="#">Préférences de confidentialité</a></span><span>Une création d’Évolution PME — Créateur de marques. · info@evolutionpme.ca</span></footer>
+<script src="/assets/createur-logo-config.js"></script>
+<script src="/assets/createur-logo.js"></script>
+<script>
+/* Panneaux de profondeur : remplis depuis la config, une seule source de vérité. */
+(function () {
+  var CFG = window.EVOPME_LOGO_CONFIG; if (!CFG) return;
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  var ae = document.getElementById("archetypesExplorer");
+  if (ae) ae.innerHTML = CFG.archetypes.map(function (a) {
+    return "<article><h4>" + esc(a.nom) + "</h4><p>" + esc(a.promesse) + "</p><p><b>Couleurs :</b> " + a.couleurs.map(function (c) { return "<i class='cl-dot' style='background:" + c + "'></i>" + c; }).join(" ") + "</p><p><b>Ombre :</b> " + esc(a.ombre) + "</p><p><b>Polices :</b> " + a.polices.map(esc).join(", ") + "</p></article>";
+  }).join("");
+  var ce = document.getElementById("couleursExplorer");
+  if (ce) ce.innerHTML = CFG.archetypes.map(function (a) {
+    return "<article><h4>" + esc(a.nom) + "</h4><p>" + a.couleurs.map(function (c) { return "<i class='cl-dot' style='background:" + c + "'></i>" + c; }).join(" ") + "</p><p><b>Formes :</b> " + a.formes.join(", ") + "</p></article>";
+  }).join("");
+  var ml = document.getElementById("mythesList");
+  if (ml) ml.innerHTML = CFG.mythes.map(function (m) { return "<div class='cl-trace'><p><b>Mythe :</b> " + esc(m.mythe) + "</p><p><b>Réalité :</b> " + esc(m.realite) + "</p></div>"; }).join("");
+  var il = document.getElementById("ideesList");
+  if (il) il.innerHTML = CFG.idees.map(function (i) { return "<div class='cl-trace'><p><b>" + esc(i.titre) + "</b></p><p>" + esc(i.texte) + "</p></div>"; }).join("");
+})();
+</script>
+<script src="/assets/cookies.js" defer></script><script src="/assets/navigation.js" defer></script></body></html>
