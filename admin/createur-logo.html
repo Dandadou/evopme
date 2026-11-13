@@ -28,11 +28,13 @@
 </style></head><body><header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/admin/">← Retour à l'admin</a><a href="/createur-logo.html">Voir l'outil →</a><a class="pill" href="/soumission.html">Demander une soumission</a></nav></header><main>
 <section class="cl-admin"><div class="cl-wrap"><span class="eyebrow">ADMINISTRATION · CRÉATEUR DE LOGO</span><h1>CONFIGURER<br><em>L'OUTIL.</em></h1><p style="color:#bbb;line-height:1.7;max-width:720px">Cette page sert à configurer le Créateur de logo : les questions, les secteurs, les palettes, les formes, les polices et les textes. Elle ne sert pas à surveiller des clients.</p>
 
-<div class="cl-note red"><b>Loi 25 — AUCUNE liste de leads ici, et c'est volontaire.</b><br>Le Créateur de logo ne conserve rien : aucune réponse, aucune analyse et aucun lead ne sont envoyés ni conservés sur un serveur. Le parcours du client est 100 % local dans son navigateur, et la seule transmission, c'est le courriel qu'il choisit lui-même d'envoyer à info@evolutionpme.ca en cliquant « Fais-le peaufiner par un pro ». Il n'y a donc pas de liste d'analyses à afficher ici, et il ne doit pas y en avoir. Ne pas ajouter de stockage serveur sans un nouveau go explicite et une mise à jour de la politique de confidentialité.</div>
+<div class="cl-note red"><b>Loi 25 — on ne garde un lead que si le client a coché la case.</b><br>Par défaut, le Créateur de logo ne conserve rien : aucune réponse, aucune analyse et aucun lead ne sont envoyés ni conservés sur un serveur. Le parcours du client est 100 % local dans son navigateur, et la seule transmission, c'est le courriel qu'il choisit lui-même d'envoyer à info@evolutionpme.ca en cliquant « Fais-le peaufiner par un pro ». <b>Seule exception :</b> si le client coche la case « garder mes infos dans le CMS », le minimum utile (entreprise, courriel, archétype principal, date, mention du consentement) est gardé dans le CMS, table <code>cms_submissions</code>, et il apparaît dans les « Dernières demandes » de l'Admin principal. Il n'y a pas de liste de diffusion : Évolution PME n'en a pas. Ne pas ajouter d'autre stockage sans un nouveau go explicite et une mise à jour de la politique de confidentialité.</div>
 
 <div class="cl-card"><h2>1 · Activer ou désactiver l'outil</h2><label class="cl-switch"><input type="checkbox" id="cfgEnabled"> Outil activé (visible pour les visiteurs)</label><p class="cl-note">Si tu désactives l'outil, la page publique affiche un message qui renvoie vers info@evolutionpme.ca, au lieu du questionnaire.</p></div>
 
 <div class="cl-card"><h2>2 · Textes de la page</h2><label for="txtTitre">Titre</label><input type="text" id="txtTitre"><label for="txtSousTitre">Sous-titre</label><textarea id="txtSousTitre" rows="2"></textarea><label for="txtAvert">Avertissement d'honnêteté</label><textarea id="txtAvert" rows="3"></textarea><label for="txtLoi">Texte Loi 25</label><textarea id="txtLoi" rows="3"></textarea></div>
+
+<div class="cl-card"><h2>2b · Garder le lead dans le CMS (case optionnelle)</h2><p>Case décochée par défaut, jamais obligatoire. Si le client la coche, son entreprise, son courriel et son archétype principal sont gardés dans le CMS (table des soumissions, visible dans les « Dernières demandes » de l'Admin principal). Si elle n'est pas cochée, rien n'est gardé. Pas de liste de diffusion : Évolution PME n'en a pas.</p><label for="txtConservation">Texte de la case, affiché au client</label><textarea id="txtConservation" rows="3"></textarea><label for="txtConservationNote">Note affichée sous la case</label><textarea id="txtConservationNote" rows="3"></textarea><label for="txtConservationEmail">Libellé du champ courriel (seulement si la case est cochée)</label><input type="text" id="txtConservationEmail"></div>
 
 <div class="cl-card"><h2>3 · Secteurs d'activité</h2><p>Chaque secteur a un nom et une courte phrase d'exemple, affichée sous le choix. Ajoute, modifie ou retire des secteurs.</p><div id="secteursEditor"></div><div class="cl-actions"><button type="button" class="button cl-ghost" id="addSecteur">+ AJOUTER UN SECTEUR</button></div></div>
 
@@ -67,6 +69,15 @@
       if (id === "txtSousTitre") CFG.textes.sousTitre = e.target.value;
       if (id === "txtAvert") CFG.textes.avertissement = e.target.value;
       if (id === "txtLoi") CFG.textes.loi25 = e.target.value;
+    });
+  });
+  if (!CFG.conservation) CFG.conservation = { texte: "", note: "", labelCourriel: "" };
+  $("txtConservation").value = CFG.conservation.texte || ""; $("txtConservationNote").value = CFG.conservation.note || ""; $("txtConservationEmail").value = CFG.conservation.labelCourriel || "";
+  ["txtConservation", "txtConservationNote", "txtConservationEmail"].forEach(function (id) {
+    $(id).addEventListener("input", function (e) {
+      if (id === "txtConservation") CFG.conservation.texte = e.target.value;
+      if (id === "txtConservationNote") CFG.conservation.note = e.target.value;
+      if (id === "txtConservationEmail") CFG.conservation.labelCourriel = e.target.value;
     });
   });
 
@@ -104,7 +115,7 @@
   $("addQuestion").addEventListener("click", function () { CFG.questionsOuvertes.push({ id: "question-" + (CFG.questionsOuvertes.length + 1), texte: "Nouvelle question ?", indice: "" }); renderQuestions(); });
 
   function configFileContent() {
-    var header = "/* Créateur de logo psychologique — Évolution PME — config modifiée via l'Admin.\n * LOI 25 : aucune conservation. Parcours 100 % local, courriel seulement vers info@evolutionpme.ca.\n * Remplacer assets/createur-logo-config.js dans le dépôt, puis vérifier l'aperçu sur la branche avant de fusionner. */\nwindow.EVOPME_LOGO_CONFIG = ";
+    var header = "/* Créateur de logo psychologique — Évolution PME — config modifiée via l'Admin.\n * LOI 25 : aucune conservation par défaut. Seule exception, avec consentement explicite : le lead est gardé dans le CMS (table cms_submissions).\n * Parcours 100 % local, courriel seulement vers info@evolutionpme.ca. Pas de liste de diffusion.\n * Remplacer assets/createur-logo-config.js dans le dépôt, puis vérifier l'aperçu sur la branche avant de fusionner. */\nwindow.EVOPME_LOGO_CONFIG = ";
     return header + JSON.stringify(CFG, null, 2) + ";\n";
   }
   $("dlConfig").addEventListener("click", function () {

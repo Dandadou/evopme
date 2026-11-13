@@ -1,10 +1,16 @@
 /* ============================================================================
  * Créateur de logo psychologique — Évolution PME
- * Logique 100 % locale. AUCUNE donnée ne quitte le navigateur :
+ * Logique locale par défaut. AUCUNE donnée ne quitte le navigateur :
  * pas d'envoi serveur, pas de base de données, pas de liste de leads.
  * La seule transmission, c'est le mailto vers info@evolutionpme.ca quand
  * le client clique lui-même « Fais-le peaufiner par un pro ».
  * Règle Loi 25 : courriel seulement, on ne garde pas les infos.
+ * SEULE EXCEPTION, avec consentement explicite : si le client coche la
+ * case « garder mes infos », le minimum utile (entreprise, courriel,
+ * archétype principal, date) est envoyé à POST /api/cms/logo-lead et
+ * gardé dans le CMS (table cms_submissions, D1). Pas de liste de
+ * diffusion : Évolution PME n'en a pas. Si la case n'est pas cochée,
+ * cette route n'est JAMAIS appelée et rien n'est gardé.
  * ========================================================================== */
 (function () {
   "use strict";
@@ -86,7 +92,8 @@
     reponses: {}, aakerFondateur: {}, aakerClient: {},
     scores: null, top: null, second: null, trace: [],
     paletteIdx: 0, forme: "", police: "", palette: null,
-    crash: null, previewBg: "blanc"
+    crash: null, previewBg: "blanc",
+    consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: ""
   };
   CFG.dimensionsAaker.forEach(function (d) { state.aakerFondateur[d.id] = 3; state.aakerClient[d.id] = 3; });
 
@@ -317,8 +324,64 @@
     if (!state.top) return;
     downloadBlob(new Blob([analysisHTML()], { type: "text/html;charset=utf-8" }), "analyse-logo-" + (state.entreprise || "entreprise").toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".html");
   }
-  function mailPro() {
+  function dateDuJour() { return new Date().toISOString().slice(0, 10); }
+  function consentementActif() {
+    var box = $("consentGarder");
+    return !!(box && box.checked);
+  }
+  function courrielValide(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || ""); }
+  async function garderLeadDansCms() {
+    /* Appelé SEULEMENT si la case est cochée. Envoie le minimum utile
+       à POST /api/cms/logo-lead (Worker, table cms_submissions, D1).
+       Si le CMS est indisponible (aperçu local, D1 non liée), on retourne
+       false et le courriel dira de garder le lead à la main : on ne
+       bloque jamais le courriel du client pour ça. */
+    try {
+      var res = await fetch("/api/cms/logo-lead", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          consentement: true,
+          entreprise: state.entreprise,
+          courriel: state.consentEmail,
+          archetype: state.top.id,
+          archetypeSecondaire: state.second ? state.second.id : "",
+          secteur: state.secteur,
+          clientele: state.clientele,
+          dateConsentement: dateDuJour()
+        })
+      });
+      var data = null; try { data = await res.json(); } catch (e) { data = null; }
+      if (res.ok && data && data.ok) { state.leadGardeId = data.id; state.leadGardeErreur = ""; return true; }
+      state.leadGardeErreur = (data && data.error) || ("Erreur HTTP " + res.status);
+      return false;
+    } catch (e) { state.leadGardeErreur = "CMS indisponible (réseau ou aperçu local)."; return false; }
+  }
+  async function mailPro() {
     if (!state.top) return;
+    var erreur = $("consentErreur"), statut = $("consentStatut");
+    if (erreur) erreur.hidden = true;
+    if (statut) statut.hidden = true;
+    state.consentement = consentementActif();
+    state.consentEmail = (($("consentEmail") || {}).value || "").trim().toLowerCase();
+    if (state.consentement && !courrielValide(state.consentEmail)) {
+      if (erreur) { erreur.hidden = false; erreur.textContent = "Pour garder tes infos dans le CMS, entre un courriel valide, ou décoche la case."; }
+      var champ = $("consentEmail"); if (champ) champ.focus();
+      return;
+    }
+    var date = dateDuJour();
+    var garde = false;
+    if (state.consentement) garde = await garderLeadDansCms();
+    if (statut) {
+      statut.hidden = false;
+      statut.textContent = state.consentement
+        ? (garde ? "Merci ! Ton lead est gardé dans le CMS d'Évolution PME (soumission #" + state.leadGardeId + ")."
+          : "Ton courriel part quand même. Le CMS était indisponible (" + state.leadGardeErreur + ") : Daniel gardera ton lead à la main dans le CMS, avec ton consentement.")
+        : "Aucune info gardée, comme demandé : ton courriel part seulement, rien n'est conservé dans le CMS.";
+    }
+    var consentLigne = state.consentement
+      ? "Consentement : oui, le " + date + ", source : Créateur de logo — " + (garde ? "lead déjà gardé dans le CMS (soumission #" + state.leadGardeId + ")." : "à garder dans le CMS à la main (" + state.leadGardeErreur + ").")
+      : "Consentement : non — rien à garder dans le CMS.";
     var lignes = [
       "Bonjour Évolution PME,",
       "",
@@ -328,12 +391,15 @@
       "Couleurs : " + state.palette.couleurs.join(", "),
       "Forme : " + state.forme + " · Police : " + state.police,
       "",
+      consentLigne,
+      state.consentement ? "Courriel du client : " + state.consentEmail : "",
+      "",
       "J'aimerais que vous peaufiniez mon logo (vrais fichiers, déclinaisons, charte).",
       "Merci de me revenir avec les prochaines étapes.",
       "",
-      "— Analyse générée localement, aucune réponse conservée sur vos serveurs."
+      "— Analyse générée localement, aucune réponse conservée sur vos serveurs" + (state.consentement ? " (sauf le lead ci-dessus, gardé dans le CMS avec mon consentement)." : ".")
     ];
-    location.href = "mailto:" + CFG.contactEmail + "?subject=" + encodeURIComponent("Peaufiner mon logo — " + (state.entreprise || "")) + "&body=" + encodeURIComponent(lignes.join("\n"));
+    location.href = "mailto:" + CFG.contactEmail + "?subject=" + encodeURIComponent("Peaufiner mon logo — " + (state.entreprise || "")) + "&body=" + encodeURIComponent(lignes.filter(function (l) { return l !== ""; }).join("\n"));
   }
 
   /* ---------- crash-test ---------- */
@@ -459,6 +525,19 @@
         else state.aakerClient[parts[1]] = parseInt(a.value, 10);
         renderAaker();
       }
+    });
+    /* Case « garder mes infos dans le CMS » : décochée par défaut, jamais
+       obligatoire. Le champ courriel n'apparaît que si elle est cochée. */
+    var consentTxt = $("consentTexte");
+    if (consentTxt && CFG.conservation && CFG.conservation.texte) consentTxt.textContent = CFG.conservation.texte;
+    var consentLbl = $("consentEmailLabel");
+    if (consentLbl && CFG.conservation && CFG.conservation.labelCourriel) consentLbl.textContent = CFG.conservation.labelCourriel;
+    var consentNote = $("consentNote");
+    if (consentNote && CFG.conservation && CFG.conservation.note) consentNote.textContent = CFG.conservation.note;
+    var consentBox = $("consentGarder");
+    if (consentBox) consentBox.addEventListener("change", function () {
+      var wrap = $("consentEmailWrap"); if (wrap) wrap.hidden = !consentBox.checked;
+      var erreur = $("consentErreur"); if (erreur) erreur.hidden = true;
     });
     var pngT = $("btnPngTransparent"); if (pngT) pngT.addEventListener("click", function () { exportPNG(true); });
     var pngB = $("btnPngBlanc"); if (pngB) pngB.addEventListener("click", function () { exportPNG(false); });

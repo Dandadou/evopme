@@ -10,7 +10,14 @@
  * de base D1, pas de liste de leads. La seule transmission possible, c'est
  * le courriel vers info@evolutionpme.ca quand le client clique lui-même
  * « Fais-le peaufiner par un pro » (mailto, résumé en corps de courriel).
- * Ne pas ajouter ici de stockage serveur sans un nouveau go explicite
+ * SEULE EXCEPTION, avec consentement explicite : garder le lead dans le CMS.
+ * Si le client coche la case (décochée par défaut, jamais obligatoire),
+ * le minimum utile est gardé dans le CMS (table cms_submissions, D1) :
+ * nom de l'entreprise, courriel, archétype principal, date, et la mention
+ * « Consentement : oui, le [date], source : Créateur de logo ».
+ * Il n'y a PAS de liste de diffusion : Évolution PME n'en a pas.
+ * Si la case n'est pas cochée, rien n'est gardé, courriel seulement.
+ * Ne pas ajouter ici d'autre stockage sans un nouveau go explicite
  * de Daniel et une mise à jour de la politique de confidentialité.
  *
  * HONNÊTETÉ SCIENTIFIQUE (recherche du 13 novembre 2026) :
@@ -26,11 +33,17 @@ window.EVOPME_LOGO_CONFIG = {
   contactEmail: "info@evolutionpme.ca",
   siteUrl: "https://evolutionpme.ca",
 
+  conservation: {
+    texte: "J'accepte qu'Évolution PME garde mes infos dans son CMS, au cas où, pour pouvoir me recontacter. Je peux demander la suppression en tout temps.",
+    note: "Si cochée, le lead est gardé dans le CMS (table des soumissions, visible dans l'Admin). Si non cochée, rien n'est gardé. Pas de liste de diffusion : Évolution PME n'en a pas.",
+    labelCourriel: "Ton courriel (seulement si tu coches la case ci-dessus)"
+  },
+
   textes: {
     titre: "Créateur de logo psychologique",
     sousTitre: "Réponds à quelques questions, on te propose un logo qui raconte ta marque. Gratuit, sans compte, sans envoi de tes réponses.",
     avertissement: "Ton logo raconte une histoire, il ne te diagnostique pas. Les archétypes sont un vocabulaire pour aligner ton équipe, pas une mesure scientifique. Valide toujours le résultat auprès de vrais clients.",
-    loi25: "Loi 25 : tes réponses restent dans ton navigateur. Rien n'est conservé sur nos serveurs. La seule chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca."
+    loi25: "Loi 25 : tes réponses restent dans ton navigateur. Rien n'est conservé sur nos serveurs. La seule chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca. Seule exception : si tu coches la case pour garder tes infos, ton entreprise, ton courriel et ton archétype sont gardés dans notre CMS, pour qu'on puisse te recontacter au cas où."
   },
 
   secteurs: [

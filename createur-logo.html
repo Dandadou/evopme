@@ -39,6 +39,9 @@
 .cl-actions .button{border:0;cursor:pointer;font:inherit}
 .cl-gold{background:#b7950b;color:#111}
 .cl-ghost{background:transparent;border:1px solid #555;color:#eee}
+.cl-consent{border:1px solid var(--line);border-radius:14px;padding:16px;margin:18px 0;background:#171719}
+.cl-consent input[type=email]{width:100%;border:1px solid #3b3b40;background:#0f0f11;color:#fff;border-radius:13px;padding:12px 14px;font:inherit;outline:none;margin-top:8px}
+.cl-consent input[type=email]:focus{border-color:var(--orange)}
 .cl-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 0}
 .cl-tabs button{border:1px solid var(--line);background:#171719;color:#ddd;border-radius:99px;padding:10px 16px;cursor:pointer;font-weight:800;font-size:.82rem}
 .cl-tabs button.active{background:var(--orange);color:#111;border-color:var(--orange)}
@@ -58,7 +61,7 @@
 .cl-explorer p{color:#aaa;font-size:.88rem;line-height:1.55;margin:6px 0}
 @media(max-width:850px){.cl-grid2{grid-template-columns:1fr}.cl-card{padding:22px}.cl-bar-row{grid-template-columns:100px 1fr 26px}}
 </style></head><body><header><a class="brand brand-logo" href="/"><img src="/assets/signature%20courriel1.PNG" alt="Évolution PME — Créateur de marques"></a><nav><a href="/services.html">Services</a><a href="/formations.html">Formations</a><a href="/catalogues.html">Catalogues</a><a href="/etudes-de-cas.html">Études de cas</a><a href="/a-propos.html">À propos</a><a class="pill" href="https://portail.evolutionpme.ca">Portail client</a><a class="pill" href="/soumission.html">Demander une soumission</a></nav></header><main>
-<section class="cl-hero"><div class="cl-wrap"><span class="eyebrow">OUTIL GRATUIT · CRÉATEUR DE MARQUES</span><h1>TON LOGO.<br>TA PERSONNALITÉ.<br><em>TON HISTOIRE.</em></h1><p>Réponds à quelques questions, on te propose un logo qui raconte ta marque. Un logo n'illustre pas ton secteur, il évoque une personnalité. Pour les vrais fichiers (vectoriels, déclinaisons, charte), tu passes par Évolution PME.</p><p class="cl-note"><b>Important, et honnête :</b> ton logo raconte une histoire, il ne te diagnostique pas. Les 12 archétypes sont le vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung, pas une mesure scientifique. Le modèle mesuré, c'est celui d'Aaker (5 dimensions). Et tes réponses restent dans ton navigateur : <b>rien n'est envoyé ni conservé sur nos serveurs (Loi 25, courriel seulement)</b>. La seule chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca.</p><div class="cl-actions"><button type="button" class="button" onclick="document.getElementById('step1').scrollIntoView({behavior:'smooth'})">COMMENCER →</button><button type="button" class="button cl-ghost" id="btnExemple">REMPLIR UN EXEMPLE</button></div></div></section>
+<section class="cl-hero"><div class="cl-wrap"><span class="eyebrow">OUTIL GRATUIT · CRÉATEUR DE MARQUES</span><h1>TON LOGO.<br>TA PERSONNALITÉ.<br><em>TON HISTOIRE.</em></h1><p>Réponds à quelques questions, on te propose un logo qui raconte ta marque. Un logo n'illustre pas ton secteur, il évoque une personnalité. Pour les vrais fichiers (vectoriels, déclinaisons, charte), tu passes par Évolution PME.</p><p class="cl-note"><b>Important, et honnête :</b> ton logo raconte une histoire, il ne te diagnostique pas. Les 12 archétypes sont le vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung, pas une mesure scientifique. Le modèle mesuré, c'est celui d'Aaker (5 dimensions). Et tes réponses restent dans ton navigateur : <b>rien n'est envoyé ni conservé sur nos serveurs (Loi 25, courriel seulement)</b>. La seule chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca. Seule exception : si tu coches la case pour garder tes infos, ton entreprise, ton courriel et ton archétype sont gardés dans notre CMS, pour qu'on puisse te recontacter au cas où.</p><div class="cl-actions"><button type="button" class="button" onclick="document.getElementById('step1').scrollIntoView({behavior:'smooth'})">COMMENCER →</button><button type="button" class="button cl-ghost" id="btnExemple">REMPLIR UN EXEMPLE</button></div></div></section>
 
 <section><div class="cl-wrap">
 <div id="creatorDisabled" hidden><p class="cl-note">Le Créateur de logo est désactivé pour le moment. Écris-nous à info@evolutionpme.ca, on va t'aider directement.</p></div>
@@ -86,6 +89,13 @@
 <label>Palette</label><div class="cl-choices" id="paletteChoices"></div>
 <label>Forme</label><div class="cl-choices" id="formeChoices"></div>
 <label>Police</label><div class="cl-choices" id="policeChoices"></div>
+<div class="cl-consent" id="consentBox">
+<label class="cl-radio"><input type="checkbox" id="consentGarder"> <span id="consentTexte">J'accepte qu'Évolution PME garde mes infos dans son CMS, au cas où, pour pouvoir me recontacter. Je peux demander la suppression en tout temps.</span></label>
+<div id="consentEmailWrap" hidden><label for="consentEmail" id="consentEmailLabel">Ton courriel (seulement si tu coches la case ci-dessus)</label><input type="email" id="consentEmail" placeholder="ton@courriel.ca" autocomplete="email"></div>
+<p class="cl-note" id="consentNote">Si tu coches la case, on garde seulement ton entreprise, ton courriel et ton archétype principal dans notre CMS, pour te recontacter au cas où. Si tu ne la coches pas, rien n'est gardé. Pas de liste de diffusion : Évolution PME n'en a pas.</p>
+<p class="cl-note" id="consentErreur" hidden></p>
+<p class="cl-note" id="consentStatut" hidden></p>
+</div>
 <div class="cl-actions"><button type="button" class="button" id="btnPngBlanc">EXPORT PNG · FOND BLANC</button><button type="button" class="button" id="btnPngTransparent">EXPORT PNG · TRANSPARENT</button><button type="button" class="button cl-gold" id="btnDlAnalyse">TÉLÉCHARGER L'ANALYSE COMPLÈTE</button><button type="button" class="button" id="btnPro">FAIS-LE PEAUFINER PAR UN PRO →</button></div>
 <p class="cl-note">L'export PNG est en 1280 px, utilisable pour ton site et tes réseaux. Pour les vrais fichiers (vectoriels, déclinaisons, charte), le bouton « Fais-le peaufiner par un pro » prépare un courriel vers info@evolutionpme.ca avec le résumé de ton analyse. Aucune de tes réponses n'est envoyée automatiquement.</p>
 
