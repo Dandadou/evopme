@@ -203,6 +203,10 @@ export function validateQuestionnaire(body) {
   data.clientele = cleanStr(body.clientele, 20);
   data.typeLogo = cleanStr(body.typeLogo, 20);
   data.style = cleanStr(body.style, 40);
+  data.directionStyle = cleanStr(body.directionStyle, 20);
+  if (data.directionStyle && !STYLE_DIRECTION_IDS.includes(data.directionStyle)) {
+    errors.push("directionStyle inconnue : " + data.directionStyle + " (choix : " + STYLE_DIRECTION_IDS.join(", ") + ")");
+  }
   if (!data.secteur) errors.push("secteur manquant");
   if (data.clientele && !CLIENTELE.includes(data.clientele)) errors.push("clientele invalide");
   if (data.typeLogo && !TYPES_LOGO.includes(data.typeLogo)) errors.push("typeLogo invalide");
@@ -226,7 +230,7 @@ export function validateQuestionnaire(body) {
   // Rejet du reste : aucune autre clé n'est acceptée.
   const allowed = new Set([
     "entreprise", "secteur", "secteurAutre", "clientele", "typeLogo",
-    "style", "reponses", "aakerFondateur", "aakerClient",
+    "style", "directionStyle", "reponses", "aakerFondateur", "aakerClient",
   ]);
   Object.keys(body).forEach((k) => {
     if (!allowed.has(k)) errors.push("champ non accepté : " + k);
@@ -432,9 +436,14 @@ export const IMAGE_BANNED_TOKENS = [
   "text", "letters", "alphabet", "words", "typography", "watermark",
   "logo text", "clipart", "clip-art", "generic stock icon",
   "rainbow", "rainbow gradient", "multicolor gradient",
-  "drop shadow", "bevel", "emboss", "3d", "chrome", "metallic",
+  "drop shadow", "bevel", "emboss", "chrome", "metallic",
   "glossy", "glassy", "photorealistic", "photo", "messy", "cluttered",
   "busy", "blurry", "distorted", "deformed", "low quality",
+  /* 3D CHEAP, bannie (correction de Daniel, 2026-11-16) : ce n'est pas
+     la 3D qui est bannie, mais sa version cheap. Le mot "3d" seul n'est
+     PLUS dans cette liste : la 3D propre est une direction autorisée. */
+  "chrome bevel", "metallic gradient", "heavy drop shadow",
+  "2000s 3d button", "cheap 3d effect", "gold bevel",
   "more than three colors", "cartoon mascot", "face",
   /* Ajouts du 2026-11-16, tirés des 2 exemples cheap envoyés par Daniel
      (voir ANTI_CHEAP_EXAMPLES plus bas) : */
@@ -445,6 +454,68 @@ export const IMAGE_BANNED_TOKENS = [
   "scattered decorations", "busy background", "competing colors",
 ];
 export const IMAGE_NEGATIVE_PROMPT = IMAGE_BANNED_TOKENS.join(", ");
+
+/* ============================================================================
+ * DIRECTIONS DE STYLE — le plat minimaliste est la base sûre, la 3D et
+ * les styles récents sont des OPTIONS À TESTER, pas des interdits
+ * (correction de Daniel, 2026-11-16). Chaque direction choisit ses
+ * tokens de prompt ET ajuste le negative prompt : la direction "plat"
+ * rajoute "3d" aux interdits, la direction "3d-propre" l'autorise mais
+ * garde la 3D cheap bannie, le glassmorphism retire "glassy"/"glossy".
+ * Critère de choix : la congruence avec l'archétype et le secteur.
+ * Tests d'acceptation, identiques pour toutes les directions : 16 px,
+ * 3 m, noir et blanc, max 3 couleurs.
+ * ========================================================================== */
+export const STYLE_DIRECTIONS = {
+  "plat": {
+    label: "Plat minimaliste (base sûre)",
+    tokens: ["flat vector logo symbol", "minimalist", "clean", "sharp", "professional"],
+    negative_remove: [],
+    negative_add: ["3d", "volume", "depth effect"],
+  },
+  "3d-propre": {
+    label: "3D propre",
+    tokens: ["clean 3D logo", "intentional volume", "coherent lighting", "one single light source", "simple forms", "depth that serves the symbol", "professional"],
+    negative_remove: [],
+    negative_add: ["chrome bevel", "metallic gradient", "heavy drop shadow", "2000s 3d button", "cheap 3d effect"],
+  },
+  "isometrique": {
+    label: "Isométrique léger",
+    tokens: ["light isometric logo", "clean geometric volume", "consistent angles", "simple forms", "professional"],
+    negative_remove: [],
+    negative_add: ["heavy 3d", "realistic 3d render", "photorealistic"],
+  },
+  "glassmorphism": {
+    label: "Glassmorphism maîtrisé",
+    tokens: ["controlled glassmorphism", "frosted glass", "subtle transparency", "clean edges", "readable at small size", "professional"],
+    negative_remove: ["glassy", "glossy"],
+    negative_add: ["illegible transparency", "frosted overload"],
+  },
+  "neo-brutalisme": {
+    label: "Néo-brutalisme propre",
+    tokens: ["clean neo-brutalist logo", "bold flat shapes", "thick clean outlines", "high contrast", "simple and readable", "professional"],
+    negative_remove: [],
+    negative_add: ["messy brutalism", "cluttered"],
+  },
+};
+export const STYLE_DIRECTION_IDS = Object.keys(STYLE_DIRECTIONS);
+
+/* 3D : ce qui est cheap (banni) vs premium (autorisé, à tester). */
+export const REGLES_3D = {
+  cheap_a_bannir: [
+    "Biseau chrome.",
+    "Ombre portée lourde.",
+    "Dégradé métallique gratuit.",
+    "Effet « bouton 3D des années 2000 ».",
+    "Volume qui tue la lisibilité en petit.",
+  ],
+  premium_autorisee: [
+    "Volume propre et intentionnel.",
+    "Éclairage cohérent, une seule source de lumière.",
+    "Formes simples qui survivent en petit et en noir et blanc.",
+    "La 3D donne de la profondeur au symbole, elle ne décore pas.",
+  ],
+};
 
 /* ============================================================================
  * EXEMPLES ANTI-CHEAP — envoyés par Daniel le 2026-11-16.
@@ -561,7 +632,16 @@ function tonPalette(palette) {
   return "balanced, medium saturation";
 }
 
-export function buildImagePrompt(analyse, questionnaire) {
+export function buildImagePrompt(analyse, questionnaire, options = {}) {
+  const direction = options.direction || "plat";
+  if (!STYLE_DIRECTION_IDS.includes(direction)) {
+    throw new Error("Direction de style inconnue : " + direction);
+  }
+  const style = STYLE_DIRECTIONS[direction];
+  const negativeTokens = [
+    ...IMAGE_BANNED_TOKENS.filter((t) => !style.negative_remove.includes(t)),
+    ...style.negative_add.filter((t) => !IMAGE_BANNED_TOKENS.includes(t)),
+  ];
   if (!isPlainObject(analyse) || !ARCHETYPE_IDS.includes(analyse.archetype_principal)) {
     throw new Error("Analyse invalide pour le prompt image.");
   }
@@ -578,7 +658,7 @@ export function buildImagePrompt(analyse, questionnaire) {
   const hexes = analyse.palette.map((c) => c.hex.toLowerCase());
   const roles = analyse.palette.map((c) => c.role + " " + c.hex.toLowerCase()).join(", ");
   const parties = [
-    IMAGE_QUALITY_TOKENS.slice(0, 5).join(", "),
+    [...style.tokens, "logo symbol", "high-end branding", "crisp edges", "balanced composition", "generous negative space", "scalable", "legible at small size", "single centered symbol"].join(", "),
     FORME_IMAGE[analyse.forme] + " for a brand whose personality is " +
       ARCHETYPE_IMAGE[principal],
   ];
@@ -595,7 +675,9 @@ export function buildImagePrompt(analyse, questionnaire) {
   const prompt = parties.join(", ") + ".";
   return {
     prompt,
-    negative_prompt: IMAGE_NEGATIVE_PROMPT,
+    negative_prompt: negativeTokens.join(", "),
+    style: direction,
+    style_label: style.label,
     archetype_principal: principal,
     archetype_secondaire: secondaire,
     forme: analyse.forme,
@@ -607,10 +689,13 @@ export function buildImagePrompt(analyse, questionnaire) {
     entreprise: questionnaire && questionnaire.entreprise ? questionnaire.entreprise : "",
     regles_anti_cheap: [
       "Symbole seulement, aucun texte dans l'image.",
-      "Style vectoriel plat, minimaliste, net.",
+      "Direction de style : " + style.label + " (le plat minimaliste reste la base sûre).",
       "Maximum 3 couleurs, tirées de la palette validée.",
       "Pas de clip-art générique, pas d'icône de banque d'images.",
-      "Pas de dégradé arc-en-ciel, pas d'ombre portée, pas de biseau, pas de 3D / chrome.",
+      "Pas de dégradé arc-en-ciel, pas d'ombre portée, pas de biseau.",
+      "3D cheap interdite : biseau chrome, ombre portée lourde, dégradé métallique gratuit, effet bouton 3D des années 2000, volume qui tue la lisibilité en petit.",
+      "3D premium autorisée, comme option à tester : volume propre et intentionnel, une seule source de lumière, formes simples qui survivent en petit et en noir et blanc.",
+      "Le plat minimaliste reste la base sûre ; la 3D et les styles récents (isométrique léger, glassmorphism maîtrisé, néo-brutalisme propre) sont des options à tester quand ils sont congruents avec l'archétype et le secteur, mêmes tests d'acceptation (16 px, 3 m, noir et blanc, max 3 couleurs).",
       "Lisible en petit : formes simples, beaucoup d'espace négatif.",
       ...ANTI_CHEAP_RULES,
     ],
@@ -726,7 +811,7 @@ export async function handleLogoAnalyse(request, env) {
   }
   let imagePrompt;
   try {
-    imagePrompt = buildImagePrompt(valide.analyse, questionnaire);
+    imagePrompt = buildImagePrompt(valide.analyse, questionnaire, { direction: questionnaire.directionStyle || "plat" });
   } catch (e) {
     return json(repliLocal("ia-sortie-invalide"));
   }
