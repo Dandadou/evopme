@@ -42,6 +42,12 @@
  *  LOGO_AI_MODEL_FALLBACK (wrangler.jsonc), sans toucher au code.
  *  Si un modèle disparaît (410), la route essaie le repli, puis
  *  retombe sur l'analyse locale : la page ne casse jamais.
+ *
+ * CORPUS — 2026-11-16 : les exemples few-shot de Daniel sont intégrés
+ *  dans SYSTEM_PROMPT et dans CORPUS_EXEMPLES (décrits en mots seulement,
+ *  jamais de fichiers images dans le dépôt) ; les 2 logos laids sont
+ *  aussi ajoutés à ANTI_CHEAP_EXAMPLES. Fichier source local :
+ *  research_notes/cloudflare-ai-logo-normes-20261113/CORPUS.md.
  * ========================================================================== */
 
 export const MODEL_PRIMARY = "@cf/google/gemma-4-26b-a4b-it";
@@ -146,6 +152,17 @@ export const SYSTEM_PROMPT = [
   "  0,32 x Saturation (Valdez & Mehrabian 1994).",
   "- Palette : 3 couleurs maximum + noir et blanc. Une dominante, un",
   "  appui, un accent. Le logo doit se comprendre en noir et blanc.",
+  "- Fluidité et simplicité : plus le logo est simple, lisible et",
+  "  répété de la même façon partout, plus il est aimé et jugé digne",
+  "  de confiance — à condition de rester distinctif. Un logo trop",
+  "  générique est fluide ET oubliable : simple, mais jamais générique.",
+  "- Preuve, pas promesse : chaque affirmation doit pouvoir être",
+  "  vérifiée (phrase du client, test auprès de clients réels). Sinon,",
+  "  dis « hypothèse à tester » et mets-la dans « a_tester ».",
+  "- Crash-test : propose de montrer le logo 1 seconde à de vrais",
+  "  clients cibles et de mesurer secteur deviné, ton, confiance (1-5)",
+  "  et reconnaissance 10 minutes plus tard. Mets ce test dans",
+  "  « a_tester » quand les réponses ne permettent pas de trancher.",
   "- Forme : une seule famille de formes. Rond = doux, accueillant ;",
   "  carré = ordre, solidité ; angle = énergie, force. Symétrie = calme",
   "  et premium ; asymétrie = énergie, risque de désordre.",
@@ -162,6 +179,59 @@ export const SYSTEM_PROMPT = [
   "  soutient, dis-le et baisse la confiance.",
   "- Indique ce que tu n'as PAS pu déterminer, et ce qui relève d'un",
   "  choix de lisibilité sans histoire (ne pas inventer de récit après coup).",
+  "",
+  "CORPUS DE DANIEL — exemples few-shot, décrits en mots (2026-11-16) :",
+  "LE CORPUS NE REMPLACE PAS LA RECHERCHE, IL S'AJOUTE DESSUS : la",
+  "recherche ci-dessus donne les RÈGLES (congruence, saturation et",
+  "luminosité, fluidité, archétypes, Aaker, double portrait, ombre,",
+  "preuves), le corpus donne le GOÛT de Daniel (son style, ses bons",
+  "et ses laids). Applique les deux ensemble : une direction qui",
+  "respecte les règles mais ressemble aux logos laids est refusée ;",
+  "une direction qui imite les bons mais casse les règles (plus de 3",
+  "couleurs, illisible en petit, incongruente) est refusée aussi.",
+  "RÈGLE MAÎTRESSE de Daniel, mot pour mot : « Il ne représente rien... »",
+  "Un logo doit représenter quelque chose (le métier, la personnalité,",
+  "une idée), sinon on le refuse — même s'il est joli. Un logo qui ne",
+  "représente rien est un échec, pas une piste.",
+  "BONS LOGOS, à imiter (archétypes probables, non confirmés par Daniel :",
+  "des pistes, pas des vérités) :",
+  "- CPPauto (mécanique et carrosserie, Héros / Créateur) : silhouette",
+  "  de voiture en un seul geste, lignes de vitesse, 2 couleurs (bleu",
+  "  vif + blanc sur noir), nom en deux tons, lisible en petit comme en",
+  "  grand, même logo au dos, en petit devant, en vertical sur la manche.",
+  "- Jacques Genereux, Les Carrosseries (mécanique, Héros / Homme",
+  "  ordinaire) : roue au centre, drapeaux à damier, deux pistolets à",
+  "  peinture croisés, nom orange très lisible, orange + blanc sur noir,",
+  "  les symboles disent le métier sans texte.",
+  "- Service Mobile L.R (mécanique mobile, Explorateur) : traces de",
+  "  pneus, tache d'encre / brosse grunge, petites icônes mécanique,",
+  "  nom lisible au centre, ambiance route et terrain.",
+  "- NOMAD FEST 2025 (événementiel, Explorateur / Innocent) : oiseau",
+  "  géométrique origami jaune + sarcelle, nom en deux tons, moderne,",
+  "  libre et festif, sans clip-art.",
+  "- Distribution de Freins D.G. (mécanique, Héros) : pneu en feu,",
+  "  disque de frein + étrier rouge, nom rouge très gras, punchy —",
+  "  mais chargé : l'énergie ne doit pas tuer la lisibilité en petit.",
+  "- Outillage Nadeau, Snap-on (outillage, Rebelle / Créateur) : main",
+  "  squelette qui tient des outils, métal brossé, nom italique gras,",
+  "  symbole fort et inattendu, nom toujours lisible.",
+  "- Truchon Transport (transport, Héros / Homme ordinaire) :",
+  "  semi-remorque rouge de face, étoiles, bannière blanche en",
+  "  diagonale, symétrie, confiance, visible de loin.",
+  "Ce que les bons ont en commun : UN seul pictogramme fort, 2 à 3",
+  "couleurs maximum, le nom premier dans la hiérarchie, lisible en",
+  "petit et en noir et blanc, déclinable (petit / grand / vertical).",
+  "LOGOS LAIDS, à ne JAMAIS imiter :",
+  "- La Brigade Dentaire : juste du texte en écriture cursive blanche",
+  "  sur fond sarcelle, aucun symbole, rien qui dit dentaire ni",
+  "  confiance, effet invitation de mariage. Un logo ne peut pas être",
+  "  que du texte script : il faut un pictogramme qui dit le secteur.",
+  "- Confection FranSe : bouton rose brillant style années 2000,",
+  "  dégradé, reflet, biseau, monogramme C-f-S entremêlé illisible,",
+  "  nom en script avec ombre. Interdits : bouton glossy, dégradé",
+  "  métallique gratuit, biseau lourd, monogramme entremêlé illisible.",
+  "Si ta direction ressemble aux laids (texte script seul, bouton",
+  "glossy, monogramme illisible, décor sans sens), change de direction.",
   "",
   "SORTIE — réponds UNIQUEMENT avec ce JSON, sans texte avant ni après :",
   "{",
@@ -452,6 +522,10 @@ export const IMAGE_BANNED_TOKENS = [
   "phone number", "telephone number", "slogan", "tagline text",
   "decorative lines crossing text", "gold geometric lines",
   "scattered decorations", "busy background", "competing colors",
+  /* Ajouts du 2026-11-16, tirés des 2 logos laids du corpus de Daniel
+     (La Brigade Dentaire, Confection FranSe — voir ANTI_CHEAP_EXAMPLES) : */
+  "text-only logo", "script-only logo", "glossy button",
+  "glossy pink button", "entangled monogram", "illegible monogram",
 ];
 export const IMAGE_NEGATIVE_PROMPT = IMAGE_BANNED_TOKENS.join(", ");
 
@@ -564,6 +638,35 @@ export const ANTI_CHEAP_EXAMPLES = [
       "Pas de fond à 100 % saturé : une couleur criarde n'est pas une personnalité.",
     ],
   },
+  {
+    id: "brigade-dentaire",
+    nom: "La Brigade Dentaire",
+    ce_qui_fait_cheap: [
+      "Juste du texte en écriture cursive blanche sur fond sarcelle : aucun symbole, aucune dent, rien qui dit dentaire ni confiance.",
+      "La police script fait invitation de mariage, pas clinique : la police est jolie mais ne porte pas la personnalité du secteur.",
+      "Verdict de Daniel : « Il ne représente rien... » — le logo ne représente ni le métier, ni la personnalité, ni une idée.",
+      "Lisible en grand seulement, fragile en petit, aucune déclinaison possible : sans pictogramme, il n'y a rien à décliner.",
+    ],
+    regles: [
+      "Un logo ne peut pas être que du texte script : il faut un pictogramme ou une forme qui dit le secteur.",
+      "Un logo doit représenter quelque chose, sinon on le refuse, même s'il est joli.",
+    ],
+  },
+  {
+    id: "confection-franse",
+    nom: "Confection FranSe",
+    ce_qui_fait_cheap: [
+      "Bouton rose brillant style années 2000 : dégradé, reflet, biseau — effet bouton glossy, pas une marque.",
+      "Monogramme C-f-S entremêlé illisible : on ne sait pas si c'est CFS ou FranSe, la hiérarchie est confuse.",
+      "Nom en script blanc avec ombre en dessous, trop de textures : le décor devient le sujet, le nom devient secondaire.",
+      "Verdict de Daniel : « Il ne représente rien... » — le monogramme et le bouton ne disent rien du métier ni de la personnalité.",
+    ],
+    regles: [
+      "Pas de bouton glossy, pas de dégradé métallique gratuit, pas de biseau lourd.",
+      "Pas de monogramme entremêlé illisible : le nom lisible en premier.",
+      "Un logo doit représenter quelque chose, sinon on le refuse, même s'il est joli.",
+    ],
+  },
 ];
 /* Règles communes tirées des 2 exemples, appliquées à chaque prompt : */
 export const ANTI_CHEAP_RULES = [
@@ -574,7 +677,117 @@ export const ANTI_CHEAP_RULES = [
   "Pas de numéro de téléphone ni de slogan dans le logo.",
   "Hiérarchie : le nom d'abord (en vrai texte vectoriel, hors image).",
   "Lisible en petit et en noir et blanc.",
+  "Règle maîtresse de Daniel : un logo doit représenter quelque chose (le métier, la personnalité, une idée) — sinon on le refuse, même s'il est joli.",
+  "Pas de logo texte seulement en script : il faut un pictogramme ou une forme qui dit le secteur.",
+  "Pas de bouton glossy, pas de dégradé métallique gratuit, pas de biseau lourd, pas de monogramme entremêlé illisible.",
 ];
+
+/* ============================================================================
+ * CORPUS DE DANIEL — exemples few-shot, décrits en mots seulement
+ * (2026-11-16). Les fichiers images ne sont JAMAIS commités dans le dépôt :
+ * ils restent dans la bibliothèque de Daniel, et seules ces descriptions
+ * en mots alimentent le prompt système (voir SYSTEM_PROMPT, section
+ * CORPUS DE DANIEL) et les anti-exemples ci-dessus. Les archétypes sont
+ * PROBABLES, non confirmés par Daniel : des pistes, pas des vérités.
+ * Fichier source local : research_notes/cloudflare-ai-logo-normes-20261113/CORPUS.md.
+ * ========================================================================== */
+export const CORPUS_EXEMPLES = {
+  regle_maitresse: "Il ne représente rien...",
+  regle_maitresse_expliquee:
+    "Un logo doit représenter quelque chose (le métier, la personnalité, une idée), sinon on le refuse, même s'il est joli.",
+  bons: [
+    {
+      id: "cppauto",
+      nom: "CPPauto — Carrosserie / peinture / polissage",
+      secteur: "Mécanique et carrosserie",
+      archetype_probable: ["heros", "createur"],
+      ce_qui_marche:
+        "Silhouette de voiture en un seul geste, lignes de vitesse, lisible en petit (poitrine) comme en grand (dos), max 2 couleurs (bleu vif + blanc sur noir), nom en deux tons CPP bleu / auto blanc, slogan clair en petit. Même logo en gros au dos, en petit devant, en vertical sur la manche.",
+      lecon:
+        "Un pictogramme unique et dynamique vaut mieux qu'une voiture réaliste ; le nom reste premier dans la hiérarchie ; 2 couleurs max ; le logo doit survivre en monochrome.",
+    },
+    {
+      id: "jacques-genereux",
+      nom: "Jacques Genereux — Les Carrosseries",
+      secteur: "Mécanique et carrosserie",
+      archetype_probable: ["heros", "homme-ordinaire"],
+      ce_qui_marche:
+        "Composition symétrique et équilibrée : roue au centre, drapeaux à damier de chaque côté, deux pistolets à peinture croisés en bas, nom en orange très lisible sur le blanc/noir. Les symboles disent le métier sans texte : roue = auto, damier = course/performance, pistolets = peinture. Orange + blanc sur noir = contraste fort, visible de loin.",
+      lecon:
+        "Les symboles du métier peuvent se combiner en une seule composition symétrique, à condition de garder une hiérarchie claire (nom en gros, symboles en appui) et 2-3 couleurs max ; le logo doit marcher en petit format poitrine et en grand format dos.",
+    },
+    {
+      id: "service-mobile-lr",
+      nom: "Service Mobile L.R — Service de mécanique mobile",
+      secteur: "Mécanique et carrosserie",
+      archetype_probable: ["explorateur"],
+      ce_qui_marche:
+        "Traces de pneus en haut et en bas, tache d'encre / brosse grunge, petites icônes mécanique (moteur, huile, batterie). Ambiance route, terrain, mobile. Nom lisible au centre.",
+      lecon:
+        "La texture peut porter l'identité, si le nom reste lisible au centre.",
+    },
+    {
+      id: "nomad-fest",
+      nom: "NOMAD FEST 2025 — Nous sommes libres / We are free",
+      secteur: "Événementiel",
+      archetype_probable: ["explorateur", "innocent"],
+      ce_qui_marche:
+        "Oiseau géométrique origami jaune + sarcelle, nom en deux tons, 2025 vertical. Moderne, libre, festif, sans clip-art.",
+      lecon:
+        "Une forme géométrique simple peut dire liberté mieux qu'un dessin réaliste.",
+    },
+    {
+      id: "freins-dg",
+      nom: "Distribution de Freins D.G.",
+      secteur: "Mécanique et carrosserie",
+      archetype_probable: ["heros"],
+      ce_qui_marche:
+        "Pneu en feu à gauche, disque de frein + étrier rouge à droite, nom rouge très gras. Punchy, agressif, parfait pour le secteur.",
+      lecon:
+        "L'énergie ne doit pas tuer la lisibilité en petit : un logo chargé doit rester lisible à 16 px et à 3 mètres.",
+    },
+    {
+      id: "outillage-nadeau",
+      nom: "Outillage Nadeau — Snap-on",
+      secteur: "Outillage / vente",
+      archetype_probable: ["rebelle", "createur"],
+      ce_qui_marche:
+        "Main squelette qui tient des outils, métal brossé, nom en italique gras. Côté rebelle / rock, très identitaire pour un vendeur d'outils.",
+      lecon:
+        "Un symbole fort et inattendu peut devenir la signature, si le nom reste lisible.",
+    },
+    {
+      id: "truchon-transport",
+      nom: "Truchon Transport",
+      secteur: "Transport et logistique",
+      archetype_probable: ["heros", "homme-ordinaire"],
+      ce_qui_marche:
+        "Semi-remorque rouge de face, étoiles, bannière blanche en diagonale avec le nom en italique. Classique camionnage américain, rassurant, visible de loin.",
+      lecon:
+        "La symétrie + un véhicule de face = confiance et route.",
+    },
+  ],
+  laids: [
+    {
+      id: "brigade-dentaire",
+      nom: "La Brigade Dentaire",
+      secteur: "Santé et bien-être",
+      ce_qui_rate:
+        "Juste du texte en écriture cursive blanche sur fond sarcelle, aucun symbole, aucune dent, rien qui dit dentaire ni confiance. La police script fait invitation de mariage, pas clinique. Lisible en grand seulement, fragile en petit, aucune déclinaison possible.",
+      lecon:
+        "Un logo ne peut pas être que du texte script ; il faut un pictogramme ou une forme qui dit le secteur ; la police doit porter la personnalité, pas juste être jolie.",
+    },
+    {
+      id: "confection-franse",
+      nom: "Confection FranSe",
+      secteur: "Mode et vêtements",
+      ce_qui_rate:
+        "Bouton rose brillant style années 2000, dégradé, reflet, biseau, monogramme C-f-S entremêlé illisible, nom en script blanc avec ombre en dessous. Effet cheap 3D / glossy, trop de textures, hiérarchie confuse (on ne sait pas si c'est CFS ou FranSe).",
+      lecon:
+        "Interdire le bouton glossy, le dégradé métallique gratuit, le biseau lourd et le monogramme entremêlé illisible ; max 3 couleurs, une seule idée décorative, nom lisible en premier.",
+    },
+  ],
+};
 
 /* Descripteurs du symbole, en anglais (FLUX comprend mieux l'anglais).
    Un archétype = une direction visuelle, pas une recette fermée. */
