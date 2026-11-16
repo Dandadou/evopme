@@ -7,7 +7,7 @@
  *  2. Appelle Workers AI avec le prompt système des normes (NORMES_LOGO,
  *     §11) : l'IA analyse des RÉPONSES DÉCLARÉES, pas une psychologie.
  *  3. Valide la sortie JSON (12 scores, archétypes, Aaker, hex, forme,
- *     phrases interdites). Sortie invalide = rejet.
+ *     pictogramme, phrases interdites). Sortie invalide = rejet.
  *  4. Construit un prompt image FLUX DÉTERMINISTE à partir de l'analyse
  *     validée (voir buildImagePrompt) : le symbole seulement, JAMAIS le
  *     nom de l'entreprise, JAMAIS de texte dans l'image.
@@ -75,6 +75,59 @@ export const FORMES = [
   "cercle", "bouclier", "losange", "vague", "etoile", "hexagone",
   "fleche", "goutte",
 ];
+/* Pictogrammes du générateur SVG (createur-logo.js) : un vrai symbole,
+   jamais une initiale seule. La liste doit rester identique côté client
+   et côté serveur ; l'IA en choisit un, le générateur local aussi. */
+export const PICTOGRAMMES = [
+  "maison-lueur", "coeur", "coeur-soin", "cloche", "tasse", "casque",
+  "voiture", "roue", "fleur", "document", "cle", "sac", "cintre",
+  "feuille", "diplome", "livre", "palette-art", "puce", "graphique",
+  "montagne", "maison-coeur", "patte", "haltere", "note", "mains-coeur",
+  "camion", "avion", "soleil", "boussole", "eclair", "etoile-magie",
+  "bouclier-coeur", "couronne", "ampoule", "sourire", "chat", "arbre",
+  "vague", "trophee",
+];
+export const PICTOGRAMME_IMAGE = {
+  "maison-lueur": "a welcoming house with a small rising sun, warmth and light",
+  coeur: "a simple heart, love and care",
+  "coeur-soin": "a heart with a care cross, health and safety",
+  cloche: "a restaurant service cloche, food served hot",
+  tasse: "a steaming coffee cup, warm pause",
+  casque: "a construction hard hat, building solid",
+  voiture: "a single-stroke car silhouette, speed and road",
+  roue: "a car wheel, road and motion",
+  fleur: "a simple five-petal flower, beauty and nature",
+  document: "a document with a check mark, verified and serious",
+  cle: "a key, opening the door to a home",
+  sac: "a shopping bag, retail",
+  cintre: "a clothes hanger, fashion",
+  feuille: "a leaf, agriculture and nature",
+  diplome: "a graduation cap, education",
+  livre: "an open book, knowledge",
+  "palette-art": "an artist palette, arts and colour",
+  puce: "a microchip, technology",
+  graphique: "rising bar chart with an arrow, growth",
+  montagne: "a mountain with a sun, outdoors and horizon",
+  "maison-coeur": "a house with a heart, home and care",
+  patte: "an animal paw print, pets",
+  haltere: "a dumbbell, sport and strength",
+  note: "a music note, events and celebration",
+  "mains-coeur": "a heart held up by an open hand, mutual aid",
+  camion: "a delivery truck, transport and road",
+  avion: "a paper plane, travel and freedom",
+  soleil: "a sun with rays, light and optimism",
+  boussole: "a compass, exploration",
+  eclair: "a lightning bolt, energy and rupture",
+  "etoile-magie": "a sparkling star, transformation and wonder",
+  "bouclier-coeur": "a shield with a heart, protection with care",
+  couronne: "a crown, prestige and excellence",
+  ampoule: "a light bulb, a bright idea",
+  sourire: "a smiling face, joy and lightness",
+  chat: "a calm cat head, quiet observation",
+  arbre: "a tree, nature and roots",
+  vague: "ocean waves, water and calm",
+  trophee: "a trophy, victory and achievement",
+};
 export const QUESTION_IDS = [
   "fierte", "refus", "soiree", "ressenti", "defi", "dix-ans",
   "animal", "moment", "endroit",
@@ -233,6 +286,17 @@ export const SYSTEM_PROMPT = [
   "Si ta direction ressemble aux laids (texte script seul, bouton",
   "glossy, monogramme illisible, décor sans sens), change de direction.",
   "",
+  "PICTOGRAMME — le logo doit REPRESENTER quelque chose : choisis UN",
+  "pictogramme dans cette liste, qui dit le secteur ou la personnalité",
+  "du client : maison-lueur, coeur, coeur-soin, cloche, tasse, casque,",
+  "voiture, roue, fleur, document, cle, sac, cintre, feuille, diplome,",
+  "livre, palette-art, puce, graphique, montagne, maison-coeur, patte,",
+  "haltere, note, mains-coeur, camion, avion, soleil, boussole, eclair,",
+  "etoile-magie, bouclier-coeur, couronne, ampoule, sourire, chat, arbre,",
+  "vague, trophee. JAMAIS une initiale, une lettre ou un monogramme :",
+  "une lettre seule dans un cercle, c'est exactement « Il ne représente",
+  "rien », et c'est refusé.",
+  "",
   "SORTIE — réponds UNIQUEMENT avec ce JSON, sans texte avant ni après :",
   "{",
   '  "archetype_principal": "<id parmi les 12>",',
@@ -251,6 +315,8 @@ export const SYSTEM_PROMPT = [
   "  ],",
   '  "forme": "<cercle|bouclier|losange|vague|etoile|hexagone|fleche|goutte>",',
   '  "forme_justification": "<phrase du client citée>",',
+  '  "pictogramme": "<un id de la liste PICTOGRAMME ci-dessus>",',
+  '  "pictogramme_justification": "<phrase du client citée>",',
   '  "police": "<nom de famille, ex. : Serif classique>",',
   '  "police_justification": "<phrase du client citée>",',
   '  "histoire_une_page": "<3 à 5 phrases reliant chaque élément du logo à une réponse du client>",',
@@ -436,6 +502,16 @@ export function validateAnalyse(obj, questionnaire) {
   if (!FORMES.includes(obj.forme)) errors.push("forme invalide");
   else a.forme = obj.forme;
   a.forme_justification = cleanStr(obj.forme_justification, 500);
+  /* Pictogramme : invalide ou absent = avertissement, pas un rejet —
+     le générateur local choisira le symbole (secteur / mots-clés).
+     Un pictogramme valide est toujours repris tel quel côté client. */
+  if (typeof obj.pictogramme === "string" && PICTOGRAMMES.includes(obj.pictogramme)) {
+    a.pictogramme = obj.pictogramme;
+  } else {
+    a.pictogramme = null;
+    warnings.push("pictogramme invalide ou absent — le générateur local choisira le symbole");
+  }
+  a.pictogramme_justification = cleanStr(obj.pictogramme_justification, 500);
   a.police = cleanStr(obj.police, 80);
   if (!a.police) errors.push("police manquante");
   a.police_justification = cleanStr(obj.police_justification, 500);
@@ -463,6 +539,7 @@ export function validateAnalyse(obj, questionnaire) {
     const fragments = phrasesClient(questionnaire);
     const justifs = [
       a.forme_justification,
+      a.pictogramme_justification,
       a.police_justification,
       ...a.palette.map((c) => c.justification),
     ];
@@ -873,7 +950,10 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
   const parties = [
     [...style.tokens, "logo symbol", "high-end branding", "crisp edges", "balanced composition", "generous negative space", "scalable", "legible at small size", "single centered symbol"].join(", "),
     FORME_IMAGE[analyse.forme] + " for a brand whose personality is " +
-      ARCHETYPE_IMAGE[principal],
+      ARCHETYPE_IMAGE[principal] +
+      (analyse.pictogramme && PICTOGRAMME_IMAGE[analyse.pictogramme]
+        ? ", symbol: " + PICTOGRAMME_IMAGE[analyse.pictogramme]
+        : ""),
   ];
   if (secondaire && secondaire !== principal) {
     parties.push("with a secondary touch of " + ARCHETYPE_IMAGE[secondaire]);

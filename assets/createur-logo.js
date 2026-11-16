@@ -85,13 +85,124 @@
     "Manuscrite d'atelier": "'Courier New', Courier, monospace"
   };
 
+
+  /* ---------- pictogrammes : un vrai symbole, jamais une initiale seule --
+     Règle de Daniel : « Il ne représente rien » = refusé. Le générateur
+     ne sort plus une lettre dans une forme : il dessine un pictogramme
+     plein, lisible en petit, qui représente le secteur ou la personnalité.
+     Chaque symbole est dessiné dans une boîte 100 x 100, avec 3 couleurs :
+     m = couleur principale du symbole, a = accent (palette[1]),
+     c = couleur de découpe (le fond du contenant, pour les trous). */
+  var SYMBOLES = {
+    "maison-lueur": { label: "Maison et lueur", desc: "Une maison qui accueille, avec un petit soleil : chaleur, sécurité, lumière.", svg: function (m, a, c) { return '<polygon points="50,34 90,60 82,60 82,88 18,88 18,60 10,60" fill="' + m + '"/><rect x="44" y="68" width="12" height="20" fill="' + c + '"/><circle cx="76" cy="22" r="8" fill="' + a + '"/><line x1="76" y1="6" x2="76" y2="12" stroke="' + a + '" stroke-width="3"/><line x1="88" y1="14" x2="92" y2="10" stroke="' + a + '" stroke-width="3"/><line x1="64" y1="14" x2="60" y2="10" stroke="' + a + '" stroke-width="3"/>'; } },
+    "coeur": { label: "Coeur", desc: "Un coeur simple : passion, lien, attention.", svg: function (m, a, c) { return '<path d="M50 88 C16 64 12 36 32 26 C44 20 50 30 50 36 C50 30 56 20 68 26 C88 36 84 64 50 88 Z" fill="' + m + '"/>'; } },
+    "coeur-soin": { label: "Coeur et soin", desc: "Un coeur avec une croix de soin : on prend soin de toi, en sécurité.", svg: function (m, a, c) { return '<path d="M50 88 C16 64 12 36 32 26 C44 20 50 30 50 36 C50 30 56 20 68 26 C88 36 84 64 50 88 Z" fill="' + m + '"/><rect x="45" y="44" width="10" height="26" fill="' + c + '"/><rect x="37" y="52" width="26" height="10" fill="' + c + '"/>'; } },
+    "cloche": { label: "Cloche de service", desc: "La cloche du resto : on sert, c'est chaud, c'est prêt.", svg: function (m, a, c) { return '<path d="M14 66 A36 34 0 0 1 86 66 Z" fill="' + m + '"/><rect x="8" y="66" width="84" height="8" rx="3" fill="' + m + '"/><circle cx="50" cy="26" r="5" fill="' + a + '"/>'; } },
+    "tasse": { label: "Tasse de café", desc: "Une tasse qui fume : pause, chaleur, on jase.", svg: function (m, a, c) { return '<rect x="22" y="36" width="48" height="40" rx="6" fill="' + m + '"/><path d="M70 44 Q88 44 88 56 Q88 68 70 68" fill="none" stroke="' + m + '" stroke-width="6"/><path d="M38 28 C34 22 42 18 38 12 M52 28 C48 22 56 18 52 12" fill="none" stroke="' + a + '" stroke-width="4"/>'; } },
+    "casque": { label: "Casque de chantier", desc: "Le casque : construction, sécurité, on bâtit solide.", svg: function (m, a, c) { return '<path d="M16 66 C16 36 32 22 50 22 C68 22 84 36 84 66 L90 66 A6 6 0 0 1 90 76 L10 76 A6 6 0 0 1 10 66 Z" fill="' + m + '"/><rect x="46" y="24" width="8" height="38" fill="' + c + '"/>'; } },
+    "voiture": { label: "Voiture", desc: "Une silhouette d'auto en un seul geste, comme CPPauto : vitesse, route, métier.", svg: function (m, a, c) { return '<path d="M10 66 Q12 48 30 45 L42 30 Q45 26 50 26 L68 26 Q73 26 76 30 L85 45 Q94 47 94 58 L94 66 Z" fill="' + m + '"/><path d="M46 33 L58 33 L58 43 L42 43 Z" fill="' + c + '"/><circle cx="32" cy="68" r="10" fill="' + c + '"/><circle cx="32" cy="68" r="4" fill="' + m + '"/><circle cx="72" cy="68" r="10" fill="' + c + '"/><circle cx="72" cy="68" r="4" fill="' + m + '"/>'; } },
+    "roue": { label: "Roue", desc: "Une roue : auto, route, ça roule.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="34" fill="' + m + '"/><rect x="47" y="18" width="6" height="64" fill="' + c + '"/><rect x="18" y="47" width="64" height="6" fill="' + c + '"/><circle cx="50" cy="50" r="20" fill="' + c + '"/><circle cx="50" cy="50" r="7" fill="' + m + '"/>'; } },
+    "fleur": { label: "Fleur", desc: "Une fleur simple : beauté, douceur, nature.", svg: function (m, a, c) { return '<g fill="' + m + '"><ellipse cx="50" cy="26" rx="11" ry="17"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(72 50 50)"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(144 50 50)"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(216 50 50)"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(288 50 50)"/></g><circle cx="50" cy="50" r="11" fill="' + a + '"/>'; } },
+    "document": { label: "Document coché", desc: "Un document avec une coche : sérieux, vérifié, on s'en occupe.", svg: function (m, a, c) { return '<rect x="26" y="12" width="48" height="76" rx="6" fill="' + m + '"/><rect x="36" y="26" width="28" height="5" fill="' + c + '"/><rect x="36" y="40" width="28" height="5" fill="' + c + '"/><rect x="36" y="54" width="18" height="5" fill="' + c + '"/><path d="M40 74 L48 82 L66 60" fill="none" stroke="' + a + '" stroke-width="6"/>'; } },
+    "cle": { label: "Clé", desc: "Une clé : immobilier, on ouvre la porte de ta maison.", svg: function (m, a, c) { return '<circle cx="36" cy="36" r="19" fill="' + m + '"/><circle cx="36" cy="36" r="9" fill="' + c + '"/><rect x="50" y="50" width="38" height="10" rx="4" transform="rotate(45 50 50)" fill="' + m + '"/><rect x="76" y="72" width="6" height="12" fill="' + m + '"/><rect x="66" y="80" width="6" height="12" fill="' + m + '"/>'; } },
+    "sac": { label: "Sac de boutique", desc: "Un sac : commerce de détail, on repart avec quelque chose.", svg: function (m, a, c) { return '<path d="M24 36 L76 36 L84 88 L16 88 Z" fill="' + m + '"/><path d="M38 36 A12 12 0 0 1 62 36" fill="none" stroke="' + m + '" stroke-width="6"/>'; } },
+    "cintre": { label: "Cintre", desc: "Un cintre : mode, vêtements, on s'habille.", svg: function (m, a, c) { return '<path d="M50 36 A9 9 0 1 1 59 27" fill="none" stroke="' + m + '" stroke-width="6"/><polygon points="50,36 88,78 12,78" fill="none" stroke="' + m + '" stroke-width="6"/><circle cx="50" cy="36" r="4" fill="' + a + '"/>'; } },
+    "feuille": { label: "Feuille", desc: "Une feuille : agriculture, nature, ça pousse.", svg: function (m, a, c) { return '<path d="M50 10 C80 26 86 62 50 90 C14 62 20 26 50 10 Z" fill="' + m + '"/><line x1="50" y1="24" x2="50" y2="80" stroke="' + c + '" stroke-width="4"/>'; } },
+    "diplome": { label: "Toque de diplômé", desc: "La toque : éducation, on apprend, on réussit.", svg: function (m, a, c) { return '<polygon points="8,42 50,20 92,42 50,64" fill="' + m + '"/><path d="M32 52 L32 72 Q50 82 68 72 L68 52 L50 62 Z" fill="' + a + '"/><line x1="88" y1="46" x2="88" y2="66" stroke="' + m + '" stroke-width="4"/><circle cx="88" cy="70" r="5" fill="' + a + '"/>'; } },
+    "livre": { label: "Livre ouvert", desc: "Un livre ouvert : savoir, on apprend.", svg: function (m, a, c) { return '<path d="M50 30 Q32 18 12 26 L12 76 Q32 68 50 78 Q68 68 88 76 L88 26 Q68 18 50 30 Z" fill="' + m + '"/><line x1="50" y1="30" x2="50" y2="78" stroke="' + c + '" stroke-width="4"/>'; } },
+    "palette-art": { label: "Palette d'artiste", desc: "La palette : arts, création, couleurs.", svg: function (m, a, c) { return '<circle cx="50" cy="52" r="36" fill="' + m + '"/><circle cx="34" cy="42" r="6" fill="' + c + '"/><circle cx="52" cy="34" r="6" fill="' + c + '"/><circle cx="68" cy="44" r="6" fill="' + c + '"/><circle cx="66" cy="70" r="9" fill="' + c + '"/><rect x="78" y="14" width="8" height="34" rx="3" transform="rotate(30 82 31)" fill="' + a + '"/>'; } },
+    "puce": { label: "Puce électronique", desc: "Une puce : technologie, numérique, ça connecte.", svg: function (m, a, c) { return '<rect x="26" y="26" width="48" height="48" rx="6" fill="' + m + '"/><rect x="40" y="40" width="20" height="20" fill="' + c + '"/><g fill="' + m + '"><rect x="34" y="14" width="6" height="12"/><rect x="47" y="14" width="6" height="12"/><rect x="60" y="14" width="6" height="12"/><rect x="34" y="74" width="6" height="12"/><rect x="47" y="74" width="6" height="12"/><rect x="60" y="74" width="6" height="12"/><rect x="14" y="34" width="12" height="6"/><rect x="14" y="47" width="12" height="6"/><rect x="14" y="60" width="12" height="6"/><rect x="74" y="34" width="12" height="6"/><rect x="74" y="47" width="12" height="6"/><rect x="74" y="60" width="12" height="6"/></g>'; } },
+    "graphique": { label: "Graphique en hausse", desc: "Des barres qui montent : finance, ça grandit.", svg: function (m, a, c) { return '<rect x="18" y="58" width="14" height="30" fill="' + m + '"/><rect x="43" y="44" width="14" height="44" fill="' + m + '"/><rect x="68" y="28" width="14" height="60" fill="' + m + '"/><path d="M18 52 L44 36 L60 46 L84 18" fill="none" stroke="' + a + '" stroke-width="5"/><polygon points="84,18 72,18 84,30" fill="' + a + '"/>'; } },
+    "montagne": { label: "Montagne et soleil", desc: "Une montagne : tourisme, plein air, horizon.", svg: function (m, a, c) { return '<polygon points="6,88 38,34 58,64 70,46 94,88" fill="' + m + '"/><polygon points="38,34 46,46 38,50 30,46" fill="' + c + '"/><circle cx="74" cy="22" r="9" fill="' + a + '"/>'; } },
+    "maison-coeur": { label: "Maison et coeur", desc: "Une maison avec un coeur : chez soi, on s'en occupe.", svg: function (m, a, c) { return '<polygon points="50,30 90,58 82,58 82,88 18,88 18,58 10,58" fill="' + m + '"/><path d="M50 78 C40 70 38 60 44 56 C48 53 50 57 50 59 C50 57 52 53 56 56 C62 60 60 70 50 78 Z" fill="' + a + '"/>'; } },
+    "patte": { label: "Patte d'animal", desc: "Une patte : animaux, on en prend soin.", svg: function (m, a, c) { return '<ellipse cx="50" cy="68" rx="22" ry="16" fill="' + m + '"/><circle cx="24" cy="46" r="9" fill="' + m + '"/><circle cx="41" cy="34" r="9" fill="' + m + '"/><circle cx="59" cy="34" r="9" fill="' + m + '"/><circle cx="76" cy="46" r="9" fill="' + m + '"/>'; } },
+    "haltere": { label: "Haltère", desc: "Un haltère : sport, force, on se dépasse.", svg: function (m, a, c) { return '<rect x="28" y="46" width="44" height="8" fill="' + m + '"/><rect x="12" y="32" width="13" height="36" rx="3" fill="' + m + '"/><rect x="75" y="32" width="13" height="36" rx="3" fill="' + m + '"/><rect x="25" y="40" width="6" height="20" fill="' + a + '"/><rect x="69" y="40" width="6" height="20" fill="' + a + '"/>'; } },
+    "note": { label: "Note de musique", desc: "Une note : événementiel, fête, musique.", svg: function (m, a, c) { return '<ellipse cx="36" cy="78" rx="11" ry="8" fill="' + m + '"/><rect x="45" y="26" width="6" height="52" fill="' + m + '"/><path d="M51 26 Q72 30 70 48 Q58 40 51 44 Z" fill="' + m + '"/><circle cx="76" cy="22" r="5" fill="' + a + '"/>'; } },
+    "mains-coeur": { label: "Coeur porté", desc: "Un coeur porté par une main ouverte : entraide, OBNL, on donne.", svg: function (m, a, c) { return '<path d="M50 78 C16 54 12 26 32 16 C44 10 50 20 50 26 C50 20 56 10 68 16 C88 26 84 54 50 78 Z" fill="' + m + '"/><path d="M18 88 Q50 76 82 88" fill="none" stroke="' + a + '" stroke-width="6"/>'; } },
+    "camion": { label: "Camion", desc: "Un camion : transport, livraison, route.", svg: function (m, a, c) { return '<rect x="10" y="28" width="50" height="40" fill="' + m + '"/><polygon points="60,40 84,40 92,68 60,68" fill="' + m + '"/><circle cx="30" cy="72" r="10" fill="' + c + '"/><circle cx="30" cy="72" r="4" fill="' + m + '"/><circle cx="74" cy="72" r="10" fill="' + c + '"/><circle cx="74" cy="72" r="4" fill="' + m + '"/>'; } },
+    "avion": { label: "Avion en papier", desc: "Un avion en papier : voyage, liberté, on part.", svg: function (m, a, c) { return '<polygon points="8,50 92,16 66,84 56,58" fill="' + m + '"/><line x1="56" y1="58" x2="92" y2="16" stroke="' + c + '" stroke-width="3"/>'; } },
+    "soleil": { label: "Soleil", desc: "Un soleil : lumière, optimisme, nouveau jour.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="20" fill="' + a + '"/><g stroke="' + m + '" stroke-width="5"><line x1="50" y1="14" x2="50" y2="24"/><line x1="50" y1="76" x2="50" y2="86"/><line x1="14" y1="50" x2="24" y2="50"/><line x1="76" y1="50" x2="86" y2="50"/><line x1="25" y1="25" x2="32" y2="32"/><line x1="68" y1="68" x2="75" y2="75"/><line x1="75" y1="25" x2="68" y2="32"/><line x1="32" y1="68" x2="25" y2="75"/></g>'; } },
+    "boussole": { label: "Boussole", desc: "Une boussole : exploration, on trouve son chemin.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="36" fill="none" stroke="' + m + '" stroke-width="6"/><polygon points="50,20 58,50 50,80 42,50" fill="' + a + '"/><circle cx="50" cy="50" r="6" fill="' + m + '"/>'; } },
+    "eclair": { label: "Éclair", desc: "Un éclair : énergie, rupture, ça frappe.", svg: function (m, a, c) { return '<polygon points="58,8 26,54 46,54 38,92 74,44 52,44" fill="' + a + '"/>'; } },
+    "etoile-magie": { label: "Étoile magique", desc: "Une étoile qui scintille : transformation, rêve.", svg: function (m, a, c) { return '<polygon points="50,10 59,38 88,38 65,55 73,84 50,67 27,84 35,55 12,38 41,38" fill="' + m + '"/><polygon points="82,12 85,20 93,23 85,26 82,34 79,26 71,23 79,20" fill="' + a + '"/>'; } },
+    "bouclier-coeur": { label: "Bouclier et coeur", desc: "Un bouclier avec un coeur : on protège, avec soin.", svg: function (m, a, c) { return '<path d="M50 10 L84 24 L84 54 Q84 78 50 90 Q16 78 16 54 L16 24 Z" fill="' + m + '"/><path d="M50 72 C36 62 33 48 41 43 C47 39 50 44 50 47 C50 44 53 39 59 43 C67 48 64 62 50 72 Z" fill="' + a + '"/>'; } },
+    "couronne": { label: "Couronne", desc: "Une couronne : prestige, excellence, le meilleur.", svg: function (m, a, c) { return '<polygon points="16,70 12,32 36,50 50,20 64,50 88,32 84,70" fill="' + m + '"/><rect x="16" y="74" width="68" height="9" fill="' + a + '"/><circle cx="50" cy="52" r="5" fill="' + c + '"/>'; } },
+    "ampoule": { label: "Ampoule d'idée", desc: "Une ampoule : idée, création, ça s'allume.", svg: function (m, a, c) { return '<circle cx="50" cy="42" r="25" fill="' + m + '"/><rect x="41" y="66" width="18" height="6" fill="' + a + '"/><rect x="43" y="76" width="14" height="6" fill="' + a + '"/><line x1="50" y1="6" x2="50" y2="12" stroke="' + a + '" stroke-width="4"/><line x1="16" y1="28" x2="21" y2="32" stroke="' + a + '" stroke-width="4"/><line x1="84" y1="28" x2="79" y2="32" stroke="' + a + '" stroke-width="4"/>'; } },
+    "sourire": { label: "Visage souriant", desc: "Un sourire : plaisir, humour, légèreté.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="38" fill="' + m + '"/><circle cx="36" cy="42" r="5" fill="' + c + '"/><circle cx="64" cy="42" r="5" fill="' + c + '"/><path d="M32 60 Q50 74 68 60" fill="none" stroke="' + c + '" stroke-width="5"/>'; } },
+    "chat": { label: "Tête de chat", desc: "Un chat : calme, il observe, il vient vers toi.", svg: function (m, a, c) { return '<path d="M28 34 L32 12 L48 24 L52 24 L68 12 L72 34 A26 26 0 0 1 72 60 Q72 86 50 86 Q28 86 28 60 Z" fill="' + m + '"/><circle cx="40" cy="52" r="4" fill="' + c + '"/><circle cx="60" cy="52" r="4" fill="' + c + '"/><polygon points="50,64 44,70 56,70" fill="' + a + '"/>'; } },
+    "arbre": { label: "Arbre", desc: "Un arbre : nature, ancré, ça respire.", svg: function (m, a, c) { return '<circle cx="50" cy="32" r="19" fill="' + m + '"/><circle cx="30" cy="52" r="15" fill="' + m + '"/><circle cx="70" cy="52" r="15" fill="' + m + '"/><rect x="45" y="58" width="10" height="28" fill="' + m + '"/>'; } },
+    "vague": { label: "Vagues", desc: "Des vagues : mer, lac, fluide, apaisant.", svg: function (m, a, c) { return '<g fill="none" stroke="' + m + '" stroke-width="7"><path d="M12 38 Q25 26 38 38 T64 38 T90 38"/><path d="M12 58 Q25 46 38 58 T64 58 T90 58"/><path d="M12 78 Q25 66 38 78 T64 78 T90 78"/></g>'; } },
+    "trophee": { label: "Trophée", desc: "Un trophée : victoire, dépassement, on gagne.", svg: function (m, a, c) { return '<path d="M28 14 L72 14 L72 44 Q72 62 50 62 Q28 62 28 44 Z" fill="' + m + '"/><path d="M28 20 Q12 20 12 34 Q12 48 28 48" fill="none" stroke="' + m + '" stroke-width="6"/><path d="M72 20 Q88 20 88 34 Q88 48 72 48" fill="none" stroke="' + m + '" stroke-width="6"/><rect x="46" y="62" width="8" height="12" fill="' + m + '"/><rect x="34" y="74" width="32" height="8" fill="' + a + '"/>'; } }
+  };
+
+  /* Un pictogramme par secteur (les 22 secteurs), un par archétype
+     en repli, et des mots-clés du questionnaire en priorité : le nom de
+     l'entreprise et les réponses du client peuvent changer le symbole
+     (ex. « lueur » + santé = maison-lueur, pas un M). */
+  var SECTEUR_SYMBOLES = {
+    restauration: "cloche", construction: "casque", mecanique: "voiture",
+    sante: "coeur-soin", beaute: "fleur", "services-pro": "document",
+    immobilier: "cle", detail: "sac", mode: "cintre", agro: "feuille",
+    education: "diplome", arts: "palette-art", techno: "puce",
+    finance: "graphique", tourisme: "montagne", domicile: "maison-coeur",
+    animaux: "patte", sport: "haltere", evenementiel: "note",
+    obnl: "mains-coeur", transport: "camion", autre: ""
+  };
+  var ARCHETYPE_SYMBOLES = {
+    innocent: "soleil", sage: "livre", explorateur: "boussole",
+    rebelle: "eclair", magicien: "etoile-magie", heros: "trophee",
+    amoureux: "coeur", bouffon: "sourire", "homme-ordinaire": "maison-coeur",
+    protecteur: "bouclier-coeur", souverain: "couronne", createur: "ampoule"
+  };
+  var MOTS_SYMBOLES = [
+    { mots: ["chat"], id: "chat" },
+    { mots: ["chien"], id: "patte" },
+    { mots: ["maison", "foyer"], id: "maison-lueur" },
+    { mots: ["lueur", "lumiere"], id: "maison-lueur", secteurs: ["sante", "domicile", "immobilier"] },
+    { mots: ["lueur", "lumiere", "soleil", "aurore"], id: "soleil" },
+    { mots: ["voiture", "auto", "garage", "carrosserie", "mecanique"], id: "voiture" },
+    { mots: ["camion", "livraison"], id: "camion" },
+    { mots: ["dent"], id: "coeur-soin" },
+    { mots: ["cafe", "the"], id: "tasse" },
+    { mots: ["arbre", "foret", "bois"], id: "arbre" },
+    { mots: ["mer", "ocean", "plage", "lac", "riviere"], id: "vague" },
+    { mots: ["montagne"], id: "montagne" },
+    { mots: ["fleur", "jardin"], id: "fleur" },
+    { mots: ["livre", "lecture", "enseigner", "formation"], id: "livre" },
+    { mots: ["musique", "chanson", "dj", "fete"], id: "note" },
+    { mots: ["avion", "voyage"], id: "avion" },
+    { mots: ["coiffure", "beaute", "maquillage"], id: "fleur" },
+    { mots: ["vetement", "mode", "couture"], id: "cintre" },
+    { mots: ["argent", "banque", "finance", "assurance"], id: "graphique" },
+    { mots: ["sport", "gym", "entrainement", "course"], id: "haltere" },
+    { mots: ["outil", "bricolage", "renovation"], id: "casque" },
+    { mots: ["restaurant", "resto", "cuisine", "pain", "boulangerie"], id: "cloche" }
+  ];
+  function choisirSymbole() {
+    if (state.pictogramme && SYMBOLES[state.pictogramme]) return state.pictogramme;
+    /* La réponse « animal » ne décide pas du symbole : dire « un chat »
+       dans cette question, c'est un signal d'archétype, pas un métier.
+       Le symbole vient du nom, du secteur et des 8 autres réponses. */
+    var txt = norm([state.entreprise, state.secteurAutre].concat(CFG.questionsOuvertes.filter(function (q) { return q.id !== "animal"; }).map(function (q) { return state.reponses[q.id] || ""; })).join(" "));
+    var i, j, r;
+    for (i = 0; i < MOTS_SYMBOLES.length; i++) {
+      r = MOTS_SYMBOLES[i];
+      if (r.secteurs && r.secteurs.indexOf(state.secteur) === -1) continue;
+      for (j = 0; j < r.mots.length; j++) { if (txt.indexOf(r.mots[j]) !== -1) return r.id; }
+    }
+    if (SECTEUR_SYMBOLES[state.secteur]) return SECTEUR_SYMBOLES[state.secteur];
+    if (state.top && ARCHETYPE_SYMBOLES[state.top.id]) return ARCHETYPE_SYMBOLES[state.top.id];
+    return "soleil";
+  }
+  function symboleActuel() { var id = choisirSymbole(); return { id: id, def: SYMBOLES[id] }; }
+
   /* ---------- état ---------- */
   var state = {
     step: 1,
     entreprise: "", secteur: "", secteurAutre: "", clientele: "", typeLogo: "symbole", style: "",
     reponses: {}, aakerFondateur: {}, aakerClient: {},
     scores: null, top: null, second: null, trace: [],
-    paletteIdx: 0, forme: "", police: "", palette: null,
+    paletteIdx: 0, forme: "", police: "", palette: null, pictogramme: null,
     crash: null, previewBg: "blanc",
     consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: "",
     sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null
@@ -151,7 +262,7 @@
     if (style) style.boost.forEach(function (id) { scores[id] = (scores[id] || 0) + 3; });
     var ranked = CFG.archetypes.slice().sort(function (a, b) { return scores[b.id] - scores[a.id]; });
     state.scores = scores; state.trace = trace;
-    state.top = ranked[0]; state.second = ranked[1];
+    state.top = ranked[0]; state.second = ranked[1]; state.pictogramme = null;
     state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0;
     state.forme = state.top.formes[0]; state.police = state.top.polices[0];
   }
@@ -201,6 +312,7 @@
     } else { state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0; }
     state.forme = (a.forme && CFG.formes.some(function (f) { return f.id === a.forme; })) ? a.forme : state.top.formes[0];
     state.police = (a.police && state.top.polices.indexOf(a.police) !== -1) ? a.police : state.top.polices[0];
+    state.pictogramme = (a.pictogramme && SYMBOLES[a.pictogramme]) ? a.pictogramme : null;
     // Aaker IA (1-5) : on les applique, le double portrait se recalcule.
     CFG.dimensionsAaker.forEach(function (d) {
       if (a.aaker_fondateur && a.aaker_fondateur[d.id]) state.aakerFondateur[d.id] = a.aaker_fondateur[d.id];
@@ -217,16 +329,26 @@
   /* ---------- SVG du logo ---------- */
   function shapeMarkup(forme, couleur, lettre) {
     var fill = couleur, ink = isLight(couleur) ? "#111111" : "#ffffff";
+    var shape = "";
     switch (forme) {
-      case "bouclier": return '<path d="M100 18 L168 44 V102 C168 144 136 170 100 182 C64 170 32 144 32 102 V44 Z" fill="' + fill + '"/><text x="100" y="112" text-anchor="middle" font-size="52" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "losange": return '<polygon points="100,18 182,88 100,158 18,88" fill="' + fill + '"/><text x="100" y="106" text-anchor="middle" font-size="48" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "vague": return '<path d="M18 108 C48 62 78 142 100 104 C122 66 152 142 182 104 L182 160 L18 160 Z" fill="' + fill + '"/><text x="100" y="82" text-anchor="middle" font-size="48" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "etoile": return '<polygon points="100,14 122,72 184,72 134,108 152,170 100,132 48,170 66,108 16,72 78,72" fill="' + fill + '"/><text x="100" y="112" text-anchor="middle" font-size="34" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "hexagone": return '<polygon points="100,16 172,58 172,124 100,166 28,124 28,58" fill="' + fill + '"/><text x="100" y="106" text-anchor="middle" font-size="48" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "fleche": return '<polygon points="18,52 118,52 118,22 184,92 118,162 118,132 18,132" fill="' + fill + '"/><text x="78" y="108" text-anchor="middle" font-size="42" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "goutte": return '<path d="M100 16 C100 16 168 92 168 122 A68 68 0 1 1 32 122 C32 92 100 16 100 16 Z" fill="' + fill + '"/><text x="100" y="138" text-anchor="middle" font-size="46" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      default: return '<circle cx="100" cy="88" r="70" fill="' + fill + '"/><text x="100" y="106" text-anchor="middle" font-size="52" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
+      case "bouclier": shape = '<path d="M100 18 L168 44 V102 C168 144 136 170 100 182 C64 170 32 144 32 102 V44 Z" fill="' + fill + '"/>'; break;
+      case "losange": shape = '<polygon points="100,18 182,88 100,158 18,88" fill="' + fill + '"/>'; break;
+      case "vague": shape = '<path d="M18 108 C48 62 78 142 100 104 C122 66 152 142 182 104 L182 160 L18 160 Z" fill="' + fill + '"/>'; break;
+      case "etoile": shape = '<polygon points="100,14 122,72 184,72 134,108 152,170 100,132 48,170 66,108 16,72 78,72" fill="' + fill + '"/>'; break;
+      case "hexagone": shape = '<polygon points="100,16 172,58 172,124 100,166 28,124 28,58" fill="' + fill + '"/>'; break;
+      case "fleche": shape = '<polygon points="18,52 118,52 118,22 184,92 118,162 118,132 18,132" fill="' + fill + '"/>'; break;
+      case "goutte": shape = '<path d="M100 16 C100 16 168 92 168 122 A68 68 0 1 1 32 122 C32 92 100 16 100 16 Z" fill="' + fill + '"/>'; break;
+      default: shape = '<circle cx="100" cy="88" r="70" fill="' + fill + '"/>'; break;
     }
+    /* La lettre n'est dessinée que pour le monogramme, choisi
+       explicitement par le client. Pour un symbole, jamais de lettre :
+       le pictogramme représente l'entreprise, pas son initiale. */
+    if (lettre) {
+      var y = forme === "etoile" ? 112 : forme === "fleche" ? 108 : forme === "goutte" ? 138 : forme === "bouclier" ? 112 : 106;
+      var fs = forme === "etoile" ? 34 : forme === "fleche" ? 42 : 52;
+      shape += '<text x="100" y="' + y + '" text-anchor="middle" font-size="' + fs + '" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
+    }
+    return shape;
   }
   function initials(nom) {
     var mots = (nom || "Ton entreprise").trim().split(/\s+/);
@@ -242,17 +364,40 @@
     var textColor = state.previewBg === "fonce" ? "#ffffff" : "#111111";
     var s = size || 640;
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + s + '" height="' + s + '" viewBox="0 0 200 200">'
-      + (bg !== "none" ? '<rect width="200" height="200" fill="' + bg + '"/>' : '')
-      + shapeMarkup(state.forme, pal.couleurs[0], initials(nom))
-      + '<text x="100" y="196" text-anchor="middle" font-size="13" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>'
-      + '</svg>';
+      + (bg !== "none" ? '<rect width="200" height="200" fill="' + bg + '"/>' : '');
+    if (state.typeLogo === "texte") {
+      /* Texte seulement, choisi explicitement : le nom en gros, sans forme
+         vide et sans initiale. */
+      svg += '<text x="100" y="98" text-anchor="middle" font-size="22" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>'
+        + '<rect x="70" y="112" width="60" height="5" fill="' + pal.couleurs[0] + '"/>';
+    } else if (state.typeLogo === "monogramme") {
+      /* Monogramme choisi explicitement : les initiales dans la forme,
+         comme un blason. Ce n'est pas le cas par défaut. */
+      svg += shapeMarkup(state.forme, pal.couleurs[0], initials(nom));
+    } else {
+      /* Symbole : la forme choisie sert de contenant, le pictogramme
+         dessine ce que l'entreprise représente. Jamais une initiale. */
+      var sym = symboleActuel();
+      var ink = isLight(pal.couleurs[0]) ? "#111111" : "#ffffff";
+      var rempli = ["cercle", "bouclier", "losange", "hexagone", "goutte", "etoile", "fleche"].indexOf(state.forme) !== -1;
+      var contenant = state.forme === "vague" ? shade(pal.couleurs[0], 70) : pal.couleurs[0];
+      var symMain = rempli ? ink : pal.couleurs[0];
+      var symAccent = pal.couleurs[1] || symMain;
+      var symCut = rempli ? pal.couleurs[0] : "#ffffff";
+      svg += shapeMarkup(state.forme, contenant, "");
+      svg += '<g transform="translate(62,52) scale(0.76)">' + sym.def.svg(symMain, symAccent, symCut) + '</g>';
+    }
+    if (state.typeLogo !== "texte") {
+      svg += '<text x="100" y="196" text-anchor="middle" font-size="13" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>';
+    }
+    svg += '</svg>';
     return svg;
   }
   function renderLogo() {
     var box = $("logoPreview"); if (!box || !state.top) return;
     box.innerHTML = logoSVG(640);
     var cap = $("logoCaption");
-    if (cap) cap.textContent = (state.entreprise || "Ton entreprise") + " — " + state.top.nom + " · " + state.palette.nom + " · " + (CFG.formes.find(function (f) { return f.id === state.forme; }) || {}).label + " · " + state.police;
+    if (cap) cap.textContent = (state.entreprise || "Ton entreprise") + " — " + state.top.nom + " · Symbole : " + symboleActuel().def.label + " · " + state.palette.nom + " · " + (CFG.formes.find(function (f) { return f.id === state.forme; }) || {}).label + " · " + state.police;
   }
 
   /* ---------- rendu des étapes ---------- */
@@ -288,6 +433,13 @@
       var meta = CFG.formes.find(function (x) { return x.id === f; }) || { label: f, description: "" };
       return '<button type="button" class="cl-choice' + (state.forme === f ? " active" : "") + '" data-forme="' + f + '">' + esc(meta.label) + '<small>' + esc(meta.description) + '</small></button>';
     }).join("");
+    var symSel = $("symboleSelect");
+    if (symSel) {
+      var cur = choisirSymbole();
+      symSel.innerHTML = Object.keys(SYMBOLES).map(function (id) {
+        return '<option value="' + id + '"' + (id === cur ? " selected" : "") + '>' + esc(SYMBOLES[id].label) + " — " + esc(SYMBOLES[id].desc) + "</option>";
+      }).join("");
+    }
     $("policeChoices").innerHTML = state.top.polices.map(function (p) {
       return '<button type="button" class="cl-choice' + (state.police === p ? " active" : "") + '" data-police="' + esc(p) + '" style="font-family:' + esc(FONT_STACKS[p] || "Arial, sans-serif") + '">' + esc(p) + '</button>';
     }).join("");
@@ -346,7 +498,8 @@
     CFG.momentMap.forEach(function (m) { if (m.mots.some(function (w) { return momentTxt.indexOf(norm(w)) !== -1; })) html += "<p class='cl-note'>Ton moment préféré : " + esc(m.note) + "</p>"; });
     CFG.lieuMap.forEach(function (m) { if (m.mots.some(function (w) { return lieuTxt.indexOf(norm(w)) !== -1; })) html += "<p class='cl-note'>Ton endroit préféré : " + esc(m.note) + "</p>"; });
     var formeMeta = CFG.formes.find(function (x) { return x.id === state.forme; }) || {};
-    html += "<h4>4. Ta forme et ta police</h4><p><b>" + esc(formeMeta.label || state.forme) + "</b> — " + esc(formeMeta.description || "") + " <b>Police : " + esc(state.police) + ".</b> La forme et la police doivent rester congruentes avec l'archétype " + esc(state.top.nom) + ", sinon le logo envoie deux messages en même temps.</p>";
+    var sym = symboleActuel();
+    html += "<h4>4. Ton symbole, ta forme et ta police</h4><p><b>Symbole : " + esc(sym.def.label) + "</b> — " + esc(sym.def.desc) + " Un logo qui ne représente rien, on le refuse : le symbole doit dire ton secteur ou ta personnalité en 1 seconde.</p><p><b>" + esc(formeMeta.label || state.forme) + "</b> — " + esc(formeMeta.description || "") + " <b>Police : " + esc(state.police) + ".</b> La forme et la police doivent rester congruentes avec l'archétype " + esc(state.top.nom) + ", sinon le logo envoie deux messages en même temps.</p>";
     html += "<p class='cl-note'>Ce que ce logo ne prouve pas : qu'il va vendre plus, ni que tes clients vont le percevoir comme tu le perçois. C'est pour ça qu'il y a le crash-test, juste en dessous.</p>";
     el.innerHTML = html;
   }
@@ -384,7 +537,7 @@
       + (state.iaAnalyse && state.iaAnalyse.histoire_une_page ? "<h3>Ton histoire, selon l'IA</h3><p>" + esc(state.iaAnalyse.histoire_une_page) + "</p><p><b>Ombre à éviter :</b> " + esc(state.iaAnalyse.ombre) + " · <b>Confiance :</b> " + esc(state.iaAnalyse.confiance) + "</p>" : "")
       + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Pour FLUX, en inspiration seulement — le logo final reste un SVG vectoriel, et ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
       + "<h3>Pointage des 12 archétypes</h3><table><tr><th>Archétype</th><th>Points</th><th>Promesse</th></tr>" + rows + "</table>"
-      + "<h3>Couleurs, forme et police choisies</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Police : " + esc(state.police) + "</p>"
+      + "<h3>Couleurs, forme, symbole et police choisis</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Symbole : " + esc(symboleActuel().def.label) + " · Police : " + esc(state.police) + "</p>"
       + "<h3>Double portrait (Aaker)</h3><p>" + esc(($("aakerResult") || {}).textContent || "") + "</p>"
       + "<h3>Crash-test</h3>" + crash
       + "<h3>Tes réponses</h3>" + state.trace.map(function (t) { return "<p><b>" + esc(t.question.texte) + "</b><br>« " + esc(t.reponse || "") + " »</p>"; }).join("")
@@ -459,7 +612,7 @@
       "Secteur : " + (state.secteur || "—") + " · Clientèle : " + (state.clientele || "—"),
       "Archétype : " + state.top.nom + " (secondaire : " + state.second.nom + ")",
       "Couleurs : " + state.palette.couleurs.join(", "),
-      "Forme : " + state.forme + " · Police : " + state.police,
+      "Forme : " + state.forme + " · Symbole : " + symboleActuel().def.label + " · Police : " + state.police,
       "",
       consentLigne,
       state.consentement ? "Courriel du client : " + state.consentEmail : "",
@@ -616,6 +769,8 @@
       var wrap = $("consentEmailWrap"); if (wrap) wrap.hidden = !consentBox.checked;
       var erreur = $("consentErreur"); if (erreur) erreur.hidden = true;
     });
+    var symSel = $("symboleSelect");
+    if (symSel) symSel.addEventListener("change", function () { state.pictogramme = symSel.value; renderLogo(); renderPourquoi(); });
     var pngT = $("btnPngTransparent"); if (pngT) pngT.addEventListener("click", function () { exportPNG(true); });
     var pngB = $("btnPngBlanc"); if (pngB) pngB.addEventListener("click", function () { exportPNG(false); });
     var dl = $("btnDlAnalyse"); if (dl) dl.addEventListener("click", downloadAnalysis);
@@ -623,6 +778,7 @@
     var crash = $("btnCrash"); if (crash) crash.addEventListener("click", runCrashTest);
     showStep(1);
   }
+  window.EVOPME_LOGO_TEST = { SYMBOLES: SYMBOLES, choisirSymbole: choisirSymbole, symboleActuel: symboleActuel, logoSVG: logoSVG, state: state };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
