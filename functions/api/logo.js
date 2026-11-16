@@ -436,8 +436,74 @@ export const IMAGE_BANNED_TOKENS = [
   "glossy", "glassy", "photorealistic", "photo", "messy", "cluttered",
   "busy", "blurry", "distorted", "deformed", "low quality",
   "more than three colors", "cartoon mascot", "face",
+  /* Ajouts du 2026-11-16, tirés des 2 exemples cheap envoyés par Daniel
+     (voir ANTI_CHEAP_EXAMPLES plus bas) : */
+  "glitter", "gold glitter", "sparkles", "confetti",
+  "watercolor texture", "watercolor splashes", "watercolor background",
+  "phone number", "telephone number", "slogan", "tagline text",
+  "decorative lines crossing text", "gold geometric lines",
+  "scattered decorations", "busy background", "competing colors",
 ];
 export const IMAGE_NEGATIVE_PROMPT = IMAGE_BANNED_TOKENS.join(", ");
+
+/* ============================================================================
+ * EXEMPLES ANTI-CHEAP — envoyés par Daniel le 2026-11-16.
+ * Ce sont des logos de tiers : on ne copie JAMAIS leurs fichiers dans le
+ * dépôt, on ne fait que décrire ce qui fait cheap, en mots, pour en
+ * tirer des règles. Ces exemples alimentent le negative prompt et les
+ * règles ci-dessous ; ils sont aussi documentés dans les normes
+ * (NORMES_LOGO_EVOLUTION_PME.md, §9.3) et dans le corps de la PR #8.
+ * ========================================================================== */
+export const ANTI_CHEAP_EXAMPLES = [
+  {
+    id: "decors-enchantes",
+    nom: "Les Décors Enchantés — Décoration événementielle",
+    ce_qui_fait_cheap: [
+      "Trop de couleurs qui se battent : rose aquarelle, vert, turquoise, or — plus de 3 couleurs, aucune dominante.",
+      "Paillettes dorées partout, sur tout le fond : la décoration devient le sujet, le nom devient secondaire.",
+      "Lignes géométriques dorées qui croisent le texte et le fond : elles coupent le nom en deux, visuellement.",
+      "Script très chargé, difficile à lire en petit : en favicon ou sur une carte, le nom disparaît.",
+      "Aucune hiérarchie claire : on ne sait pas quoi regarder en premier, le fond ou le nom.",
+      "Fond chargé : le logo ne survit ni en noir et blanc, ni en petit, ni sur photo.",
+      "Effet « carte de fête / banque d'images » plutôt que marque premium : tout est décoratif, rien n'est distinctif.",
+    ],
+    regles: [
+      "Maximum 3 couleurs, une dominante claire.",
+      "Un seul élément décoratif, jamais des paillettes partout.",
+      "Pas de lignes décoratives qui croisent le texte.",
+      "Pas de texture aquarelle gratuite en fond.",
+    ],
+  },
+  {
+    id: "liquidation-maximum",
+    nom: "Liquidation Maximum — 450-944-0663 — On donne notre maximum pour vous",
+    ce_qui_fait_cheap: [
+      "Fond jaune saturé à 100 % : une seule couleur criarde qui écrase tout, aucun contraste maîtrisé.",
+      "Tirelire clip-art générique : n'importe quel commerce de liquidation pourrait avoir la même icône.",
+      "Numéro de téléphone presque aussi gros que le nom : le logo devient une annonce classée, pas une marque.",
+      "Slogan générique (« on donne notre maximum pour vous ») : il ne dit rien de distinctif, il remplit de l'espace.",
+      "Texte noir massif, sans espace : aucune respiration, aucune hiérarchie, nom / téléphone / slogan se battent.",
+      "Aucune distinctivité, aucune personnalité : retirez le nom, il ne reste rien à reconnaître.",
+      "Effet « affiche de liquidation / annonce classée » : le message, c'est le prix, pas la marque.",
+    ],
+    regles: [
+      "Pas de clip-art générique : un symbole doit être propre au client.",
+      "Pas de numéro de téléphone ni de slogan dans le logo.",
+      "Hiérarchie : le nom d'abord, un seul symbole, le reste dehors.",
+      "Pas de fond à 100 % saturé : une couleur criarde n'est pas une personnalité.",
+    ],
+  },
+];
+/* Règles communes tirées des 2 exemples, appliquées à chaque prompt : */
+export const ANTI_CHEAP_RULES = [
+  "Maximum 3 couleurs, une dominante claire.",
+  "Un seul élément décoratif, un seul symbole focal, hiérarchie claire.",
+  "Pas de paillettes ni de textures aquarelle gratuites.",
+  "Pas de clip-art générique, pas d'icône de banque d'images.",
+  "Pas de numéro de téléphone ni de slogan dans le logo.",
+  "Hiérarchie : le nom d'abord (en vrai texte vectoriel, hors image).",
+  "Lisible en petit et en noir et blanc.",
+];
 
 /* Descripteurs du symbole, en anglais (FLUX comprend mieux l'anglais).
    Un archétype = une direction visuelle, pas une recette fermée. */
@@ -523,7 +589,8 @@ export function buildImagePrompt(analyse, questionnaire) {
     "limited palette of exactly " + hexes.length + " colors: " + hexes.join(", ") +
       " (" + roles + "), " + tonPalette(analyse.palette) + ", no other colors",
     "no text, no letters, no words, no typography in the image",
-    "symbol only, centered on a plain solid background"
+    "symbol only, one single focal symbol, clear hierarchy, no scattered decorations",
+    "centered on a plain solid background"
   );
   const prompt = parties.join(", ") + ".";
   return {
@@ -545,7 +612,9 @@ export function buildImagePrompt(analyse, questionnaire) {
       "Pas de clip-art générique, pas d'icône de banque d'images.",
       "Pas de dégradé arc-en-ciel, pas d'ombre portée, pas de biseau, pas de 3D / chrome.",
       "Lisible en petit : formes simples, beaucoup d'espace négatif.",
+      ...ANTI_CHEAP_RULES,
     ],
+    exemples_anti_cheap: ANTI_CHEAP_EXAMPLES.map((e) => e.nom),
   };
 }
 
