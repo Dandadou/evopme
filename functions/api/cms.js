@@ -146,7 +146,44 @@ export async function handleCms(request,env){
  if(!env.CMS_DB)return json({error:'La base D1 du CMS n’est pas encore liée au Worker.'},503);
  const url=new URL(request.url);
 
-
+ // ---------------------------------------------------------------------------
+ // Créateur de logo — garder un lead dans le CMS, SEULEMENT avec consentement.
+ // Règle Loi 25 (Daniel, 13 nov. 2026) : pas de liste de diffusion (Évolution
+ // PME n'en a pas). Si le visiteur coche la case « garder mes infos », on
+ // conserve le MINIMUM dans la table cms_submissions (déjà lue par l'Admin,
+ // GET /api/cms/submissions, Cloudflare Access + permission submissions.view) :
+ // entreprise, courriel, archétype principal, date, et la mention
+ // « Consentement : oui, le [date], source : Créateur de logo ».
+ // Si la case n'est pas cochée, le client n'appelle JAMAIS cette route.
+ // Route publique (pas d'authentification, comme /api/forms) : validation
+ // stricte côté serveur, consentement obligatoire, taille plafonnée.
+ // Les 9 réponses ouvertes ne sont JAMAIS envoyées ici.
+ // ---------------------------------------------------------------------------
+ if(request.method==='POST'&&url.pathname==='/api/cms/logo-lead'){
+  let body;try{body=await request.json()}catch{return json({error:'Données invalides.'},400)}
+  if(body?.consentement!==true&&body?.consentement!=='oui')return json({error:'Consentement requis pour garder le lead dans le CMS.'},403);
+  const entreprise=String(body?.entreprise||'').trim().slice(0,160);
+  const courriel=String(body?.courriel||'').trim().toLowerCase().slice(0,320);
+  const archetype=String(body?.archetype||'').trim().slice(0,60);
+  const archetypeSecondaire=String(body?.archetypeSecondaire||'').trim().slice(0,60);
+  const secteur=String(body?.secteur||'').trim().slice(0,120);
+  const clientele=String(body?.clientele||'').trim().slice(0,60);
+  const dateConsentement=/^\d{4}-\d{2}-\d{2}$/.test(String(body?.dateConsentement||''))?String(body.dateConsentement):new Date().toISOString().slice(0,10);
+  const ARCHETYPES=['innocent','sage','explorateur','rebelle','magicien','heros','amoureux','bouffon','homme-ordinaire','protecteur','souverain','createur'];
+  if(!entreprise)return json({error:'Le nom de l’entreprise est requis.'},400);
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(courriel))return json({error:'Adresse courriel invalide.'},400);
+  if(!ARCHETYPES.includes(archetype))return json({error:'Archétype invalide.'},400);
+  if(archetypeSecondaire&&!ARCHETYPES.includes(archetypeSecondaire))return json({error:'Archétype secondaire invalide.'},400);
+  const message='Archétype principal : '+archetype+(archetypeSecondaire?' (secondaire : '+archetypeSecondaire+')':'')+'. Consentement : oui, le '+dateConsentement+', source : Créateur de logo. À recontacter au cas où.';
+  const payload=JSON.stringify({consentement:'oui',date:dateConsentement,source:'createur-logo',entreprise,courriel,archetype,archetypeSecondaire,secteur,clientele});
+  if(payload.length>4000)return json({error:'Données trop volumineuses.'},413);
+  let result;
+  try{
+   result=await env.CMS_DB.prepare('INSERT INTO cms_submissions (form_type,name,email,company,phone,service,message,payload) VALUES (?,?,?,?,?,?,?,?)')
+    .bind('createur-logo',entreprise,courriel,entreprise,'','Créateur de logo',message,payload).run();
+  }catch{return json({error:'La table des soumissions n’est pas initialisée dans D1 (cms/schema.sql).',migration_required:true},503)}
+  return json({ok:true,id:result.meta?.last_row_id});
+ }
 
  if(url.pathname==='/api/cms/workshops'&&['GET','PATCH','POST'].includes(request.method)){
   const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
