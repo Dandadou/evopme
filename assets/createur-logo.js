@@ -93,7 +93,8 @@
     scores: null, top: null, second: null, trace: [],
     paletteIdx: 0, forme: "", police: "", palette: null,
     crash: null, previewBg: "blanc",
-    consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: ""
+    consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: "",
+    sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null
   };
   CFG.dimensionsAaker.forEach(function (d) { state.aakerFondateur[d.id] = 3; state.aakerClient[d.id] = 3; });
 
@@ -155,6 +156,64 @@
     state.forme = state.top.formes[0]; state.police = state.top.polices[0];
   }
 
+
+  /* ---------- analyse par IA (Workers AI), avec repli local ----------
+     POST /api/logo/analyser envoie le questionnaire pour analyse
+     pendant la requête seulement : rien n'est conservé (Loi 25).
+     Si l'IA est indisponible, en quota, ou renvoie une sortie invalide,
+     la route répond source:"locale" et on garde l'analyse locale par
+     mots-clés. Le client voit toujours un résultat, jamais une erreur. */
+  async function analyserAvecIA() {
+    var payload = {
+      entreprise: state.entreprise, secteur: state.secteur, secteurAutre: state.secteurAutre,
+      clientele: state.clientele, typeLogo: state.typeLogo, style: state.style,
+      reponses: state.reponses, aakerFondateur: state.aakerFondateur, aakerClient: state.aakerClient
+    };
+    try {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 30000);
+      var res = await fetch("/api/logo/analyser", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload), signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      if (!res.ok) return false;
+      var data = await res.json();
+      if (!data || data.source !== "ia" || !data.analyse) return false;
+      appliquerAnalyseIA(data);
+      return true;
+    } catch (e) { return false; }
+  }
+  function appliquerAnalyseIA(data) {
+    var a = data.analyse;
+    var scores = {};
+    CFG.archetypes.forEach(function (x) { scores[x.id] = (a.scores_archetypes && a.scores_archetypes[x.id]) || 0; });
+    state.scores = scores; state.trace = state.trace || [];
+    state.top = archById(a.archetype_principal) || CFG.archetypes[0];
+    state.second = archById(a.archetype_secondaire) || CFG.archetypes[1];
+    state.sourceAnalyse = "ia"; state.iaModele = data.model || ""; state.iaAnalyse = a;
+    state.imagePrompt = data.image_prompt || null;
+    // Palette IA : 3 hex validés côté serveur. Si la forme ou la police
+    // de l'IA ne correspondent pas à l'archétype, on garde celles du top.
+    if (a.palette && a.palette.length) {
+      state.palette = { nom: "Palette IA — proposée", couleurs: a.palette.map(function (c) { return c.hex; }) };
+      state.paletteIdx = -1;
+    } else { state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0; }
+    state.forme = (a.forme && CFG.formes.some(function (f) { return f.id === a.forme; })) ? a.forme : state.top.formes[0];
+    state.police = (a.police && state.top.polices.indexOf(a.police) !== -1) ? a.police : state.top.polices[0];
+    // Aaker IA (1-5) : on les applique, le double portrait se recalcule.
+    CFG.dimensionsAaker.forEach(function (d) {
+      if (a.aaker_fondateur && a.aaker_fondateur[d.id]) state.aakerFondateur[d.id] = a.aaker_fondateur[d.id];
+      if (a.aaker_clientele && a.aaker_clientele[d.id]) state.aakerClient[d.id] = a.aaker_clientele[d.id];
+    });
+    // Trace : pour « Pourquoi TON logo », on liste les 9 réponses telles
+    // quelles, sans refaire l'analyse locale (analyze() écraserait le
+    // résultat IA). L'histoire IA s'affiche dans le rendu.
+    state.trace = CFG.questionsOuvertes.map(function (q) {
+      return { question: q, reponse: state.reponses[q.id] || "", found: [] };
+    });
+  }
+
   /* ---------- SVG du logo ---------- */
   function shapeMarkup(forme, couleur, lettre) {
     var fill = couleur, ink = isLight(couleur) ? "#111111" : "#ffffff";
@@ -207,7 +266,10 @@
   }
   function renderResult() {
     if (!state.top) return;
-    $("resArchetype").innerHTML = "<b>" + esc(state.top.nom) + "</b><p>Ton logo raconte surtout l'histoire du " + esc(state.top.nom) + " : " + esc(state.top.promesse) + "</p><p>En deuxième : <b>" + esc(state.second.nom) + "</b> — " + esc(state.second.promesse) + "</p><p class='cl-note'>Ombre à éviter : " + esc(state.top.ombre) + "</p>";
+    var srcNote = state.sourceAnalyse === "ia"
+      ? "<p class='cl-note'><b>Analyse IA</b>" + (state.iaModele ? " (" + esc(state.iaModele) + ")" : "") + " — piste de travail à valider, pas un diagnostic. Daniel valide avant toute livraison.</p>"
+      : "<p class='cl-note'>Analyse locale par mots-clés — l'IA était indisponible pour cette analyse, le résultat local s'applique. Piste de travail à valider, pas un diagnostic.</p>";
+    $("resArchetype").innerHTML = srcNote + "<b>" + esc(state.top.nom) + "</b><p>Ton logo raconte surtout l'histoire du " + esc(state.top.nom) + " : " + esc(state.top.promesse) + "</p><p>En deuxième : <b>" + esc(state.second.nom) + "</b> — " + esc(state.second.promesse) + "</p><p class='cl-note'>Ombre à éviter : " + esc(state.top.ombre) + "</p>";
     var bars = CFG.archetypes.slice().sort(function (a, b) { return state.scores[b.id] - state.scores[a.id]; })
       .map(function (a) {
         var max = Math.max(1, state.scores[state.top.id]);
@@ -259,6 +321,9 @@
     var el = $("pourquoiBox"); if (!el) return;
     if (!state.top) { el.innerHTML = "<p>Remplis le questionnaire, puis reviens ici : cet onglet va expliquer ton logo à partir de TES réponses, pas de généralités.</p>"; return; }
     var html = "<h3>Pourquoi TON logo</h3><p>Ta chaîne, en 4 étapes : tes mots → les points → ton archétype (" + esc(state.top.nom) + ") → tes choix dans l'éditeur.</p>";
+    if (state.sourceAnalyse === "ia" && state.iaAnalyse) {
+      html += "<p><b>Analyse IA.</b> Ici, ce n'est pas le pointage par mots-clés qui a décidé, c'est le sens de tes réponses : " + esc(state.iaAnalyse.histoire_une_page || "") + "</p><p class='cl-note'>Confiance : " + esc(state.iaAnalyse.confiance) + " — " + esc(state.iaAnalyse.confiance_raison || "") + "</p>";
+    }
     html += "<h4>1. Tes choix fermés</h4><ul><li><b>Secteur et clientèle : 0 point.</b> Ils ne scorent pas, ils cadrent le contexte. Un même archétype ne donne pas le même logo en restauration et en services professionnels.</li>";
     var style = CFG.styles.find(function (s) { return s.id === state.style; });
     html += "<li><b>Style visuel (" + esc(style ? style.label : "—") + ") : +3 points</b> vers " + esc(style && style.boost.length ? style.boost.map(function (id) { return archById(id).nom; }).join(", ") : "aucun archétype") + ".</li>";
@@ -266,7 +331,9 @@
     html += "<h4>2. Tes 9 réponses, une par une</h4>";
     state.trace.forEach(function (t) {
       html += "<div class='cl-trace'><p><b>" + esc(t.question.texte) + "</b></p><blockquote>« " + esc(t.reponse || "(pas de réponse)") + " »</blockquote>";
-      if (!t.found.length) html += "<p class='cl-note'>Aucun mot-clé détecté ici. Cette réponse n'a pas changé le pointage, et c'est normal : le questionnaire est un déclencheur de conversation, pas un détecteur parfait.</p>";
+      if (!t.found.length) html += state.sourceAnalyse === "ia"
+        ? "<p class='cl-note'>L'IA a lu le sens de cette réponse, pas seulement ses mots-clés : elle compte dans l'histoire ci-dessus, même sans mot-clé détecté.</p>"
+        : "<p class='cl-note'>Aucun mot-clé détecté ici. Cette réponse n'a pas changé le pointage, et c'est normal : le questionnaire est un déclencheur de conversation, pas un détecteur parfait.</p>";
       else html += "<ul>" + t.found.map(function (f) { return "<li><b>" + esc(f.arch) + "</b> : +" + f.points + " — mot détecté : « " + esc(f.mot) + " »" + (f.note ? "<br><span class='cl-note'>" + esc(f.note) + "</span>" : "") + "</li>"; }).join("") + "</ul>";
       html += "</div>";
     });
@@ -313,6 +380,9 @@
       + "<h1>Évolution PME — Créateur de marques</h1><h2>Analyse de logo : " + esc(state.entreprise || "Ton entreprise") + "</h2>"
       + "<p><b>Archétype principal : " + esc(state.top.nom) + "</b> — " + esc(state.top.promesse) + "<br>Secondaire : " + esc(state.second.nom) + " — " + esc(state.second.promesse) + "<br>Ombre à éviter : " + esc(state.top.ombre) + "</p>"
       + "<p>Ceci est une piste de travail à valider, pas un diagnostic. Les archétypes sont le vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung.</p>"
+      + "<p><b>Source de l'analyse : " + (state.sourceAnalyse === "ia" ? "IA (Workers AI" + (state.iaModele ? ", " + esc(state.iaModele) : "") + ")" : "locale, par mots-clés") + ".</b></p>"
+      + (state.iaAnalyse && state.iaAnalyse.histoire_une_page ? "<h3>Ton histoire, selon l'IA</h3><p>" + esc(state.iaAnalyse.histoire_une_page) + "</p><p><b>Ombre à éviter :</b> " + esc(state.iaAnalyse.ombre) + " · <b>Confiance :</b> " + esc(state.iaAnalyse.confiance) + "</p>" : "")
+      + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Pour FLUX, en inspiration seulement — le logo final reste un SVG vectoriel, et ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
       + "<h3>Pointage des 12 archétypes</h3><table><tr><th>Archétype</th><th>Points</th><th>Promesse</th></tr>" + rows + "</table>"
       + "<h3>Couleurs, forme et police choisies</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Police : " + esc(state.police) + "</p>"
       + "<h3>Double portrait (Aaker)</h3><p>" + esc(($("aakerResult") || {}).textContent || "") + "</p>"
@@ -504,7 +574,14 @@
     });
     var to2 = $("toStep2"); if (to2) to2.addEventListener("click", function () { collect(); showStep(2); });
     var back1 = $("backStep1"); if (back1) back1.addEventListener("click", function () { showStep(1); });
-    var go = $("btnAnalyser"); if (go) go.addEventListener("click", function () { collect(); analyze(); renderResult(); showStep(3); });
+    var go = $("btnAnalyser"); if (go) go.addEventListener("click", async function () {
+      collect();
+      go.disabled = true; var label0 = go.textContent; go.textContent = "ANALYSE EN COURS…";
+      var okIA = await analyserAvecIA();
+      if (!okIA) { state.sourceAnalyse = "locale"; state.iaAnalyse = null; state.imagePrompt = null; analyze(); }
+      go.disabled = false; go.textContent = label0;
+      renderResult(); showStep(3);
+    });
     var back2 = $("backStep2"); if (back2) back2.addEventListener("click", function () { showStep(2); });
     var restart = $("btnRecommencer"); if (restart) restart.addEventListener("click", function () { showStep(1); });
     document.addEventListener("click", function (e) {

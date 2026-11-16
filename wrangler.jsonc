@@ -8,8 +8,12 @@
     "CONTACT_EMAIL": "info@evolutionpme.ca",
     "RESEND_FROM": "Évolution PME <formulaires@evoot.evolutionpme.ca>",
     "TEAM_DOMAIN": "https://dry-mouse-3e28.cloudflareaccess.com",
-    "POLICY_AUD": "f852e111dd0613ee3633b3ef00031ef3e9e43e75097335770f0181b077a7b588"
+    "POLICY_AUD": "f852e111dd0613ee3633b3ef00031ef3e9e43e75097335770f0181b077a7b588",
+    "LOGO_AI_MODEL": "@cf/google/gemma-4-26b-a4b-it",
+    "LOGO_AI_MODEL_FALLBACK": "@cf/qwen/qwen3.8-27b",
+    "LOGO_AI_TEMPERATURE": "0.25"
   },
+  "ai": { "binding": "AI" },
   "assets": {"directory": ".", "binding": "ASSETS"},
   "d1_databases": [
     {
