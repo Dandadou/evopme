@@ -41,9 +41,9 @@ window.EVOPME_LOGO_CONFIG = {
 
   textes: {
     titre: "Créateur de logo psychologique",
-    sousTitre: "Réponds à quelques questions, on te propose un logo qui raconte ta marque. Gratuit, sans compte, sans envoi de tes réponses.",
+    sousTitre: "Réponds à quelques questions, on te propose un logo qui raconte ta marque. Gratuit, sans compte. Tes réponses ne sont jamais conservées.",
     avertissement: "Ton logo raconte une histoire, il ne te diagnostique pas. Les archétypes sont un vocabulaire pour aligner ton équipe, pas une mesure scientifique. Valide toujours le résultat auprès de vrais clients.",
-    loi25: "Loi 25 : tes réponses restent dans ton navigateur. Rien n'est conservé sur nos serveurs. La seule chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca. Seule exception : si tu coches la case pour garder tes infos, ton entreprise, ton courriel et ton archétype sont gardés dans notre CMS, pour qu'on puisse te recontacter au cas où."
+    loi25: "Loi 25 : quand tu cliques « Voir mon logo », tes réponses sont envoyées à l'IA Cloudflare (Workers AI) pour être analysées pendant ta requête seulement, puis oubliées : rien n'est conservé sur nos serveurs. Si l'IA est indisponible, l'analyse se fait localement dans ton navigateur. La seule autre chose qui part, c'est le courriel que TU choisis d'envoyer à info@evolutionpme.ca. Seule exception : si tu coches la case pour garder tes infos, ton entreprise, ton courriel et ton archétype sont gardés dans notre CMS, pour qu'on puisse te recontacter au cas où."
   },
 
   secteurs: [
