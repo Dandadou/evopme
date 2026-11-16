@@ -7,7 +7,7 @@
  *  2. Appelle Workers AI avec le prompt système des normes (NORMES_LOGO,
  *     §11) : l'IA analyse des RÉPONSES DÉCLARÉES, pas une psychologie.
  *  3. Valide la sortie JSON (12 scores, archétypes, Aaker, hex, forme,
- *     pictogramme, phrases interdites). Sortie invalide = rejet.
+ *     symbole créé par l'IA, phrases interdites). Sortie invalide = rejet.
  *  4. Construit un prompt image FLUX DÉTERMINISTE à partir de l'analyse
  *     validée (voir buildImagePrompt) : le symbole seulement, JAMAIS le
  *     nom de l'entreprise, JAMAIS de texte dans l'image.
@@ -59,7 +59,7 @@ export const MODELS_NOT_USED = [
   "@cf/meta/llama-3.1-8b-instruct-fp8-fast", // statut non confirmable 2026-11-16
 ];
 export const AI_TEMPERATURE = 0.25;
-export const AI_MAX_TOKENS = 1600;
+export const AI_MAX_TOKENS = 2200; /* symbole créé = plus de JSON */
 export const MAX_BODY_BYTES = 20480;
 export const RATE_LIMIT_PER_HOUR = 10;
 
@@ -75,59 +75,85 @@ export const FORMES = [
   "cercle", "bouclier", "losange", "vague", "etoile", "hexagone",
   "fleche", "goutte",
 ];
-/* Pictogrammes du générateur SVG (createur-logo.js) : un vrai symbole,
-   jamais une initiale seule. La liste doit rester identique côté client
-   et côté serveur ; l'IA en choisit un, le générateur local aussi. */
-export const PICTOGRAMMES = [
-  "maison-lueur", "coeur", "coeur-soin", "cloche", "tasse", "casque",
-  "voiture", "roue", "fleur", "document", "cle", "sac", "cintre",
-  "feuille", "diplome", "livre", "palette-art", "puce", "graphique",
-  "montagne", "maison-coeur", "patte", "haltere", "note", "mains-coeur",
-  "camion", "avion", "soleil", "boussole", "eclair", "etoile-magie",
-  "bouclier-coeur", "couronne", "ampoule", "sourire", "chat", "arbre",
-  "vague", "trophee",
-];
-export const PICTOGRAMME_IMAGE = {
-  "maison-lueur": "a welcoming house with a small rising sun, warmth and light",
-  coeur: "a simple heart, love and care",
-  "coeur-soin": "a heart with a care cross, health and safety",
-  cloche: "a restaurant service cloche, food served hot",
-  tasse: "a steaming coffee cup, warm pause",
-  casque: "a construction hard hat, building solid",
-  voiture: "a single-stroke car silhouette, speed and road",
-  roue: "a car wheel, road and motion",
-  fleur: "a simple five-petal flower, beauty and nature",
-  document: "a document with a check mark, verified and serious",
-  cle: "a key, opening the door to a home",
-  sac: "a shopping bag, retail",
-  cintre: "a clothes hanger, fashion",
-  feuille: "a leaf, agriculture and nature",
-  diplome: "a graduation cap, education",
-  livre: "an open book, knowledge",
-  "palette-art": "an artist palette, arts and colour",
-  puce: "a microchip, technology",
-  graphique: "rising bar chart with an arrow, growth",
-  montagne: "a mountain with a sun, outdoors and horizon",
-  "maison-coeur": "a house with a heart, home and care",
-  patte: "an animal paw print, pets",
-  haltere: "a dumbbell, sport and strength",
-  note: "a music note, events and celebration",
-  "mains-coeur": "a heart held up by an open hand, mutual aid",
-  camion: "a delivery truck, transport and road",
-  avion: "a paper plane, travel and freedom",
-  soleil: "a sun with rays, light and optimism",
-  boussole: "a compass, exploration",
-  eclair: "a lightning bolt, energy and rupture",
-  "etoile-magie": "a sparkling star, transformation and wonder",
-  "bouclier-coeur": "a shield with a heart, protection with care",
-  couronne: "a crown, prestige and excellence",
-  ampoule: "a light bulb, a bright idea",
-  sourire: "a smiling face, joy and lightness",
-  chat: "a calm cat head, quiet observation",
-  arbre: "a tree, nature and roots",
-  vague: "ocean waves, water and calm",
-  trophee: "a trophy, victory and achievement",
-};
+/* SYMBOLE CRÉÉ PAR L'IA — plus de banque de pictogrammes ------------
+   Décision de Daniel (2026-11-16), mot pour mot : « Non c'est L'IA qui
+   doit Créer quelque chose selon les Questions ». Il n'y a donc PLUS
+   de liste de 39 pictogrammes à choisir : l'IA INVENTE le symbole à
+   partir des réponses du questionnaire, et le renvoie sous forme de
+   spec paramétrique que le générateur rend en SVG déterministe.
+   Une spec = { nom, description, justification, elements: [...] }.
+   Un élément = { type, ...coordonnées 0-100..., couleur } avec
+     type : cercle | ellipse | rect | triangle | ligne
+     couleur : dominante | appui | accent | fond  (rôles de la palette,
+       JAMAIS une couleur hors palette, JAMAIS du noir pur #000000)
+   Règles de la spec (validées dans validateSymbole) :
+     - 2 à 6 éléments, 2 couleurs distinctes minimum ;
+     - chaque coordonnée entre 0 et 100, chaque taille >= 8 (sauf les
+       rayons de cercle >= 4) : pas de détail minuscule illisible ;
+     - aucun texte, aucune lettre, aucune initiale, aucun monogramme :
+       la spec n'a pas de type "texte", c'est structurel ;
+     - chaque élément doit venir d'une réponse du client (la
+       justification cite sa phrase exacte).
+   Le repli local (navigateur) compose un symbole à partir des mots
+   du questionnaire, avec des briques de base — pas des logos finis. */
+export const SYMBOLE_COULEURS = ["dominante", "appui", "accent", "fond"];
+export const SYMBOLE_TYPES = ["cercle", "ellipse", "rect", "triangle", "ligne"];
+export const SYMBOLE_MIN_ELEMENTS = 2;
+export const SYMBOLE_MAX_ELEMENTS = 6;
+
+/* Valide une spec de symbole créée par l'IA. Invalide ou absente =
+   avertissement, pas un rejet de toute l'analyse : le générateur
+   local compose alors le symbole à partir des réponses. */
+export function validateSymbole(obj) {
+  const errors = [];
+  if (!isPlainObject(obj)) return { ok: false, errors: ["symbole manquant"], symbole: null };
+  const nom = cleanStr(obj.nom, 80);
+  if (nom.length < 3) errors.push("symbole.nom trop court");
+  if (/lettre|initiale|monogramme/i.test(norm(nom))) errors.push("symbole.nom : pas de lettre ni de monogramme");
+  const description = cleanStr(obj.description, 500);
+  if (description.length < 10) errors.push("symbole.description trop courte");
+  if (/lettre|initiale|monogramme/i.test(norm(description))) errors.push("symbole.description : pas de lettre ni de monogramme");
+  const justification = cleanStr(obj.justification, 500);
+  if (justification.length < 8) errors.push("symbole.justification trop courte");
+  const elements = obj.elements;
+  if (!Array.isArray(elements) || elements.length < SYMBOLE_MIN_ELEMENTS || elements.length > SYMBOLE_MAX_ELEMENTS) {
+    errors.push("symbole.elements : 2 à 6 éléments requis");
+    return { ok: false, errors, symbole: null };
+  }
+  const couleurs = new Set();
+  const clean = [];
+  function num(v) { return typeof v === "number" && Number.isFinite(v) ? v : null; }
+  function dans(v, min, max) { return v !== null && v >= min && v <= max; }
+  elements.forEach((el, i) => {
+    if (!isPlainObject(el)) { errors.push("symbole.elements[" + i + "] invalide"); return; }
+    if (!SYMBOLE_TYPES.includes(el.type)) { errors.push("symbole.elements[" + i + "].type invalide"); return; }
+    if (!SYMBOLE_COULEURS.includes(el.couleur)) { errors.push("symbole.elements[" + i + "].couleur invalide"); return; }
+    couleurs.add(el.couleur);
+    const e = { type: el.type, couleur: el.couleur };
+    if (el.type === "cercle") {
+      e.cx = num(el.cx); e.cy = num(el.cy); e.r = num(el.r);
+      if (!dans(e.cx, 0, 100) || !dans(e.cy, 0, 100) || !dans(e.r, 4, 50)) errors.push("symbole.elements[" + i + "] cercle hors limites");
+    } else if (el.type === "ellipse") {
+      e.cx = num(el.cx); e.cy = num(el.cy); e.rx = num(el.rx); e.ry = num(el.ry);
+      if (!dans(e.cx, 0, 100) || !dans(e.cy, 0, 100) || !dans(e.rx, 4, 50) || !dans(e.ry, 4, 50)) errors.push("symbole.elements[" + i + "] ellipse hors limites");
+    } else if (el.type === "rect") {
+      e.x = num(el.x); e.y = num(el.y); e.w = num(el.w); e.h = num(el.h); e.rx = num(el.rx) || 0;
+      if (!dans(e.x, 0, 100) || !dans(e.y, 0, 100) || !dans(e.w, 8, 100) || !dans(e.h, 8, 100) || e.x + e.w > 105 || e.y + e.h > 105) errors.push("symbole.elements[" + i + "] rect hors limites");
+    } else if (el.type === "triangle") {
+      if (typeof el.points !== "string") { errors.push("symbole.elements[" + i + "] triangle sans points"); return; }
+      const pts = el.points.split(/[\s,]+/).filter(Boolean).map(Number);
+      if (pts.length !== 6 || pts.some((v) => !Number.isFinite(v) || v < 0 || v > 100)) { errors.push("symbole.elements[" + i + "] triangle : 3 points 0-100 requis"); return; }
+      e.points = pts.join(",");
+    } else if (el.type === "ligne") {
+      e.x1 = num(el.x1); e.y1 = num(el.y1); e.x2 = num(el.x2); e.y2 = num(el.y2); e.epaisseur = num(el.epaisseur) || 4;
+      if (!dans(e.x1, 0, 100) || !dans(e.y1, 0, 100) || !dans(e.x2, 0, 100) || !dans(e.y2, 0, 100) || !dans(e.epaisseur, 2, 10)) errors.push("symbole.elements[" + i + "] ligne hors limites");
+    }
+    clean.push(e);
+  });
+  if (couleurs.size < 2) errors.push("symbole : 2 couleurs distinctes minimum");
+  if (errors.length) return { ok: false, errors, symbole: null };
+  return { ok: true, errors: [], symbole: { nom, description, justification, elements: clean } };
+}
 export const QUESTION_IDS = [
   "fierte", "refus", "soiree", "ressenti", "defi", "dix-ans",
   "animal", "moment", "endroit",
@@ -286,16 +312,29 @@ export const SYSTEM_PROMPT = [
   "Si ta direction ressemble aux laids (texte script seul, bouton",
   "glossy, monogramme illisible, décor sans sens), change de direction.",
   "",
-  "PICTOGRAMME — le logo doit REPRESENTER quelque chose : choisis UN",
-  "pictogramme dans cette liste, qui dit le secteur ou la personnalité",
-  "du client : maison-lueur, coeur, coeur-soin, cloche, tasse, casque,",
-  "voiture, roue, fleur, document, cle, sac, cintre, feuille, diplome,",
-  "livre, palette-art, puce, graphique, montagne, maison-coeur, patte,",
-  "haltere, note, mains-coeur, camion, avion, soleil, boussole, eclair,",
-  "etoile-magie, bouclier-coeur, couronne, ampoule, sourire, chat, arbre,",
-  "vague, trophee. JAMAIS une initiale, une lettre ou un monogramme :",
-  "une lettre seule dans un cercle, c'est exactement « Il ne représente",
-  "rien », et c'est refusé.",
+  "SYMBOLE CRÉÉ PAR TOI — le logo doit REPRESENTER quelque chose :",
+  "INVENTE un symbole original à partir des réponses du questionnaire.",
+  "Il n'y a AUCUNE liste de pictogrammes à choisir, ne recopie aucun",
+  "logo du corpus ci-dessus et aucune icône de banque d'images : crée",
+  "quelque chose qui n'existe que pour CE client, à partir de SES mots.",
+  "Composition : 2 à 6 formes géométriques simples dans une boîte de",
+  "100 x 100 (cercle, ellipse, rect, triangle, ligne). Couleurs :",
+  "uniquement les rôles de la palette (dominante, appui, accent, fond),",
+  "jamais une couleur hors palette, jamais de noir pur #000000, jamais",
+  "de détail plus petit que 8 unités, jamais de texte, de lettre,",
+  "d'initiale ni de monogramme : une lettre seule dans un cercle,",
+  "c'est exactement « Il ne représente rien », et c'est refusé.",
+  "Chaque élément doit venir d'une réponse du client : cite sa phrase",
+  "exacte dans « symbole_justification », et explique dans",
+  "« symbole_description » ce que le symbole représente et pourquoi.",
+  "EXEMPLE, à titre d'illustration (pas à recopier pour un autre",
+  "client) : Maison Bien-Être Lueur, Protecteur, santé — « Je suis",
+  "fier quand un client me dit qu'il se sent écouté et en sécurité",
+  "chez nous, comme à la maison » + « Le matin, tôt, quand la lumière",
+  "entre par la fenêtre ». Symbole inventé : « Maison et lueur » —",
+  "une maison qui accueille, avec un soleil qui se lève au-dessus du",
+  "toit. Éléments : rect corps de maison (dominante), triangle toit",
+  "(appui), cercle soleil (accent), 4 lignes rayons (accent).",
   "",
   "SORTIE — réponds UNIQUEMENT avec ce JSON, sans texte avant ni après :",
   "{",
@@ -315,8 +354,14 @@ export const SYSTEM_PROMPT = [
   "  ],",
   '  "forme": "<cercle|bouclier|losange|vague|etoile|hexagone|fleche|goutte>",',
   '  "forme_justification": "<phrase du client citée>",',
-  '  "pictogramme": "<un id de la liste PICTOGRAMME ci-dessus>",',
-  '  "pictogramme_justification": "<phrase du client citée>",',
+  '  "symbole_nom": "<nom court du symbole inventé, ex. : Maison et lueur>",',
+  '  "symbole_description": "<1-2 phrases : ce que le symbole représente, et pourquoi ça parle du client>",',
+  '  "symbole_justification": "<phrase EXACTE du client citée, qui a inspiré le symbole>",',
+  '  "symbole_elements": [',
+  '    { "type": "cercle", "cx": <0-100>, "cy": <0-100>, "r": <4-50>, "couleur": "dominante|appui|accent|fond" },',
+  '    { "type": "rect", "x": <0-100>, "y": <0-100>, "w": <8-100>, "h": <8-100>, "couleur": "dominante|appui|accent|fond" },',
+  '    ... 2 à 6 éléments, types cercle|ellipse|rect|triangle|ligne, coordonnées 0-100 ...',
+  '  ],',
   '  "police": "<nom de famille, ex. : Serif classique>",',
   '  "police_justification": "<phrase du client citée>",',
   '  "histoire_une_page": "<3 à 5 phrases reliant chaque élément du logo à une réponse du client>",',
@@ -502,16 +547,17 @@ export function validateAnalyse(obj, questionnaire) {
   if (!FORMES.includes(obj.forme)) errors.push("forme invalide");
   else a.forme = obj.forme;
   a.forme_justification = cleanStr(obj.forme_justification, 500);
-  /* Pictogramme : invalide ou absent = avertissement, pas un rejet —
-     le générateur local choisira le symbole (secteur / mots-clés).
-     Un pictogramme valide est toujours repris tel quel côté client. */
-  if (typeof obj.pictogramme === "string" && PICTOGRAMMES.includes(obj.pictogramme)) {
-    a.pictogramme = obj.pictogramme;
+  /* Symbole créé par l'IA : invalide ou absent = avertissement, pas un
+     rejet — le générateur local compose alors le symbole à partir des
+     réponses du client (briques de base, pas des logos finis).
+     Un symbole valide est toujours repris tel quel côté client. */
+  const symboleValide = validateSymbole(obj.symbole);
+  if (symboleValide.ok) {
+    a.symbole = symboleValide.symbole;
   } else {
-    a.pictogramme = null;
-    warnings.push("pictogramme invalide ou absent — le générateur local choisira le symbole");
+    a.symbole = null;
+    warnings.push("symbole invalide ou absent — le générateur local composera le symbole (" + symboleValide.errors.join("; ") + ")");
   }
-  a.pictogramme_justification = cleanStr(obj.pictogramme_justification, 500);
   a.police = cleanStr(obj.police, 80);
   if (!a.police) errors.push("police manquante");
   a.police_justification = cleanStr(obj.police_justification, 500);
@@ -539,7 +585,7 @@ export function validateAnalyse(obj, questionnaire) {
     const fragments = phrasesClient(questionnaire);
     const justifs = [
       a.forme_justification,
-      a.pictogramme_justification,
+      a.symbole ? a.symbole.justification : "",
       a.police_justification,
       ...a.palette.map((c) => c.justification),
     ];
@@ -951,8 +997,8 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
     [...style.tokens, "logo symbol", "high-end branding", "crisp edges", "balanced composition", "generous negative space", "scalable", "legible at small size", "single centered symbol"].join(", "),
     FORME_IMAGE[analyse.forme] + " for a brand whose personality is " +
       ARCHETYPE_IMAGE[principal] +
-      (analyse.pictogramme && PICTOGRAMME_IMAGE[analyse.pictogramme]
-        ? ", symbol: " + PICTOGRAMME_IMAGE[analyse.pictogramme]
+      (analyse.symbole && analyse.symbole.description
+        ? ", symbol: " + analyse.symbole.description
         : ""),
   ];
   if (secondaire && secondaire !== principal) {
@@ -976,6 +1022,7 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
     forme: analyse.forme,
     palette_hex: hexes,
     ton_palette: tonPalette(analyse.palette),
+    symbole_nom: analyse.symbole ? analyse.symbole.nom : "",
     /* Le nom de l'entreprise ne figure JAMAIS dans le prompt ni dans
        l'image : il sera ajouté en vrai texte vectoriel, dans le SVG. */
     nom_exclu_de_l_image: true,

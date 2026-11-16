@@ -86,115 +86,249 @@
   };
 
 
-  /* ---------- pictogrammes : un vrai symbole, jamais une initiale seule --
-     Règle de Daniel : « Il ne représente rien » = refusé. Le générateur
-     ne sort plus une lettre dans une forme : il dessine un pictogramme
-     plein, lisible en petit, qui représente le secteur ou la personnalité.
-     Chaque symbole est dessiné dans une boîte 100 x 100, avec 3 couleurs :
-     m = couleur principale du symbole, a = accent (palette[1]),
-     c = couleur de découpe (le fond du contenant, pour les trous). */
-  var SYMBOLES = {
-    "maison-lueur": { label: "Maison et lueur", desc: "Une maison qui accueille, avec un petit soleil : chaleur, sécurité, lumière.", svg: function (m, a, c) { return '<polygon points="50,34 90,60 82,60 82,88 18,88 18,60 10,60" fill="' + m + '"/><rect x="44" y="68" width="12" height="20" fill="' + c + '"/><circle cx="76" cy="22" r="8" fill="' + a + '"/><line x1="76" y1="6" x2="76" y2="12" stroke="' + a + '" stroke-width="3"/><line x1="88" y1="14" x2="92" y2="10" stroke="' + a + '" stroke-width="3"/><line x1="64" y1="14" x2="60" y2="10" stroke="' + a + '" stroke-width="3"/>'; } },
-    "coeur": { label: "Coeur", desc: "Un coeur simple : passion, lien, attention.", svg: function (m, a, c) { return '<path d="M50 88 C16 64 12 36 32 26 C44 20 50 30 50 36 C50 30 56 20 68 26 C88 36 84 64 50 88 Z" fill="' + m + '"/>'; } },
-    "coeur-soin": { label: "Coeur et soin", desc: "Un coeur avec une croix de soin : on prend soin de toi, en sécurité.", svg: function (m, a, c) { return '<path d="M50 88 C16 64 12 36 32 26 C44 20 50 30 50 36 C50 30 56 20 68 26 C88 36 84 64 50 88 Z" fill="' + m + '"/><rect x="45" y="44" width="10" height="26" fill="' + c + '"/><rect x="37" y="52" width="26" height="10" fill="' + c + '"/>'; } },
-    "cloche": { label: "Cloche de service", desc: "La cloche du resto : on sert, c'est chaud, c'est prêt.", svg: function (m, a, c) { return '<path d="M14 66 A36 34 0 0 1 86 66 Z" fill="' + m + '"/><rect x="8" y="66" width="84" height="8" rx="3" fill="' + m + '"/><circle cx="50" cy="26" r="5" fill="' + a + '"/>'; } },
-    "tasse": { label: "Tasse de café", desc: "Une tasse qui fume : pause, chaleur, on jase.", svg: function (m, a, c) { return '<rect x="22" y="36" width="48" height="40" rx="6" fill="' + m + '"/><path d="M70 44 Q88 44 88 56 Q88 68 70 68" fill="none" stroke="' + m + '" stroke-width="6"/><path d="M38 28 C34 22 42 18 38 12 M52 28 C48 22 56 18 52 12" fill="none" stroke="' + a + '" stroke-width="4"/>'; } },
-    "casque": { label: "Casque de chantier", desc: "Le casque : construction, sécurité, on bâtit solide.", svg: function (m, a, c) { return '<path d="M16 66 C16 36 32 22 50 22 C68 22 84 36 84 66 L90 66 A6 6 0 0 1 90 76 L10 76 A6 6 0 0 1 10 66 Z" fill="' + m + '"/><rect x="46" y="24" width="8" height="38" fill="' + c + '"/>'; } },
-    "voiture": { label: "Voiture", desc: "Une silhouette d'auto en un seul geste, comme CPPauto : vitesse, route, métier.", svg: function (m, a, c) { return '<path d="M10 66 Q12 48 30 45 L42 30 Q45 26 50 26 L68 26 Q73 26 76 30 L85 45 Q94 47 94 58 L94 66 Z" fill="' + m + '"/><path d="M46 33 L58 33 L58 43 L42 43 Z" fill="' + c + '"/><circle cx="32" cy="68" r="10" fill="' + c + '"/><circle cx="32" cy="68" r="4" fill="' + m + '"/><circle cx="72" cy="68" r="10" fill="' + c + '"/><circle cx="72" cy="68" r="4" fill="' + m + '"/>'; } },
-    "roue": { label: "Roue", desc: "Une roue : auto, route, ça roule.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="34" fill="' + m + '"/><rect x="47" y="18" width="6" height="64" fill="' + c + '"/><rect x="18" y="47" width="64" height="6" fill="' + c + '"/><circle cx="50" cy="50" r="20" fill="' + c + '"/><circle cx="50" cy="50" r="7" fill="' + m + '"/>'; } },
-    "fleur": { label: "Fleur", desc: "Une fleur simple : beauté, douceur, nature.", svg: function (m, a, c) { return '<g fill="' + m + '"><ellipse cx="50" cy="26" rx="11" ry="17"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(72 50 50)"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(144 50 50)"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(216 50 50)"/><ellipse cx="50" cy="26" rx="11" ry="17" transform="rotate(288 50 50)"/></g><circle cx="50" cy="50" r="11" fill="' + a + '"/>'; } },
-    "document": { label: "Document coché", desc: "Un document avec une coche : sérieux, vérifié, on s'en occupe.", svg: function (m, a, c) { return '<rect x="26" y="12" width="48" height="76" rx="6" fill="' + m + '"/><rect x="36" y="26" width="28" height="5" fill="' + c + '"/><rect x="36" y="40" width="28" height="5" fill="' + c + '"/><rect x="36" y="54" width="18" height="5" fill="' + c + '"/><path d="M40 74 L48 82 L66 60" fill="none" stroke="' + a + '" stroke-width="6"/>'; } },
-    "cle": { label: "Clé", desc: "Une clé : immobilier, on ouvre la porte de ta maison.", svg: function (m, a, c) { return '<circle cx="36" cy="36" r="19" fill="' + m + '"/><circle cx="36" cy="36" r="9" fill="' + c + '"/><rect x="50" y="50" width="38" height="10" rx="4" transform="rotate(45 50 50)" fill="' + m + '"/><rect x="76" y="72" width="6" height="12" fill="' + m + '"/><rect x="66" y="80" width="6" height="12" fill="' + m + '"/>'; } },
-    "sac": { label: "Sac de boutique", desc: "Un sac : commerce de détail, on repart avec quelque chose.", svg: function (m, a, c) { return '<path d="M24 36 L76 36 L84 88 L16 88 Z" fill="' + m + '"/><path d="M38 36 A12 12 0 0 1 62 36" fill="none" stroke="' + m + '" stroke-width="6"/>'; } },
-    "cintre": { label: "Cintre", desc: "Un cintre : mode, vêtements, on s'habille.", svg: function (m, a, c) { return '<path d="M50 36 A9 9 0 1 1 59 27" fill="none" stroke="' + m + '" stroke-width="6"/><polygon points="50,36 88,78 12,78" fill="none" stroke="' + m + '" stroke-width="6"/><circle cx="50" cy="36" r="4" fill="' + a + '"/>'; } },
-    "feuille": { label: "Feuille", desc: "Une feuille : agriculture, nature, ça pousse.", svg: function (m, a, c) { return '<path d="M50 10 C80 26 86 62 50 90 C14 62 20 26 50 10 Z" fill="' + m + '"/><line x1="50" y1="24" x2="50" y2="80" stroke="' + c + '" stroke-width="4"/>'; } },
-    "diplome": { label: "Toque de diplômé", desc: "La toque : éducation, on apprend, on réussit.", svg: function (m, a, c) { return '<polygon points="8,42 50,20 92,42 50,64" fill="' + m + '"/><path d="M32 52 L32 72 Q50 82 68 72 L68 52 L50 62 Z" fill="' + a + '"/><line x1="88" y1="46" x2="88" y2="66" stroke="' + m + '" stroke-width="4"/><circle cx="88" cy="70" r="5" fill="' + a + '"/>'; } },
-    "livre": { label: "Livre ouvert", desc: "Un livre ouvert : savoir, on apprend.", svg: function (m, a, c) { return '<path d="M50 30 Q32 18 12 26 L12 76 Q32 68 50 78 Q68 68 88 76 L88 26 Q68 18 50 30 Z" fill="' + m + '"/><line x1="50" y1="30" x2="50" y2="78" stroke="' + c + '" stroke-width="4"/>'; } },
-    "palette-art": { label: "Palette d'artiste", desc: "La palette : arts, création, couleurs.", svg: function (m, a, c) { return '<circle cx="50" cy="52" r="36" fill="' + m + '"/><circle cx="34" cy="42" r="6" fill="' + c + '"/><circle cx="52" cy="34" r="6" fill="' + c + '"/><circle cx="68" cy="44" r="6" fill="' + c + '"/><circle cx="66" cy="70" r="9" fill="' + c + '"/><rect x="78" y="14" width="8" height="34" rx="3" transform="rotate(30 82 31)" fill="' + a + '"/>'; } },
-    "puce": { label: "Puce électronique", desc: "Une puce : technologie, numérique, ça connecte.", svg: function (m, a, c) { return '<rect x="26" y="26" width="48" height="48" rx="6" fill="' + m + '"/><rect x="40" y="40" width="20" height="20" fill="' + c + '"/><g fill="' + m + '"><rect x="34" y="14" width="6" height="12"/><rect x="47" y="14" width="6" height="12"/><rect x="60" y="14" width="6" height="12"/><rect x="34" y="74" width="6" height="12"/><rect x="47" y="74" width="6" height="12"/><rect x="60" y="74" width="6" height="12"/><rect x="14" y="34" width="12" height="6"/><rect x="14" y="47" width="12" height="6"/><rect x="14" y="60" width="12" height="6"/><rect x="74" y="34" width="12" height="6"/><rect x="74" y="47" width="12" height="6"/><rect x="74" y="60" width="12" height="6"/></g>'; } },
-    "graphique": { label: "Graphique en hausse", desc: "Des barres qui montent : finance, ça grandit.", svg: function (m, a, c) { return '<rect x="18" y="58" width="14" height="30" fill="' + m + '"/><rect x="43" y="44" width="14" height="44" fill="' + m + '"/><rect x="68" y="28" width="14" height="60" fill="' + m + '"/><path d="M18 52 L44 36 L60 46 L84 18" fill="none" stroke="' + a + '" stroke-width="5"/><polygon points="84,18 72,18 84,30" fill="' + a + '"/>'; } },
-    "montagne": { label: "Montagne et soleil", desc: "Une montagne : tourisme, plein air, horizon.", svg: function (m, a, c) { return '<polygon points="6,88 38,34 58,64 70,46 94,88" fill="' + m + '"/><polygon points="38,34 46,46 38,50 30,46" fill="' + c + '"/><circle cx="74" cy="22" r="9" fill="' + a + '"/>'; } },
-    "maison-coeur": { label: "Maison et coeur", desc: "Une maison avec un coeur : chez soi, on s'en occupe.", svg: function (m, a, c) { return '<polygon points="50,30 90,58 82,58 82,88 18,88 18,58 10,58" fill="' + m + '"/><path d="M50 78 C40 70 38 60 44 56 C48 53 50 57 50 59 C50 57 52 53 56 56 C62 60 60 70 50 78 Z" fill="' + a + '"/>'; } },
-    "patte": { label: "Patte d'animal", desc: "Une patte : animaux, on en prend soin.", svg: function (m, a, c) { return '<ellipse cx="50" cy="68" rx="22" ry="16" fill="' + m + '"/><circle cx="24" cy="46" r="9" fill="' + m + '"/><circle cx="41" cy="34" r="9" fill="' + m + '"/><circle cx="59" cy="34" r="9" fill="' + m + '"/><circle cx="76" cy="46" r="9" fill="' + m + '"/>'; } },
-    "haltere": { label: "Haltère", desc: "Un haltère : sport, force, on se dépasse.", svg: function (m, a, c) { return '<rect x="28" y="46" width="44" height="8" fill="' + m + '"/><rect x="12" y="32" width="13" height="36" rx="3" fill="' + m + '"/><rect x="75" y="32" width="13" height="36" rx="3" fill="' + m + '"/><rect x="25" y="40" width="6" height="20" fill="' + a + '"/><rect x="69" y="40" width="6" height="20" fill="' + a + '"/>'; } },
-    "note": { label: "Note de musique", desc: "Une note : événementiel, fête, musique.", svg: function (m, a, c) { return '<ellipse cx="36" cy="78" rx="11" ry="8" fill="' + m + '"/><rect x="45" y="26" width="6" height="52" fill="' + m + '"/><path d="M51 26 Q72 30 70 48 Q58 40 51 44 Z" fill="' + m + '"/><circle cx="76" cy="22" r="5" fill="' + a + '"/>'; } },
-    "mains-coeur": { label: "Coeur porté", desc: "Un coeur porté par une main ouverte : entraide, OBNL, on donne.", svg: function (m, a, c) { return '<path d="M50 78 C16 54 12 26 32 16 C44 10 50 20 50 26 C50 20 56 10 68 16 C88 26 84 54 50 78 Z" fill="' + m + '"/><path d="M18 88 Q50 76 82 88" fill="none" stroke="' + a + '" stroke-width="6"/>'; } },
-    "camion": { label: "Camion", desc: "Un camion : transport, livraison, route.", svg: function (m, a, c) { return '<rect x="10" y="28" width="50" height="40" fill="' + m + '"/><polygon points="60,40 84,40 92,68 60,68" fill="' + m + '"/><circle cx="30" cy="72" r="10" fill="' + c + '"/><circle cx="30" cy="72" r="4" fill="' + m + '"/><circle cx="74" cy="72" r="10" fill="' + c + '"/><circle cx="74" cy="72" r="4" fill="' + m + '"/>'; } },
-    "avion": { label: "Avion en papier", desc: "Un avion en papier : voyage, liberté, on part.", svg: function (m, a, c) { return '<polygon points="8,50 92,16 66,84 56,58" fill="' + m + '"/><line x1="56" y1="58" x2="92" y2="16" stroke="' + c + '" stroke-width="3"/>'; } },
-    "soleil": { label: "Soleil", desc: "Un soleil : lumière, optimisme, nouveau jour.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="20" fill="' + a + '"/><g stroke="' + m + '" stroke-width="5"><line x1="50" y1="14" x2="50" y2="24"/><line x1="50" y1="76" x2="50" y2="86"/><line x1="14" y1="50" x2="24" y2="50"/><line x1="76" y1="50" x2="86" y2="50"/><line x1="25" y1="25" x2="32" y2="32"/><line x1="68" y1="68" x2="75" y2="75"/><line x1="75" y1="25" x2="68" y2="32"/><line x1="32" y1="68" x2="25" y2="75"/></g>'; } },
-    "boussole": { label: "Boussole", desc: "Une boussole : exploration, on trouve son chemin.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="36" fill="none" stroke="' + m + '" stroke-width="6"/><polygon points="50,20 58,50 50,80 42,50" fill="' + a + '"/><circle cx="50" cy="50" r="6" fill="' + m + '"/>'; } },
-    "eclair": { label: "Éclair", desc: "Un éclair : énergie, rupture, ça frappe.", svg: function (m, a, c) { return '<polygon points="58,8 26,54 46,54 38,92 74,44 52,44" fill="' + a + '"/>'; } },
-    "etoile-magie": { label: "Étoile magique", desc: "Une étoile qui scintille : transformation, rêve.", svg: function (m, a, c) { return '<polygon points="50,10 59,38 88,38 65,55 73,84 50,67 27,84 35,55 12,38 41,38" fill="' + m + '"/><polygon points="82,12 85,20 93,23 85,26 82,34 79,26 71,23 79,20" fill="' + a + '"/>'; } },
-    "bouclier-coeur": { label: "Bouclier et coeur", desc: "Un bouclier avec un coeur : on protège, avec soin.", svg: function (m, a, c) { return '<path d="M50 10 L84 24 L84 54 Q84 78 50 90 Q16 78 16 54 L16 24 Z" fill="' + m + '"/><path d="M50 72 C36 62 33 48 41 43 C47 39 50 44 50 47 C50 44 53 39 59 43 C67 48 64 62 50 72 Z" fill="' + a + '"/>'; } },
-    "couronne": { label: "Couronne", desc: "Une couronne : prestige, excellence, le meilleur.", svg: function (m, a, c) { return '<polygon points="16,70 12,32 36,50 50,20 64,50 88,32 84,70" fill="' + m + '"/><rect x="16" y="74" width="68" height="9" fill="' + a + '"/><circle cx="50" cy="52" r="5" fill="' + c + '"/>'; } },
-    "ampoule": { label: "Ampoule d'idée", desc: "Une ampoule : idée, création, ça s'allume.", svg: function (m, a, c) { return '<circle cx="50" cy="42" r="25" fill="' + m + '"/><rect x="41" y="66" width="18" height="6" fill="' + a + '"/><rect x="43" y="76" width="14" height="6" fill="' + a + '"/><line x1="50" y1="6" x2="50" y2="12" stroke="' + a + '" stroke-width="4"/><line x1="16" y1="28" x2="21" y2="32" stroke="' + a + '" stroke-width="4"/><line x1="84" y1="28" x2="79" y2="32" stroke="' + a + '" stroke-width="4"/>'; } },
-    "sourire": { label: "Visage souriant", desc: "Un sourire : plaisir, humour, légèreté.", svg: function (m, a, c) { return '<circle cx="50" cy="50" r="38" fill="' + m + '"/><circle cx="36" cy="42" r="5" fill="' + c + '"/><circle cx="64" cy="42" r="5" fill="' + c + '"/><path d="M32 60 Q50 74 68 60" fill="none" stroke="' + c + '" stroke-width="5"/>'; } },
-    "chat": { label: "Tête de chat", desc: "Un chat : calme, il observe, il vient vers toi.", svg: function (m, a, c) { return '<path d="M28 34 L32 12 L48 24 L52 24 L68 12 L72 34 A26 26 0 0 1 72 60 Q72 86 50 86 Q28 86 28 60 Z" fill="' + m + '"/><circle cx="40" cy="52" r="4" fill="' + c + '"/><circle cx="60" cy="52" r="4" fill="' + c + '"/><polygon points="50,64 44,70 56,70" fill="' + a + '"/>'; } },
-    "arbre": { label: "Arbre", desc: "Un arbre : nature, ancré, ça respire.", svg: function (m, a, c) { return '<circle cx="50" cy="32" r="19" fill="' + m + '"/><circle cx="30" cy="52" r="15" fill="' + m + '"/><circle cx="70" cy="52" r="15" fill="' + m + '"/><rect x="45" y="58" width="10" height="28" fill="' + m + '"/>'; } },
-    "vague": { label: "Vagues", desc: "Des vagues : mer, lac, fluide, apaisant.", svg: function (m, a, c) { return '<g fill="none" stroke="' + m + '" stroke-width="7"><path d="M12 38 Q25 26 38 38 T64 38 T90 38"/><path d="M12 58 Q25 46 38 58 T64 58 T90 58"/><path d="M12 78 Q25 66 38 78 T64 78 T90 78"/></g>'; } },
-    "trophee": { label: "Trophée", desc: "Un trophée : victoire, dépassement, on gagne.", svg: function (m, a, c) { return '<path d="M28 14 L72 14 L72 44 Q72 62 50 62 Q28 62 28 44 Z" fill="' + m + '"/><path d="M28 20 Q12 20 12 34 Q12 48 28 48" fill="none" stroke="' + m + '" stroke-width="6"/><path d="M72 20 Q88 20 88 34 Q88 48 72 48" fill="none" stroke="' + m + '" stroke-width="6"/><rect x="46" y="62" width="8" height="12" fill="' + m + '"/><rect x="34" y="74" width="32" height="8" fill="' + a + '"/>'; } }
-  };
-
-  /* Un pictogramme par secteur (les 22 secteurs), un par archétype
-     en repli, et des mots-clés du questionnaire en priorité : le nom de
-     l'entreprise et les réponses du client peuvent changer le symbole
-     (ex. « lueur » + santé = maison-lueur, pas un M). */
-  var SECTEUR_SYMBOLES = {
-    restauration: "cloche", construction: "casque", mecanique: "voiture",
-    sante: "coeur-soin", beaute: "fleur", "services-pro": "document",
-    immobilier: "cle", detail: "sac", mode: "cintre", agro: "feuille",
-    education: "diplome", arts: "palette-art", techno: "puce",
-    finance: "graphique", tourisme: "montagne", domicile: "maison-coeur",
-    animaux: "patte", sport: "haltere", evenementiel: "note",
-    obnl: "mains-coeur", transport: "camion", autre: ""
-  };
-  var ARCHETYPE_SYMBOLES = {
-    innocent: "soleil", sage: "livre", explorateur: "boussole",
-    rebelle: "eclair", magicien: "etoile-magie", heros: "trophee",
-    amoureux: "coeur", bouffon: "sourire", "homme-ordinaire": "maison-coeur",
-    protecteur: "bouclier-coeur", souverain: "couronne", createur: "ampoule"
-  };
-  var MOTS_SYMBOLES = [
-    { mots: ["chat"], id: "chat" },
-    { mots: ["chien"], id: "patte" },
-    { mots: ["maison", "foyer"], id: "maison-lueur" },
-    { mots: ["lueur", "lumiere"], id: "maison-lueur", secteurs: ["sante", "domicile", "immobilier"] },
-    { mots: ["lueur", "lumiere", "soleil", "aurore"], id: "soleil" },
-    { mots: ["voiture", "auto", "garage", "carrosserie", "mecanique"], id: "voiture" },
-    { mots: ["camion", "livraison"], id: "camion" },
-    { mots: ["dent"], id: "coeur-soin" },
-    { mots: ["cafe", "the"], id: "tasse" },
-    { mots: ["arbre", "foret", "bois"], id: "arbre" },
-    { mots: ["mer", "ocean", "plage", "lac", "riviere"], id: "vague" },
-    { mots: ["montagne"], id: "montagne" },
-    { mots: ["fleur", "jardin"], id: "fleur" },
-    { mots: ["livre", "lecture", "enseigner", "formation"], id: "livre" },
-    { mots: ["musique", "chanson", "dj", "fete"], id: "note" },
-    { mots: ["avion", "voyage"], id: "avion" },
-    { mots: ["coiffure", "beaute", "maquillage"], id: "fleur" },
-    { mots: ["vetement", "mode", "couture"], id: "cintre" },
-    { mots: ["argent", "banque", "finance", "assurance"], id: "graphique" },
-    { mots: ["sport", "gym", "entrainement", "course"], id: "haltere" },
-    { mots: ["outil", "bricolage", "renovation"], id: "casque" },
-    { mots: ["restaurant", "resto", "cuisine", "pain", "boulangerie"], id: "cloche" }
-  ];
-  function choisirSymbole() {
-    if (state.pictogramme && SYMBOLES[state.pictogramme]) return state.pictogramme;
-    /* La réponse « animal » ne décide pas du symbole : dire « un chat »
-       dans cette question, c'est un signal d'archétype, pas un métier.
-       Le symbole vient du nom, du secteur et des 8 autres réponses. */
-    var txt = norm([state.entreprise, state.secteurAutre].concat(CFG.questionsOuvertes.filter(function (q) { return q.id !== "animal"; }).map(function (q) { return state.reponses[q.id] || ""; })).join(" "));
-    var i, j, r;
-    for (i = 0; i < MOTS_SYMBOLES.length; i++) {
-      r = MOTS_SYMBOLES[i];
-      if (r.secteurs && r.secteurs.indexOf(state.secteur) === -1) continue;
-      for (j = 0; j < r.mots.length; j++) { if (txt.indexOf(r.mots[j]) !== -1) return r.id; }
-    }
-    if (SECTEUR_SYMBOLES[state.secteur]) return SECTEUR_SYMBOLES[state.secteur];
-    if (state.top && ARCHETYPE_SYMBOLES[state.top.id]) return ARCHETYPE_SYMBOLES[state.top.id];
-    return "soleil";
+  /* ---------- symbole créé, jamais une icône de banque ---------------
+     Règle de Daniel (2026-11-16) : « Non c'est L'IA qui doit Créer
+     quelque chose selon les Questions ». Il n'y a donc PLUS de banque
+     de 39 pictogrammes préfaits : le symbole est CRÉÉ pour chaque
+     client, à partir de ses réponses.
+     - Par l'IA : elle renvoie une spec (2 à 6 formes géométriques
+       simples dans une boîte 100 x 100, couleurs = rôles de la palette).
+     - En repli local : le compositeur assemble des BRIQUES de base
+       (maison, soleil, coeur...) selon les mots du questionnaire —
+       des briques, pas des logos finis : la même maison + un soleil
+       n'est pas le même logo qu'une maison + un coeur.
+     Une spec = { nom, description, elements: [...], sources: [...] }.
+     Un élément = { type: cercle|ellipse|rect|triangle|ligne,
+       ...coordonnées 0-100..., couleur: dominante|appui|accent|fond }.
+     Jamais de texte, jamais de lettre, jamais de noir pur : les
+     éléments prennent uniquement les couleurs de la palette. */
+  function couleurRole(role, pal, fond) {
+    if (role === "dominante") return pal.couleurs[0];
+    if (role === "appui") return pal.couleurs[1] || pal.couleurs[0];
+    if (role === "accent") return pal.couleurs[2] || pal.couleurs[1] || pal.couleurs[0];
+    return fond || "#ffffff"; /* "fond" = couleur du contenant */
   }
-  function symboleActuel() { var id = choisirSymbole(); return { id: id, def: SYMBOLES[id] }; }
+  function num(v, def) { var n = parseFloat(v); return isFinite(n) ? n : def; }
+  function renderElement(el, pal, fond) {
+    if (!el || typeof el !== "object") return "";
+    var c = couleurRole(el.couleur, pal, fond);
+    function cl(v) { return Math.max(0, Math.min(100, num(v, 0))); }
+    switch (el.type) {
+      case "cercle": return '<circle cx="' + cl(el.cx) + '" cy="' + cl(el.cy) + '" r="' + Math.max(2, Math.min(50, num(el.r, 10))) + '" fill="' + c + '"/>';
+      case "ellipse": return '<ellipse cx="' + cl(el.cx) + '" cy="' + cl(el.cy) + '" rx="' + Math.max(2, Math.min(50, num(el.rx, 10))) + '" ry="' + Math.max(2, Math.min(50, num(el.ry, 10))) + '" fill="' + c + '"/>';
+      case "rect": return '<rect x="' + cl(el.x) + '" y="' + cl(el.y) + '" width="' + Math.max(4, Math.min(100, num(el.w, 20))) + '" height="' + Math.max(4, Math.min(100, num(el.h, 20))) + '" rx="' + Math.max(0, Math.min(20, num(el.rx, 0))) + '" fill="' + c + '"/>';
+      case "triangle": {
+        var pts = String(el.points || "").split(/[\s,]+/).filter(Boolean).map(Number);
+        if (pts.length !== 6 || pts.some(function (v) { return !isFinite(v); })) return "";
+        return '<polygon points="' + pts.map(function (v) { return Math.max(0, Math.min(100, v)); }).join(",") + '" fill="' + c + '"/>';
+      }
+      case "ligne": return '<line x1="' + cl(el.x1) + '" y1="' + cl(el.y1) + '" x2="' + cl(el.x2) + '" y2="' + cl(el.y2) + '" stroke="' + c + '" stroke-width="' + Math.max(2, Math.min(10, num(el.epaisseur, 4))) + '" stroke-linecap="round"/>';
+      default: return "";
+    }
+  }
+  function renderSymboleSpec(spec, pal, fond) {
+    if (!spec || !Array.isArray(spec.elements)) return "";
+    return spec.elements.map(function (el) { return renderElement(el, pal, fond); }).join("");
+  }
+  /* Briques de construction : des formes de base, paramétrées par les
+     rôles de couleur, jamais des logos finis. Chaque brique retourne
+     ses éléments dans la boîte 100 x 100. */
+  var BRIQUES = {
+    maison: { label: "Maison", desc: "Une maison qui accueille.", elements: function () { return [
+      { type: "rect", x: 18, y: 52, w: 64, h: 38, couleur: "dominante" },
+      { type: "triangle", points: "10,56 50,22 90,56", couleur: "appui" },
+      { type: "rect", x: 44, y: 68, w: 12, h: 22, couleur: "fond" }]; } },
+    soleil: { label: "Soleil", desc: "Un soleil qui se lève.", elements: function () { return [
+      { type: "cercle", cx: 50, cy: 46, r: 16, couleur: "accent" },
+      { type: "ligne", x1: 50, y1: 14, x2: 50, y2: 24, epaisseur: 5, couleur: "accent" },
+      { type: "ligne", x1: 50, y1: 68, x2: 50, y2: 78, epaisseur: 5, couleur: "accent" },
+      { type: "ligne", x1: 18, y1: 46, x2: 28, y2: 46, epaisseur: 5, couleur: "accent" },
+      { type: "ligne", x1: 82, y1: 46, x2: 72, y2: 46, epaisseur: 5, couleur: "accent" }]; } },
+    coeur: { label: "Coeur", desc: "Un coeur : on tient à toi.", elements: function () { return [
+      { type: "cercle", cx: 35, cy: 38, r: 16, couleur: "dominante" },
+      { type: "cercle", cx: 65, cy: 38, r: 16, couleur: "dominante" },
+      { type: "triangle", points: "20,46 80,46 50,84", couleur: "dominante" }]; } },
+    feuille: { label: "Feuille", desc: "Une feuille : nature, ça pousse.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 50, rx: 26, ry: 36, couleur: "dominante" },
+      { type: "ligne", x1: 50, y1: 22, x2: 50, y2: 82, epaisseur: 4, couleur: "fond" }]; } },
+    voiture: { label: "Voiture", desc: "Une auto en un geste : route, vitesse.", elements: function () { return [
+      { type: "rect", x: 8, y: 52, w: 84, h: 20, rx: 6, couleur: "dominante" },
+      { type: "rect", x: 28, y: 36, w: 40, h: 18, rx: 4, couleur: "appui" },
+      { type: "cercle", cx: 30, cy: 74, r: 9, couleur: "fond" },
+      { type: "cercle", cx: 70, cy: 74, r: 9, couleur: "fond" }]; } },
+    camion: { label: "Camion", desc: "Un camion : transport, livraison, route.", elements: function () { return [
+      { type: "rect", x: 8, y: 30, w: 46, h: 36, couleur: "dominante" },
+      { type: "triangle", points: "54,42 82,42 92,66 54,66", couleur: "appui" },
+      { type: "cercle", cx: 28, cy: 72, r: 9, couleur: "fond" },
+      { type: "cercle", cx: 72, cy: 72, r: 9, couleur: "fond" }]; } },
+    cloche: { label: "Cloche de service", desc: "La cloche du resto : on sert, c'est chaud.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 54, rx: 32, ry: 24, couleur: "dominante" },
+      { type: "rect", x: 12, y: 74, w: 76, h: 8, rx: 3, couleur: "dominante" },
+      { type: "cercle", cx: 50, cy: 26, r: 5, couleur: "accent" }]; } },
+    casque: { label: "Casque de chantier", desc: "Le casque : on bâtit solide, en sécurité.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 52, rx: 34, ry: 26, couleur: "dominante" },
+      { type: "rect", x: 12, y: 72, w: 76, h: 8, rx: 3, couleur: "appui" },
+      { type: "rect", x: 46, y: 28, w: 8, h: 40, couleur: "fond" }]; } },
+    sac: { label: "Sac de boutique", desc: "Un sac : commerce, on repart avec quelque chose.", elements: function () { return [
+      { type: "triangle", points: "24,38 76,38 84,86 16,86", couleur: "dominante" },
+      { type: "rect", x: 38, y: 24, w: 24, h: 6, rx: 3, couleur: "appui" }]; } },
+    puce: { label: "Puce électronique", desc: "Une puce : technologie, ça connecte.", elements: function () { return [
+      { type: "rect", x: 28, y: 28, w: 44, h: 44, rx: 6, couleur: "dominante" },
+      { type: "rect", x: 42, y: 42, w: 16, h: 16, couleur: "fond" },
+      { type: "rect", x: 44, y: 12, w: 6, h: 12, couleur: "appui" },
+      { type: "rect", x: 44, y: 76, w: 6, h: 12, couleur: "appui" }]; } },
+    graphique: { label: "Graphique en hausse", desc: "Des barres qui montent : ça grandit.", elements: function () { return [
+      { type: "rect", x: 18, y: 58, w: 14, h: 30, couleur: "dominante" },
+      { type: "rect", x: 43, y: 44, w: 14, h: 44, couleur: "dominante" },
+      { type: "rect", x: 68, y: 28, w: 14, h: 60, couleur: "dominante" },
+      { type: "ligne", x1: 18, y1: 52, x2: 84, y2: 18, epaisseur: 5, couleur: "accent" }]; } },
+    haltere: { label: "Haltère", desc: "Un haltère : sport, force, on se dépasse.", elements: function () { return [
+      { type: "rect", x: 28, y: 46, w: 44, h: 8, couleur: "dominante" },
+      { type: "rect", x: 12, y: 32, w: 13, h: 36, rx: 3, couleur: "dominante" },
+      { type: "rect", x: 75, y: 32, w: 13, h: 36, rx: 3, couleur: "dominante" },
+      { type: "rect", x: 25, y: 40, w: 6, h: 20, couleur: "accent" },
+      { type: "rect", x: 69, y: 40, w: 6, h: 20, couleur: "accent" }]; } },
+    vague: { label: "Vagues", desc: "Des vagues : fluide, apaisant.", elements: function () { return [
+      { type: "ligne", x1: 12, y1: 34, x2: 88, y2: 34, epaisseur: 7, couleur: "dominante" },
+      { type: "ligne", x1: 12, y1: 54, x2: 88, y2: 54, epaisseur: 7, couleur: "appui" },
+      { type: "ligne", x1: 12, y1: 74, x2: 88, y2: 74, epaisseur: 7, couleur: "dominante" }]; } },
+    fleur: { label: "Fleur", desc: "Une fleur : beauté, douceur.", elements: function () { return [
+      { type: "cercle", cx: 50, cy: 24, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 50, cy: 76, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 24, cy: 50, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 76, cy: 50, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 50, cy: 50, r: 12, couleur: "accent" }]; } },
+    livre: { label: "Livre", desc: "Un livre ouvert : savoir.", elements: function () { return [
+      { type: "rect", x: 12, y: 26, w: 34, h: 52, rx: 3, couleur: "dominante" },
+      { type: "rect", x: 54, y: 26, w: 34, h: 52, rx: 3, couleur: "appui" },
+      { type: "ligne", x1: 50, y1: 26, x2: 50, y2: 78, epaisseur: 4, couleur: "fond" }]; } },
+    montagne: { label: "Montagne", desc: "Une montagne : horizon, plein air.", elements: function () { return [
+      { type: "triangle", points: "6,88 38,30 62,66 74,48 94,88", couleur: "dominante" },
+      { type: "cercle", cx: 74, cy: 20, r: 9, couleur: "accent" }]; } },
+    patte: { label: "Patte", desc: "Une patte : animaux, on en prend soin.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 68, rx: 22, ry: 15, couleur: "dominante" },
+      { type: "cercle", cx: 26, cy: 44, r: 9, couleur: "dominante" },
+      { type: "cercle", cx: 42, cy: 32, r: 9, couleur: "dominante" },
+      { type: "cercle", cx: 58, cy: 32, r: 9, couleur: "dominante" },
+      { type: "cercle", cx: 74, cy: 44, r: 9, couleur: "dominante" }]; } },
+    note: { label: "Note de musique", desc: "Une note : fête, musique.", elements: function () { return [
+      { type: "cercle", cx: 36, cy: 76, r: 11, couleur: "dominante" },
+      { type: "rect", x: 45, y: 24, w: 6, h: 54, couleur: "dominante" },
+      { type: "triangle", points: "51,24 74,30 70,48 51,42", couleur: "appui" }]; } },
+    "bouclier-coeur": { label: "Bouclier et coeur", desc: "Un bouclier avec un coeur : on protège.", elements: function () { return [
+      { type: "triangle", points: "50,10 86,24 86,54 50,90 14,54 14,24", couleur: "dominante" },
+      { type: "cercle", cx: 41, cy: 46, r: 10, couleur: "accent" },
+      { type: "cercle", cx: 59, cy: 46, r: 10, couleur: "accent" },
+      { type: "triangle", points: "32,50 68,50 50,72", couleur: "accent" }]; } }
+  };
+  var SECTEUR_BRIQUES = {
+    restauration: "cloche", construction: "casque", mecanique: "voiture",
+    sante: "coeur", beaute: "fleur", "services-pro": "livre",
+    immobilier: "maison", detail: "sac", mode: "fleur", agro: "feuille",
+    education: "livre", arts: "fleur", techno: "puce",
+    finance: "graphique", tourisme: "montagne", domicile: "maison",
+    animaux: "patte", sport: "haltere", evenementiel: "note",
+    obnl: "coeur", transport: "camion", autre: ""
+  };
+  var ARCHETYPE_BRIQUES = {
+    innocent: "soleil", sage: "livre", explorateur: "montagne",
+    rebelle: "soleil", magicien: "soleil", heros: "montagne",
+    amoureux: "coeur", bouffon: "soleil", "homme-ordinaire": "maison",
+    protecteur: "bouclier-coeur", souverain: "montagne", createur: "soleil"
+  };
+  var MOTS_BRIQUES = [
+    { mots: ["maison", "foyer"], brique: "maison" },
+    { mots: ["lueur", "lumiere", "soleil", "aurore"], brique: "soleil" },
+    { mots: ["coeur", "amour", "soin", "sante", "ecoute"], brique: "coeur" },
+    { mots: ["voiture", "auto", "garage", "carrosserie", "mecanique"], brique: "voiture" },
+    { mots: ["camion", "livraison", "transport", "route"], brique: "camion" },
+    { mots: ["dent"], brique: "coeur" },
+    { mots: ["cafe", "the"], brique: "soleil" },
+    { mots: ["arbre", "foret", "bois", "lac", "riviere"], brique: "feuille" },
+    { mots: ["mer", "ocean", "plage"], brique: "vague" },
+    { mots: ["montagne"], brique: "montagne" },
+    { mots: ["fleur", "jardin"], brique: "fleur" },
+    { mots: ["livre", "lecture", "enseigner", "formation", "apprendre"], brique: "livre" },
+    { mots: ["musique", "chanson", "dj", "fete"], brique: "note" },
+    { mots: ["avion", "voyage"], brique: "soleil" },
+    { mots: ["vetement", "mode", "couture"], brique: "fleur" },
+    { mots: ["argent", "banque", "finance", "assurance"], brique: "montagne" },
+    { mots: ["outil", "bricolage", "renovation"], brique: "casque" },
+    { mots: ["restaurant", "resto", "cuisine", "pain", "boulangerie"], brique: "cloche" },
+    { mots: ["boutique", "commerce", "magasin"], brique: "sac" },
+    { mots: ["technologie", "numerique", "informatique", "logiciel"], brique: "puce" },
+    { mots: ["finance", "investissement"], brique: "graphique" },
+    { mots: ["sport", "gym", "entrainement", "course"], brique: "haltere" }
+  ];
+  /* Replace un élément dans la boîte : échelle puis décalage. */
+  function placer(elements, echelle, dx, dy) {
+    function X(v) { return Math.round((num(v, 0) * echelle + dx) * 10) / 10; }
+    function Y(v) { return Math.round((num(v, 0) * echelle + dy) * 10) / 10; }
+    function S(v) { return Math.round(num(v, 0) * echelle * 10) / 10; }
+    return elements.map(function (el) {
+      var n = { type: el.type, couleur: el.couleur };
+      if (el.type === "cercle") { n.cx = X(el.cx); n.cy = Y(el.cy); n.r = S(el.r); }
+      else if (el.type === "ellipse") { n.cx = X(el.cx); n.cy = Y(el.cy); n.rx = S(el.rx); n.ry = S(el.ry); }
+      else if (el.type === "rect") { n.x = X(el.x); n.y = Y(el.y); n.w = S(el.w); n.h = S(el.h); if (el.rx) n.rx = S(el.rx); }
+      else if (el.type === "triangle") {
+        var pts = String(el.points || "").split(/[\s,]+/).filter(Boolean).map(Number);
+        n.points = pts.map(function (v, i) { return i % 2 === 0 ? X(v) : Y(v); }).join(",");
+      }
+      else if (el.type === "ligne") { n.x1 = X(el.x1); n.y1 = Y(el.y1); n.x2 = X(el.x2); n.y2 = Y(el.y2); n.epaisseur = Math.max(2, Math.round(num(el.epaisseur, 4) * echelle)); }
+      return n;
+    });
+  }
+  /* Compositeur local : il ASSEMBLE un symbole à partir des mots du
+     questionnaire. La réponse « animal » ne décide pas du symbole :
+     dire « un chat », c'est un signal d'archétype, pas un métier.
+     Le symbole vient du nom, du secteur et des 8 autres réponses. */
+  function composerSymboleLocal(themeForce) {
+    var txt = norm([state.entreprise, state.secteurAutre].concat(CFG.questionsOuvertes.filter(function (q) { return q.id !== "animal"; }).map(function (q) { return state.reponses[q.id] || ""; })).join(" "));
+    var principal = null, secondaire = null, sources = [];
+    var i, j, r;
+    if (themeForce && BRIQUES[themeForce]) {
+      principal = themeForce;
+      sources.push("Thème choisi dans l'éditeur : " + BRIQUES[themeForce].label + ".");
+    } else {
+      for (i = 0; i < MOTS_BRIQUES.length; i++) {
+        r = MOTS_BRIQUES[i];
+        for (j = 0; j < r.mots.length; j++) {
+          if (txt.indexOf(r.mots[j]) !== -1) {
+            if (!principal) { principal = r.brique; sources.push("Mot détecté : « " + r.mots[j] + " » → " + BRIQUES[r.brique].label + "."); }
+            else if (r.brique !== principal && !secondaire) { secondaire = r.brique; sources.push("Mot détecté : « " + r.mots[j] + " » → " + BRIQUES[r.brique].label + "."); }
+            break;
+          }
+        }
+      }
+      if (!principal) principal = SECTEUR_BRIQUES[state.secteur] || "";
+      if (!principal && state.top) principal = ARCHETYPE_BRIQUES[state.top.id] || "soleil";
+      if (!principal) principal = "soleil";
+      if (!secondaire && state.top) {
+        var rep = ARCHETYPE_BRIQUES[state.top.id];
+        if (rep && rep !== principal) secondaire = rep;
+      }
+      if (!secondaire && principal === "maison") secondaire = "soleil";
+    }
+    var elements = placer(BRIQUES[principal].elements(), 0.72, 14, 18);
+    /* Deux briques au maximum : 10 éléments simples au plus, jamais plus. */
+    if (secondaire && BRIQUES[secondaire]) elements = elements.concat(placer(BRIQUES[secondaire].elements(), 0.30, 62, 2));
+    var nom = BRIQUES[principal].label + (secondaire ? " et " + BRIQUES[secondaire].label.toLowerCase() : "");
+    return {
+      nom: nom,
+      description: "Symbole composé à partir de tes réponses : " + BRIQUES[principal].desc + (secondaire ? " " + BRIQUES[secondaire].desc : ""),
+      elements: elements,
+      sources: sources,
+      origine: "locale"
+    };
+  }
+  function symboleActuel() {
+    /* 1) Thème forcé dans l'éditeur, 2) symbole créé par l'IA,
+       3) symbole composé localement à partir des réponses. */
+    if (state.themeSymbole) return composerSymboleLocal(state.themeSymbole);
+    if (state.symbole && Array.isArray(state.symbole.elements) && state.symbole.elements.length) return state.symbole;
+    return composerSymboleLocal("");
+  }
+
 
   /* ---------- état ---------- */
   var state = {
@@ -202,7 +336,7 @@
     entreprise: "", secteur: "", secteurAutre: "", clientele: "", typeLogo: "symbole", style: "",
     reponses: {}, aakerFondateur: {}, aakerClient: {},
     scores: null, top: null, second: null, trace: [],
-    paletteIdx: 0, forme: "", police: "", palette: null, pictogramme: null,
+    paletteIdx: 0, forme: "", police: "", palette: null, symbole: null, themeSymbole: "",
     crash: null, previewBg: "blanc",
     consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: "",
     sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null
@@ -262,7 +396,7 @@
     if (style) style.boost.forEach(function (id) { scores[id] = (scores[id] || 0) + 3; });
     var ranked = CFG.archetypes.slice().sort(function (a, b) { return scores[b.id] - scores[a.id]; });
     state.scores = scores; state.trace = trace;
-    state.top = ranked[0]; state.second = ranked[1]; state.pictogramme = null;
+    state.top = ranked[0]; state.second = ranked[1]; state.symbole = null; state.themeSymbole = "";
     state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0;
     state.forme = state.top.formes[0]; state.police = state.top.polices[0];
   }
@@ -312,7 +446,7 @@
     } else { state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0; }
     state.forme = (a.forme && CFG.formes.some(function (f) { return f.id === a.forme; })) ? a.forme : state.top.formes[0];
     state.police = (a.police && state.top.polices.indexOf(a.police) !== -1) ? a.police : state.top.polices[0];
-    state.pictogramme = (a.pictogramme && SYMBOLES[a.pictogramme]) ? a.pictogramme : null;
+    state.symbole = (a.symbole && Array.isArray(a.symbole.elements) && a.symbole.elements.length) ? a.symbole : null;
     // Aaker IA (1-5) : on les applique, le double portrait se recalcule.
     CFG.dimensionsAaker.forEach(function (d) {
       if (a.aaker_fondateur && a.aaker_fondateur[d.id]) state.aakerFondateur[d.id] = a.aaker_fondateur[d.id];
@@ -378,14 +512,9 @@
       /* Symbole : la forme choisie sert de contenant, le pictogramme
          dessine ce que l'entreprise représente. Jamais une initiale. */
       var sym = symboleActuel();
-      var ink = isLight(pal.couleurs[0]) ? "#111111" : "#ffffff";
-      var rempli = ["cercle", "bouclier", "losange", "hexagone", "goutte", "etoile", "fleche"].indexOf(state.forme) !== -1;
       var contenant = state.forme === "vague" ? shade(pal.couleurs[0], 70) : pal.couleurs[0];
-      var symMain = rempli ? ink : pal.couleurs[0];
-      var symAccent = pal.couleurs[1] || symMain;
-      var symCut = rempli ? pal.couleurs[0] : "#ffffff";
       svg += shapeMarkup(state.forme, contenant, "");
-      svg += '<g transform="translate(62,52) scale(0.76)">' + sym.def.svg(symMain, symAccent, symCut) + '</g>';
+      svg += '<g transform="translate(62,52) scale(0.76)">' + renderSymboleSpec(sym, pal, contenant) + '</g>';
     }
     if (state.typeLogo !== "texte") {
       svg += '<text x="100" y="196" text-anchor="middle" font-size="13" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>';
@@ -397,7 +526,7 @@
     var box = $("logoPreview"); if (!box || !state.top) return;
     box.innerHTML = logoSVG(640);
     var cap = $("logoCaption");
-    if (cap) cap.textContent = (state.entreprise || "Ton entreprise") + " — " + state.top.nom + " · Symbole : " + symboleActuel().def.label + " · " + state.palette.nom + " · " + (CFG.formes.find(function (f) { return f.id === state.forme; }) || {}).label + " · " + state.police;
+    if (cap) cap.textContent = (state.entreprise || "Ton entreprise") + " — " + state.top.nom + " · Symbole : " + symboleActuel().nom + " · " + state.palette.nom + " · " + (CFG.formes.find(function (f) { return f.id === state.forme; }) || {}).label + " · " + state.police;
   }
 
   /* ---------- rendu des étapes ---------- */
@@ -435,9 +564,9 @@
     }).join("");
     var symSel = $("symboleSelect");
     if (symSel) {
-      var cur = choisirSymbole();
-      symSel.innerHTML = Object.keys(SYMBOLES).map(function (id) {
-        return '<option value="' + id + '"' + (id === cur ? " selected" : "") + '>' + esc(SYMBOLES[id].label) + " — " + esc(SYMBOLES[id].desc) + "</option>";
+      var cur = state.themeSymbole || "";
+      symSel.innerHTML = '<option value="">Laisser l\'IA / le questionnaire créer le symbole</option>' + Object.keys(BRIQUES).map(function (id) {
+        return '<option value="' + id + '"' + (id === cur ? " selected" : "") + '>' + esc(BRIQUES[id].label) + " — " + esc(BRIQUES[id].desc) + "</option>";
       }).join("");
     }
     $("policeChoices").innerHTML = state.top.polices.map(function (p) {
@@ -499,7 +628,10 @@
     CFG.lieuMap.forEach(function (m) { if (m.mots.some(function (w) { return lieuTxt.indexOf(norm(w)) !== -1; })) html += "<p class='cl-note'>Ton endroit préféré : " + esc(m.note) + "</p>"; });
     var formeMeta = CFG.formes.find(function (x) { return x.id === state.forme; }) || {};
     var sym = symboleActuel();
-    html += "<h4>4. Ton symbole, ta forme et ta police</h4><p><b>Symbole : " + esc(sym.def.label) + "</b> — " + esc(sym.def.desc) + " Un logo qui ne représente rien, on le refuse : le symbole doit dire ton secteur ou ta personnalité en 1 seconde.</p><p><b>" + esc(formeMeta.label || state.forme) + "</b> — " + esc(formeMeta.description || "") + " <b>Police : " + esc(state.police) + ".</b> La forme et la police doivent rester congruentes avec l'archétype " + esc(state.top.nom) + ", sinon le logo envoie deux messages en même temps.</p>";
+    html += "<h4>4. Ton symbole, ta forme et ta police</h4><p><b>Symbole : " + esc(sym.nom) + "</b> — " + esc(sym.description || "") + " Un logo qui ne représente rien, on le refuse : le symbole doit dire ton secteur ou ta personnalité en 1 seconde.</p>";
+    if (sym.sources && sym.sources.length) html += "<p class='cl-note'>Ce symbole vient de tes mots : " + esc(sym.sources.join(" ")) + "</p>";
+    if (sym.origine === "ia") html += "<p class='cl-note'>Symbole créé par l'IA à partir de tes réponses, pas choisi dans une banque d'icônes.</p>";
+    html += "<p><b>" + esc(formeMeta.label || state.forme) + "</b> — " + esc(formeMeta.description || "") + " <b>Police : " + esc(state.police) + ".</b> La forme et la police doivent rester congruentes avec l'archétype " + esc(state.top.nom) + ", sinon le logo envoie deux messages en même temps.</p>";
     html += "<p class='cl-note'>Ce que ce logo ne prouve pas : qu'il va vendre plus, ni que tes clients vont le percevoir comme tu le perçois. C'est pour ça qu'il y a le crash-test, juste en dessous.</p>";
     el.innerHTML = html;
   }
@@ -537,7 +669,7 @@
       + (state.iaAnalyse && state.iaAnalyse.histoire_une_page ? "<h3>Ton histoire, selon l'IA</h3><p>" + esc(state.iaAnalyse.histoire_une_page) + "</p><p><b>Ombre à éviter :</b> " + esc(state.iaAnalyse.ombre) + " · <b>Confiance :</b> " + esc(state.iaAnalyse.confiance) + "</p>" : "")
       + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Pour FLUX, en inspiration seulement — le logo final reste un SVG vectoriel, et ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
       + "<h3>Pointage des 12 archétypes</h3><table><tr><th>Archétype</th><th>Points</th><th>Promesse</th></tr>" + rows + "</table>"
-      + "<h3>Couleurs, forme, symbole et police choisis</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Symbole : " + esc(symboleActuel().def.label) + " · Police : " + esc(state.police) + "</p>"
+      + "<h3>Couleurs, forme, symbole et police choisis</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Symbole : " + esc(symboleActuel().nom) + " · Police : " + esc(state.police) + "</p>"
       + "<h3>Double portrait (Aaker)</h3><p>" + esc(($("aakerResult") || {}).textContent || "") + "</p>"
       + "<h3>Crash-test</h3>" + crash
       + "<h3>Tes réponses</h3>" + state.trace.map(function (t) { return "<p><b>" + esc(t.question.texte) + "</b><br>« " + esc(t.reponse || "") + " »</p>"; }).join("")
@@ -612,7 +744,7 @@
       "Secteur : " + (state.secteur || "—") + " · Clientèle : " + (state.clientele || "—"),
       "Archétype : " + state.top.nom + " (secondaire : " + state.second.nom + ")",
       "Couleurs : " + state.palette.couleurs.join(", "),
-      "Forme : " + state.forme + " · Symbole : " + symboleActuel().def.label + " · Police : " + state.police,
+      "Forme : " + state.forme + " · Symbole : " + symboleActuel().nom + " · Police : " + state.police,
       "",
       consentLigne,
       state.consentement ? "Courriel du client : " + state.consentEmail : "",
@@ -770,7 +902,7 @@
       var erreur = $("consentErreur"); if (erreur) erreur.hidden = true;
     });
     var symSel = $("symboleSelect");
-    if (symSel) symSel.addEventListener("change", function () { state.pictogramme = symSel.value; renderLogo(); renderPourquoi(); });
+    if (symSel) symSel.addEventListener("change", function () { state.themeSymbole = symSel.value; renderLogo(); renderPourquoi(); });
     var pngT = $("btnPngTransparent"); if (pngT) pngT.addEventListener("click", function () { exportPNG(true); });
     var pngB = $("btnPngBlanc"); if (pngB) pngB.addEventListener("click", function () { exportPNG(false); });
     var dl = $("btnDlAnalyse"); if (dl) dl.addEventListener("click", downloadAnalysis);
@@ -778,7 +910,7 @@
     var crash = $("btnCrash"); if (crash) crash.addEventListener("click", runCrashTest);
     showStep(1);
   }
-  window.EVOPME_LOGO_TEST = { SYMBOLES: SYMBOLES, choisirSymbole: choisirSymbole, symboleActuel: symboleActuel, logoSVG: logoSVG, state: state };
+  window.EVOPME_LOGO_TEST = { renderSymboleSpec: renderSymboleSpec, composerSymboleLocal: composerSymboleLocal, symboleActuel: symboleActuel, logoSVG: logoSVG, state: state };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
