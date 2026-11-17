@@ -324,13 +324,23 @@ export async function handleCms(request,env){
   const org=auth.user.organization_id;
   const STATUSES=['Soumission','projet','Non débuté','En impression','En conception','En livraison'];
   const missingTable=e=>/no such table/i.test(String(e?.message||e));
+  const missingColumn=e=>/no such column/i.test(String(e?.message||e));
   const migrationError=()=>json({error:'La table du tableau design n’est pas encore créée dans D1 (cms/schema.sql).',migration_required:true},503);
+  const notesMigrationError=()=>json({error:'Le tableau design n’est pas encore à jour dans D1. Applique migrations/20261116-design-board-notes-images.sql avec wrangler, puis recharge la page.',migration_required:true},503);
   if(request.method==='GET'){
    let results;
    try{
-    ({results=[]}=await env.CMS_DB.prepare("SELECT id,client,email,phone,description,order_date,status,position,created_at FROM design_board_cards WHERE organization_id=? ORDER BY CASE status WHEN 'Soumission' THEN 0 WHEN 'projet' THEN 1 WHEN 'Non débuté' THEN 2 WHEN 'En impression' THEN 3 WHEN 'En conception' THEN 4 WHEN 'En livraison' THEN 5 ELSE 6 END, position, id").bind(org).all());
-   }catch(e){if(missingTable(e))return migrationError();throw e}
-   return json({ok:true,cards:results});
+    ({results=[]}=await env.CMS_DB.prepare("SELECT id,client,email,phone,description,order_date,status,position,image_url,created_at FROM design_board_cards WHERE organization_id=? ORDER BY CASE status WHEN 'Soumission' THEN 0 WHEN 'projet' THEN 1 WHEN 'Non débuté' THEN 2 WHEN 'En impression' THEN 3 WHEN 'En conception' THEN 4 WHEN 'En livraison' THEN 5 ELSE 6 END, position, id").bind(org).all());
+   }catch(e){if(missingTable(e))return migrationError();if(missingColumn(e))return notesMigrationError();throw e}
+   // Notes : table absente = migration des notes non appliquée, on renvoie
+   // les cartes sans notes plutôt que de casser le tableau.
+   let notes=[];
+   try{
+    ({results:notes}=await env.CMS_DB.prepare('SELECT id,card_id,note,created_at FROM design_board_notes WHERE organization_id=? ORDER BY card_id,created_at,id').bind(org).all());
+   }catch(e){if(!missingTable(e))throw e}
+   const byCard=new Map();
+   for(const n of notes){if(!byCard.has(n.card_id))byCard.set(n.card_id,[]);byCard.get(n.card_id).push({id:n.id,note:n.note,created_at:n.created_at})}
+   return json({ok:true,cards:results.map(c=>({...c,notes:byCard.get(c.id)||[]}))});
   }
   let body;try{body=await request.json()}catch{return json({error:'Données JSON invalides.'},400)}
   if(request.method==='DELETE'){
@@ -338,6 +348,9 @@ export async function handleCms(request,env){
    if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
    try{
     await env.CMS_DB.prepare('DELETE FROM design_board_cards WHERE id=? AND organization_id=?').bind(id,org).run();
+    // Les notes partent avec la carte (cascade explicite ; la FK en base
+    // est un filet de plus, D1 n'active pas toujours foreign_keys).
+    try{await env.CMS_DB.prepare('DELETE FROM design_board_notes WHERE card_id=? AND organization_id=?').bind(id,org).run()}catch(e){if(!missingTable(e))throw e}
    }catch(e){if(missingTable(e))return migrationError();throw e}
    return json({ok:true});
   }
@@ -348,8 +361,12 @@ export async function handleCms(request,env){
   const description=String(c.description||'').trim().slice(0,2000);
   const orderDate=/^\d{4}-\d{2}-\d{2}$/.test(String(c.order_date||''))?String(c.order_date):new Date().toISOString().slice(0,10);
   const status=String(c.status||'Soumission');
+  // Image : vide accepté, sinon lien /media/ (R2) ou URL http(s) complète.
+  const rawImage=String(c.image_url||'').trim().slice(0,1000);
+  const imageUrl=!rawImage?'':(rawImage.startsWith('/media/')||/^https?:\/\/[^\s]+$/.test(rawImage))?rawImage:null;
   if(!client||!description||!STATUSES.includes(status))return json({error:'Nom du client, description et colonne valides requis.'},400);
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Adresse courriel invalide.'},400);
+  if(imageUrl===null)return json({error:'Lien d’image invalide.'},400);
   try{
    let position=0;
    if(id){
@@ -361,15 +378,82 @@ export async function handleCms(request,env){
      const next=await env.CMS_DB.prepare('SELECT COALESCE(MAX(position),-1)+1 AS next FROM design_board_cards WHERE organization_id=? AND status=?').bind(org,status).first();
      position=next?.next??0;
     }
-    const result=await env.CMS_DB.prepare('UPDATE design_board_cards SET client=?,email=?,phone=?,description=?,order_date=?,status=?,position=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(client,email,phone,description,orderDate,status,position,id,org).run();
+    const result=await env.CMS_DB.prepare('UPDATE design_board_cards SET client=?,email=?,phone=?,description=?,order_date=?,status=?,position=?,image_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(client,email,phone,description,orderDate,status,position,imageUrl,id,org).run();
     if(!result.meta?.changes)return json({error:'Commande introuvable.'},404);
     return json({ok:true,id});
    }
    const next=await env.CMS_DB.prepare('SELECT COALESCE(MAX(position),-1)+1 AS next FROM design_board_cards WHERE organization_id=? AND status=?').bind(org,status).first();
    position=next?.next??0;
-   const result=await env.CMS_DB.prepare('INSERT INTO design_board_cards (organization_id,client,email,phone,description,order_date,status,position) VALUES (?,?,?,?,?,?,?,?)').bind(org,client,email,phone,description,orderDate,status,position).run();
+   const result=await env.CMS_DB.prepare('INSERT INTO design_board_cards (organization_id,client,email,phone,description,order_date,status,position,image_url) VALUES (?,?,?,?,?,?,?,?,?)').bind(org,client,email,phone,description,orderDate,status,position,imageUrl).run();
    return json({ok:true,id:result.meta?.last_row_id});
+  }catch(e){if(missingTable(e))return migrationError();if(missingColumn(e))return notesMigrationError();throw e}
+ }
+
+ // Notes du tableau design : plusieurs notes horodatées par carte.
+ // Table design_board_notes (voir migrations/20261116-design-board-notes-images.sql).
+ if(url.pathname==='/api/cms/design-board-notes'&&['POST','DELETE'].includes(request.method)){
+  const auth=await requireUser(request,env,'cms.content.edit');
+  if(auth.response)return auth.response;
+  const org=auth.user.organization_id;
+  const missingTable=e=>/no such table/i.test(String(e?.message||e));
+  const migrationError=()=>json({error:'La table des notes du tableau design n’est pas encore créée dans D1. Applique migrations/20261116-design-board-notes-images.sql avec wrangler, puis recharge la page.',migration_required:true},503);
+  let body;try{body=await request.json()}catch{return json({error:'Données JSON invalides.'},400)}
+  if(request.method==='DELETE'){
+   const id=Number(body?.id);
+   if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+   try{
+    const row=await env.CMS_DB.prepare('SELECT id FROM design_board_notes WHERE id=? AND organization_id=?').bind(id,org).first();
+    if(!row)return json({error:'Note introuvable.'},404);
+    await env.CMS_DB.prepare('DELETE FROM design_board_notes WHERE id=?').bind(id).run();
+   }catch(e){if(missingTable(e))return migrationError();throw e}
+   return json({ok:true});
+  }
+  const cardId=Number(body?.card_id||0);
+  const note=String(body?.note||'').trim().slice(0,1000);
+  if(!Number.isSafeInteger(cardId)||cardId<1)return json({error:'Commande introuvable.'},400);
+  if(!note)return json({error:'La note est vide.'},400);
+  try{
+   const card=await env.CMS_DB.prepare('SELECT id FROM design_board_cards WHERE id=? AND organization_id=?').bind(cardId,org).first();
+   if(!card)return json({error:'Commande introuvable.'},404);
+   const result=await env.CMS_DB.prepare('INSERT INTO design_board_notes (card_id,organization_id,note) VALUES (?,?,?)').bind(cardId,org,note).run();
+   const row=await env.CMS_DB.prepare('SELECT id,note,created_at FROM design_board_notes WHERE id=?').bind(result.meta?.last_row_id).first();
+   return json({ok:true,id:result.meta?.last_row_id,note:row?.note||note,created_at:row?.created_at||null});
   }catch(e){if(missingTable(e))return migrationError();throw e}
+ }
+
+ // Image d'une carte du tableau design (téléversement R2). Réutilise le même
+ // stockage que /api/cms/media (bucket CMS_MEDIA, servi en /media/...),
+ // mais sans site : clé design-board/{organisation}/{uuid}.{ext}, permission
+ // cms.content.edit comme le reste du tableau. Si R2 n'est pas lié au Worker,
+ // 503 clair ; le champ URL reste utilisable dans ce cas.
+ if(request.method==='POST'&&url.pathname==='/api/cms/design-board-image'){
+  const auth=await requireUser(request,env,'cms.content.edit');
+  if(auth.response)return auth.response;
+  const org=auth.user.organization_id;
+  const missingTable=e=>/no such table/i.test(String(e?.message||e));
+  const missingColumn=e=>/no such column/i.test(String(e?.message||e));
+  const migrationError=()=>json({error:'La colonne image du tableau design n’existe pas encore dans D1. Applique migrations/20261116-design-board-notes-images.sql avec wrangler, puis recharge la page.',migration_required:true},503);
+  if(!env.CMS_MEDIA)return json({error:'Le stockage d’images R2 n’est pas encore lié au Worker.'},503);
+  let data;try{data=await request.formData()}catch{return json({error:'Téléversement invalide.'},400)}
+  const cardId=Number(data.get('card_id')||0);
+  if(!Number.isSafeInteger(cardId)||cardId<1)return json({error:'Commande introuvable.'},400);
+  const file=data.get('file');
+  if(!(file instanceof File)||!file.size)return json({error:'Choisis une image à téléverser.'},400);
+  const allowed={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/avif':'avif'};
+  const ext=allowed[file.type];
+  if(!ext)return json({error:'Format non accepté. Utilise JPG, PNG, WebP, GIF ou AVIF.'},400);
+  if(file.size>8*1024*1024)return json({error:'Image trop lourde. Maximum 8 Mo.'},413);
+  try{
+   // On lit image_url ici pour que l'erreur « colonne manquante » sorte
+   // avant le téléversement (pas d'objet orphelin dans R2).
+   const card=await env.CMS_DB.prepare('SELECT id,image_url FROM design_board_cards WHERE id=? AND organization_id=?').bind(cardId,org).first();
+   if(!card)return json({error:'Commande introuvable.'},404);
+   const key=`design-board/${org}/${crypto.randomUUID()}.${ext}`;
+   await env.CMS_MEDIA.put(key,file.stream(),{httpMetadata:{contentType:file.type,cacheControl:'public, max-age=31536000, immutable'},customMetadata:{originalName:file.name||'image',organizationId:String(org)}});
+   const publicPath='/media/'+key.split('/').map(encodeURIComponent).join('/');
+   await env.CMS_DB.prepare('UPDATE design_board_cards SET image_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(publicPath,cardId,org).run();
+   return json({ok:true,url:publicPath});
+  }catch(e){if(missingTable(e))return migrationError();if(missingColumn(e))return migrationError();throw e}
  }
 
  // Catalogue interne indépendant de S&S. Protégé par Cloudflare Access et les permissions CMS.
