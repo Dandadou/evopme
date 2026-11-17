@@ -274,7 +274,8 @@ SELECT id,'payments',1 FROM organizations WHERE slug='evolution-pme';
 -- date). Une commande commence en « Soumission ». Remplace le papier.
 -- Appliquer avec : wrangler d1 execute evolution-cms --file=cms/schema.sql
 -- (ou seulement migrations/20261116-design-board-cards.sql puis
--- migrations/20261117-design-board-soumission.sql pour une base existante).
+-- migrations/20261117-design-board-soumission.sql puis
+-- migrations/20261116-design-board-notes-images.sql pour une base existante).
 -- Sans cette table, le panneau affiche un message clair (migration_required)
 -- au lieu de casser.
 CREATE TABLE IF NOT EXISTS design_board_cards (
@@ -287,9 +288,25 @@ CREATE TABLE IF NOT EXISTS design_board_cards (
   order_date TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'Soumission' CHECK(status IN ('Soumission','projet','Non débuté','En impression','En conception','En livraison')),
   position INTEGER NOT NULL DEFAULT 0,
+  image_url TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_design_board_cards_org_status
 ON design_board_cards(organization_id,status,position);
+
+-- Notes du tableau design : plusieurs notes horodatées par carte.
+-- Supprimées avec la carte (cascade en base + suppression explicite
+-- dans la route DELETE de /api/cms/design-board).
+CREATE TABLE IF NOT EXISTS design_board_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  card_id INTEGER NOT NULL,
+  organization_id INTEGER NOT NULL,
+  note TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (card_id) REFERENCES design_board_cards(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_design_board_notes_card
+ON design_board_notes(card_id,created_at);
