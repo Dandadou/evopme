@@ -306,11 +306,15 @@ export async function handleCms(request,env){
   return json({ok:true,id:result.meta?.last_row_id,price_cents:price});
  }
 
- // Tableau design — suivi des commandes clients (Kanban) : projet, Non débuté,
- // En impression, En conception, En livraison. Remplace le papier : chaque carte
- // est une commande client (nom, courriel, téléphone, description, date).
- // Table design_board_cards créée par cms/schema.sql (migration manuelle, voir
- // migrations/20261116-design-board-cards.sql). Si la table n'existe pas encore,
+ // Tableau design — suivi des commandes clients (Kanban) : Soumission,
+ // projet, Non débuté, En impression, En conception, En livraison. Remplace
+ // le papier : chaque carte est une commande client (nom, courriel,
+ // téléphone, description, date). Une commande commence en « Soumission »,
+ // puis avance d'étape en étape jusqu'à « En livraison ».
+ // Table design_board_cards créée par cms/schema.sql (migrations manuelles,
+ // voir migrations/20261116-design-board-cards.sql puis
+ // migrations/20261117-design-board-soumission.sql pour la colonne
+ // « Soumission »). Si la table n'existe pas encore,
  // on renvoie 503 migration_required : le panneau affiche un message clair au
  // lieu de casser. Pas d'auto-création ici : la migration reste la source de
  // vérité (leçon ÉVOOT : ne jamais dépendre d'une table non migrée).
@@ -318,13 +322,13 @@ export async function handleCms(request,env){
   const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
   if(auth.response)return auth.response;
   const org=auth.user.organization_id;
-  const STATUSES=['projet','Non débuté','En impression','En conception','En livraison'];
+  const STATUSES=['Soumission','projet','Non débuté','En impression','En conception','En livraison'];
   const missingTable=e=>/no such table/i.test(String(e?.message||e));
   const migrationError=()=>json({error:'La table du tableau design n’est pas encore créée dans D1 (cms/schema.sql).',migration_required:true},503);
   if(request.method==='GET'){
    let results;
    try{
-    ({results=[]}=await env.CMS_DB.prepare("SELECT id,client,email,phone,description,order_date,status,position,created_at FROM design_board_cards WHERE organization_id=? ORDER BY CASE status WHEN 'projet' THEN 0 WHEN 'Non débuté' THEN 1 WHEN 'En impression' THEN 2 WHEN 'En conception' THEN 3 WHEN 'En livraison' THEN 4 ELSE 5 END, position, id").bind(org).all());
+    ({results=[]}=await env.CMS_DB.prepare("SELECT id,client,email,phone,description,order_date,status,position,created_at FROM design_board_cards WHERE organization_id=? ORDER BY CASE status WHEN 'Soumission' THEN 0 WHEN 'projet' THEN 1 WHEN 'Non débuté' THEN 2 WHEN 'En impression' THEN 3 WHEN 'En conception' THEN 4 WHEN 'En livraison' THEN 5 ELSE 6 END, position, id").bind(org).all());
    }catch(e){if(missingTable(e))return migrationError();throw e}
    return json({ok:true,cards:results});
   }
@@ -343,7 +347,7 @@ export async function handleCms(request,env){
   const phone=String(c.phone||'').trim().slice(0,35);
   const description=String(c.description||'').trim().slice(0,2000);
   const orderDate=/^\d{4}-\d{2}-\d{2}$/.test(String(c.order_date||''))?String(c.order_date):new Date().toISOString().slice(0,10);
-  const status=String(c.status||'projet');
+  const status=String(c.status||'Soumission');
   if(!client||!description||!STATUSES.includes(status))return json({error:'Nom du client, description et colonne valides requis.'},400);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Adresse courriel invalide.'},400);
   if(!phone)return json({error:'Numéro de téléphone requis.'},400);

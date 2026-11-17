@@ -268,11 +268,13 @@ WHERE r.slug IN ('super_admin','staff');
 INSERT OR IGNORE INTO organization_modules (organization_id,module,enabled)
 SELECT id,'payments',1 FROM organizations WHERE slug='evolution-pme';
 
--- Tableau design — suivi des commandes clients (Kanban) : projet, Non débuté,
--- En impression, En conception, En livraison. Chaque carte est une commande
--- client (nom, courriel, téléphone, description, date). Remplace le papier.
+-- Tableau design — suivi des commandes clients (Kanban) : Soumission,
+-- projet, Non débuté, En impression, En conception, En livraison. Chaque
+-- carte est une commande client (nom, courriel, téléphone, description,
+-- date). Une commande commence en « Soumission ». Remplace le papier.
 -- Appliquer avec : wrangler d1 execute evolution-cms --file=cms/schema.sql
--- (ou seulement migrations/20261116-design-board-cards.sql).
+-- (ou seulement migrations/20261116-design-board-cards.sql puis
+-- migrations/20261117-design-board-soumission.sql pour une base existante).
 -- Sans cette table, le panneau affiche un message clair (migration_required)
 -- au lieu de casser.
 CREATE TABLE IF NOT EXISTS design_board_cards (
@@ -283,7 +285,7 @@ CREATE TABLE IF NOT EXISTS design_board_cards (
   phone TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL,
   order_date TEXT NOT NULL DEFAULT '',
-  status TEXT NOT NULL DEFAULT 'projet' CHECK(status IN ('projet','Non débuté','En impression','En conception','En livraison')),
+  status TEXT NOT NULL DEFAULT 'Soumission' CHECK(status IN ('Soumission','projet','Non débuté','En impression','En conception','En livraison')),
   position INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
