@@ -306,6 +306,72 @@ export async function handleCms(request,env){
   return json({ok:true,id:result.meta?.last_row_id,price_cents:price});
  }
 
+ // Tableau design — suivi des commandes clients (Kanban) : Soumission,
+ // projet, Non débuté, En impression, En conception, En livraison. Remplace
+ // le papier : chaque carte est une commande client (nom, courriel,
+ // téléphone, description, date). Une commande commence en « Soumission »,
+ // puis avance d'étape en étape jusqu'à « En livraison ».
+ // Table design_board_cards créée par cms/schema.sql (migrations manuelles,
+ // voir migrations/20261116-design-board-cards.sql puis
+ // migrations/20261117-design-board-soumission.sql pour la colonne
+ // « Soumission »). Si la table n'existe pas encore,
+ // on renvoie 503 migration_required : le panneau affiche un message clair au
+ // lieu de casser. Pas d'auto-création ici : la migration reste la source de
+ // vérité (leçon ÉVOOT : ne jamais dépendre d'une table non migrée).
+ if(url.pathname==='/api/cms/design-board'&&['GET','POST','DELETE'].includes(request.method)){
+  const auth=await requireUser(request,env,request.method==='GET'?'cms.content.view':'cms.content.edit');
+  if(auth.response)return auth.response;
+  const org=auth.user.organization_id;
+  const STATUSES=['Soumission','projet','Non débuté','En impression','En conception','En livraison'];
+  const missingTable=e=>/no such table/i.test(String(e?.message||e));
+  const migrationError=()=>json({error:'La table du tableau design n’est pas encore créée dans D1 (cms/schema.sql).',migration_required:true},503);
+  if(request.method==='GET'){
+   let results;
+   try{
+    ({results=[]}=await env.CMS_DB.prepare("SELECT id,client,email,phone,description,order_date,status,position,created_at FROM design_board_cards WHERE organization_id=? ORDER BY CASE status WHEN 'Soumission' THEN 0 WHEN 'projet' THEN 1 WHEN 'Non débuté' THEN 2 WHEN 'En impression' THEN 3 WHEN 'En conception' THEN 4 WHEN 'En livraison' THEN 5 ELSE 6 END, position, id").bind(org).all());
+   }catch(e){if(missingTable(e))return migrationError();throw e}
+   return json({ok:true,cards:results});
+  }
+  let body;try{body=await request.json()}catch{return json({error:'Données JSON invalides.'},400)}
+  if(request.method==='DELETE'){
+   const id=Number(body?.id);
+   if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+   try{
+    await env.CMS_DB.prepare('DELETE FROM design_board_cards WHERE id=? AND organization_id=?').bind(id,org).run();
+   }catch(e){if(missingTable(e))return migrationError();throw e}
+   return json({ok:true});
+  }
+  const c=body?.card||{},id=Number(c.id||0);
+  const client=String(c.client||'').trim().slice(0,160);
+  const email=String(c.email||'').trim().toLowerCase().slice(0,320);
+  const phone=String(c.phone||'').trim().slice(0,35);
+  const description=String(c.description||'').trim().slice(0,2000);
+  const orderDate=/^\d{4}-\d{2}-\d{2}$/.test(String(c.order_date||''))?String(c.order_date):new Date().toISOString().slice(0,10);
+  const status=String(c.status||'Soumission');
+  if(!client||!description||!STATUSES.includes(status))return json({error:'Nom du client, description et colonne valides requis.'},400);
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Adresse courriel invalide.'},400);
+  try{
+   let position=0;
+   if(id){
+    if(!Number.isSafeInteger(id)||id<1)return json({error:'Identifiant invalide.'},400);
+    const current=await env.CMS_DB.prepare('SELECT status,position FROM design_board_cards WHERE id=? AND organization_id=?').bind(id,org).first();
+    if(!current)return json({error:'Commande introuvable.'},404);
+    position=current.position;
+    if(current.status!==status){
+     const next=await env.CMS_DB.prepare('SELECT COALESCE(MAX(position),-1)+1 AS next FROM design_board_cards WHERE organization_id=? AND status=?').bind(org,status).first();
+     position=next?.next??0;
+    }
+    const result=await env.CMS_DB.prepare('UPDATE design_board_cards SET client=?,email=?,phone=?,description=?,order_date=?,status=?,position=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND organization_id=?').bind(client,email,phone,description,orderDate,status,position,id,org).run();
+    if(!result.meta?.changes)return json({error:'Commande introuvable.'},404);
+    return json({ok:true,id});
+   }
+   const next=await env.CMS_DB.prepare('SELECT COALESCE(MAX(position),-1)+1 AS next FROM design_board_cards WHERE organization_id=? AND status=?').bind(org,status).first();
+   position=next?.next??0;
+   const result=await env.CMS_DB.prepare('INSERT INTO design_board_cards (organization_id,client,email,phone,description,order_date,status,position) VALUES (?,?,?,?,?,?,?,?)').bind(org,client,email,phone,description,orderDate,status,position).run();
+   return json({ok:true,id:result.meta?.last_row_id});
+  }catch(e){if(missingTable(e))return migrationError();throw e}
+ }
+
  // Catalogue interne indépendant de S&S. Protégé par Cloudflare Access et les permissions CMS.
  // Paliers de prix propres à chaque produit, sans données fournisseur présumées.
  if(url.pathname==='/api/cms/catalogue-prices'&&['GET','PUT'].includes(request.method)){
