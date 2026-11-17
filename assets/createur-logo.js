@@ -339,7 +339,8 @@
     paletteIdx: 0, forme: "", police: "", palette: null, symbole: null, themeSymbole: "",
     crash: null, previewBg: "blanc",
     consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: "",
-    sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null
+    sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null,
+    imageGen: null, imageGenStatut: "", imageDirection: "plat"
   };
   CFG.dimensionsAaker.forEach(function (d) { state.aakerFondateur[d.id] = 3; state.aakerClient[d.id] = 3; });
 
@@ -408,12 +409,18 @@
      Si l'IA est indisponible, en quota, ou renvoie une sortie invalide,
      la route répond source:"locale" et on garde l'analyse locale par
      mots-clés. Le client voit toujours un résultat, jamais une erreur. */
-  async function analyserAvecIA() {
-    var payload = {
+  /* Le questionnaire, dans le format exact qu'attend le serveur
+     (validateQuestionnaire) : le même objet sert à l'analyse ET à
+     l'image, pour que le serveur reconstruise le prompt. */
+  function questionnairePayload() {
+    return {
       entreprise: state.entreprise, secteur: state.secteur, secteurAutre: state.secteurAutre,
       clientele: state.clientele, typeLogo: state.typeLogo, style: state.style,
       reponses: state.reponses, aakerFondateur: state.aakerFondateur, aakerClient: state.aakerClient
     };
+  }
+  async function analyserAvecIA() {
+    var payload = questionnairePayload();
     try {
       var ctrl = new AbortController();
       var timer = setTimeout(function () { ctrl.abort(); }, 30000);
@@ -458,6 +465,118 @@
     state.trace = CFG.questionsOuvertes.map(function (q) {
       return { question: q, reponse: state.reponses[q.id] || "", found: [] };
     });
+  }
+
+  /* ---------- image générée par l'IA (FLUX) ----------
+     POST /api/logo/image : le client envoie l'analyse validée + le
+     questionnaire, le serveur reconstruit le prompt image avec
+     buildImagePrompt (jamais un prompt fourni par le client) et
+     appelle FLUX.1 schnell. L'image est une PROPOSITION à valider,
+     en JPEG raster — pas le logo final, qui reste le SVG vectoriel.
+     Le texte y est souvent approximatif : le nom de l'entreprise
+     n'est jamais dans l'image, il est ajouté en vrai texte dans le
+     SVG. Quota côté serveur : 5 images / heure / IP. */
+  function analysePourImage() {
+    if (state.iaAnalyse) return state.iaAnalyse;
+    /* Analyse locale : on reconstruit un objet analyse complet à
+       partir de l'état, pour que le serveur puisse le valider et
+       reconstruire le prompt. Confiance faible, c'est honnête : ce
+       n'est pas une analyse IA, c'est le pointage par mots-clés. */
+    var pal = state.palette || { couleurs: ["#0f766e", "#334155", "#f59e0b"] };
+    var roles = ["dominante", "appui", "accent"];
+    var palette = pal.couleurs.slice(0, 3).map(function (hex, i) {
+      var hsl = hexToHsl(hex);
+      return { hex: String(hex).toLowerCase(), role: roles[i], saturation: hsl.s, luminosite: hsl.l, justification: "" };
+    });
+    var scores = {};
+    CFG.archetypes.forEach(function (a) { scores[a.id] = state.scores ? (state.scores[a.id] || 0) : 0; });
+    var secondId = (state.second && state.second.id && state.second.id !== state.top.id)
+      ? state.second.id
+      : CFG.archetypes.filter(function (a) { return a.id !== state.top.id; })[0].id;
+    var sym = symboleActuel();
+    var symbole = null;
+    if (sym && Array.isArray(sym.elements) && sym.elements.length) {
+      symbole = {
+        nom: sym.nom, description: sym.description || sym.nom,
+        justification: (sym.sources && sym.sources.join(" ")) || sym.description || sym.nom,
+        elements: sym.elements
+      };
+    }
+    return {
+      archetype_principal: state.top.id,
+      archetype_secondaire: secondId,
+      scores_archetypes: scores,
+      aaker_fondateur: state.aakerFondateur,
+      aaker_clientele: state.aakerClient,
+      ecart_fondateur_clientele: "Écart calculé localement à partir des curseurs.",
+      strategie_recommandee: "compromis",
+      palette: palette,
+      forme: state.forme,
+      forme_justification: "",
+      symbole: symbole,
+      police: state.police,
+      police_justification: "",
+      histoire_une_page: "« " + (state.entreprise || "Ton entreprise") + " existe parce que " + (state.reponses["fierte"] || "…") + " Même après " + (state.reponses["defi"] || "…") + ", l'idée reste la même : que les gens repartent en se sentant " + (state.reponses["ressenti"] || "…") + " »",
+      ombre: state.top.ombre,
+      confiance: "faible",
+      confiance_raison: "Analyse locale par mots-clés, pas une analyse IA.",
+      non_determine: [],
+      a_tester: ["Crash-test auprès de vrais clients."]
+    };
+  }
+  function direImageStatut(msg) {
+    var statut = $("imageGenStatut");
+    if (statut) { statut.hidden = false; statut.textContent = msg; }
+  }
+  async function genererImageIA() {
+    if (!state.top) return;
+    var btn = $("btnGenererImage"), btn2 = $("btnRegenererImage");
+    [btn, btn2].forEach(function (b) { if (b) b.disabled = true; });
+    direImageStatut("Génération de ton image en cours… ça prend quelques secondes.");
+    var direction = ($("imageDirection") && $("imageDirection").value) || "plat";
+    try {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 60000);
+      var res = await fetch("/api/logo/image", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ analyse: analysePourImage(), questionnaire: questionnairePayload(), directionStyle: direction }),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      var data = null; try { data = await res.json(); } catch (e) { data = null; }
+      if (!res.ok || !data || !data.ok || !data.image) {
+        var msg = (data && data.message) ? data.message : "La génération a échoué. Réessaie dans un moment.";
+        direImageStatut("L'image n'a pas pu être générée : " + msg + " Ton logo SVG, lui, reste disponible juste au-dessus.");
+        return;
+      }
+      state.imageGen = { image: data.image, model: data.model || "", prompt: data.image_prompt ? data.image_prompt.prompt : "", direction: direction };
+      state.imageDirection = direction;
+      direImageStatut("Image générée par l'IA (" + (data.model || "FLUX") + "). Symbole seulement, sans texte : aucune lettre, aucun mot dans l'image. Ton nom est ajouté par Archétype en dessous, en vrai texte vectoriel. C'est une proposition à valider, pas le logo final : c'est une image raster.");
+      renderImageGen();
+    } catch (e) {
+      direImageStatut("La génération a été interrompue (délai dépassé ou réseau). Réessaie : ton logo SVG reste disponible juste au-dessus.");
+    } finally {
+      [btn, btn2].forEach(function (b) { if (b) b.disabled = false; });
+    }
+  }
+  function renderImageGen() {
+    var box = $("imageGenBox"); if (!box) return;
+    var img = $("imageGeneree");
+    if (state.imageGen && state.imageGen.image) {
+      box.hidden = false;
+      if (img) img.src = state.imageGen.image;
+      var p = $("imageGenPrompt");
+      if (p) p.textContent = state.imageGen.prompt ? "Prompt utilisé : " + state.imageGen.prompt : "";
+    } else {
+      box.hidden = true;
+    }
+  }
+  function telechargerImageGeneree() {
+    if (!state.imageGen || !state.imageGen.image) return;
+    var a = document.createElement("a");
+    a.href = state.imageGen.image;
+    a.download = "logo-ia-" + (state.entreprise || "entreprise").toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".jpg";
+    document.body.appendChild(a); a.click(); a.remove();
   }
 
   /* ---------- SVG du logo ---------- */
@@ -667,7 +786,7 @@
       + "<p>Ceci est une piste de travail à valider, pas un diagnostic. Les archétypes sont le vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung.</p>"
       + "<p><b>Source de l'analyse : " + (state.sourceAnalyse === "ia" ? "IA (Workers AI" + (state.iaModele ? ", " + esc(state.iaModele) : "") + ")" : "locale, par mots-clés") + ".</b></p>"
       + (state.iaAnalyse && state.iaAnalyse.histoire_une_page ? "<h3>Ton histoire, selon l'IA</h3><p>" + esc(state.iaAnalyse.histoire_une_page) + "</p><p><b>Ombre à éviter :</b> " + esc(state.iaAnalyse.ombre) + " · <b>Confiance :</b> " + esc(state.iaAnalyse.confiance) + "</p>" : "")
-      + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Pour FLUX, en inspiration seulement — le logo final reste un SVG vectoriel, et ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
+      + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Tu peux générer cette image avec le bouton « Générer l'image avec l'IA » dans l'étape 3 : c'est une proposition à valider, en raster, pas le logo final vectoriel — ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
       + "<h3>Pointage des 12 archétypes</h3><table><tr><th>Archétype</th><th>Points</th><th>Promesse</th></tr>" + rows + "</table>"
       + "<h3>Couleurs, forme, symbole et police choisis</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Symbole : " + esc(symboleActuel().nom) + " · Police : " + esc(state.police) + "</p>"
       + "<h3>Double portrait (Aaker)</h3><p>" + esc(($("aakerResult") || {}).textContent || "") + "</p>"
@@ -864,6 +983,7 @@
       go.disabled = true; var label0 = go.textContent; go.textContent = "ANALYSE EN COURS…";
       var okIA = await analyserAvecIA();
       if (!okIA) { state.sourceAnalyse = "locale"; state.iaAnalyse = null; state.imagePrompt = null; analyze(); }
+      state.imageGen = null; renderImageGen();
       go.disabled = false; go.textContent = label0;
       renderResult(); showStep(3);
     });
@@ -908,9 +1028,13 @@
     var dl = $("btnDlAnalyse"); if (dl) dl.addEventListener("click", downloadAnalysis);
     var pro = $("btnPro"); if (pro) pro.addEventListener("click", mailPro);
     var crash = $("btnCrash"); if (crash) crash.addEventListener("click", runCrashTest);
+    var gen = $("btnGenererImage"); if (gen) gen.addEventListener("click", genererImageIA);
+    var regen = $("btnRegenererImage"); if (regen) regen.addEventListener("click", genererImageIA);
+    var dlImg = $("btnDlImage"); if (dlImg) dlImg.addEventListener("click", telechargerImageGeneree);
+    var dirSel = $("imageDirection"); if (dirSel) dirSel.addEventListener("change", function () { state.imageDirection = dirSel.value; });
     showStep(1);
   }
-  window.EVOPME_LOGO_TEST = { renderSymboleSpec: renderSymboleSpec, composerSymboleLocal: composerSymboleLocal, symboleActuel: symboleActuel, logoSVG: logoSVG, state: state };
+  window.EVOPME_LOGO_TEST = { renderSymboleSpec: renderSymboleSpec, composerSymboleLocal: composerSymboleLocal, symboleActuel: symboleActuel, logoSVG: logoSVG, state: state, analysePourImage: analysePourImage, genererImageIA: genererImageIA, renderImageGen: renderImageGen };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();

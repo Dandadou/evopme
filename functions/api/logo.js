@@ -16,6 +16,23 @@
  *     navigateur, avec source: "locale" dans la réponse. Le client ne
  *     voit jamais une erreur brute ni un JSON cassé.
  *
+ * GÉNÉRATEUR D'IMAGE — POST /api/logo/image (FLUX.1 schnell) :
+ *  Le client envoie l'analyse validée + le questionnaire ; le serveur
+ *  reconstruit le prompt image avec buildImagePrompt (jamais un prompt
+ *  fourni par le client), puis appelle Workers AI :
+ *  @cf/black-forest-labs/flux-1-schnell (vérifié le 2026-11-16 sur la
+ *  page officielle Cloudflare : text-to-image, 12 milliards de
+ *  paramètres, rétention de données nulle). env.AI.run(model,
+ *  { prompt, steps: 4 }) renvoie { image: "<base64 JPEG>" }, 1024x1024.
+ *  FLUX ne prend PAS de negative prompt ni de largeur/hauteur : les
+ *  interdits sont déjà dans le prompt positif (« no text, no letters,
+ *  no words... »). L'image est une PROPOSITION à valider, en raster —
+ *  jamais le logo final, qui reste le SVG vectoriel. Quota : 5 images /
+ *  heure / IP (une image coûte plus de Neurons qu'une analyse).
+ *  Aucune conservation : l'analyse et le prompt sont oubliés après la
+ *  requête, l'image n'est jamais écrite en D1 ni ailleurs.
+ *  Modèle changeable par la var LOGO_IMAGE_MODEL (wrangler.jsonc).
+ *
  * LOI 25 — AUCUNE CONSERVATION :
  *  La route analyse pendant la requête, puis oublie. Les réponses ne
  *  sont jamais journalisées, jamais écrites en D1, jamais envoyées
@@ -605,9 +622,17 @@ export function validateAnalyse(obj, questionnaire) {
  * d'inspiration), JAMAIS au logo final, qui reste un SVG vectoriel.
  *
  * RÈGLES ANTI-CHEAP (normes §9 + demande de Daniel) :
- *  - Symbole seulement. AUCUN texte dans l'image : ni nom, ni lettres,
- *    ni mots. Le nom de l'entreprise est ajouté ensuite en vrai texte
- *    vectoriel, dans le SVG, jamais rendu par le générateur d'image.
+ *  - SYMBOLE SEULEMENT, SANS TEXTE — go de Daniel, confirmé le
+ *    2026-11-16 (« FLUX en mode symbole seulement, SANS texte »).
+ *    AUCUN texte dans l'image : ni nom, ni lettres, ni mots, ni
+ *    wordmark, ni typographie. FLUX ne prend pas de negative prompt :
+ *    l'interdiction est donc écrite noir sur blanc DANS le prompt
+ *    positif (« symbol only, absolutely no text, no letters, no
+ *    words, no typography, no wordmark... »), et les mêmes mots sont
+ *    dans le negative prompt (pour la documentation et l'analyse
+ *    téléchargeable). Le nom de l'entreprise est ajouté ensuite par
+ *    Archétype, en dessous, en vrai texte vectoriel dans le SVG —
+ *    lisible et modifiable — jamais rendu par le générateur d'image.
  *  - Style vectoriel plat, minimaliste, net. Pas de clip-art générique,
  *    pas d'icône de banque d'images, pas de dégradé arc-en-ciel,
  *    pas d'ombre portée, pas de biseau, pas d'effet 3D / chrome /
@@ -627,7 +652,8 @@ export const IMAGE_QUALITY_TOKENS = [
    le prompt positif. */
 export const IMAGE_BANNED_TOKENS = [
   "text", "letters", "alphabet", "words", "typography", "watermark",
-  "logo text", "clipart", "clip-art", "generic stock icon",
+  "logo text", "wordmark", "brand name", "company name",
+  "clipart", "clip-art", "generic stock icon",
   "rainbow", "rainbow gradient", "multicolor gradient",
   "drop shadow", "bevel", "emboss", "chrome", "metallic",
   "glossy", "glassy", "photorealistic", "photo", "messy", "cluttered",
@@ -1007,7 +1033,7 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
   parties.push(
     "limited palette of exactly " + hexes.length + " colors: " + hexes.join(", ") +
       " (" + roles + "), " + tonPalette(analyse.palette) + ", no other colors",
-    "no text, no letters, no words, no typography in the image",
+    "symbol only, absolutely no text, no letters, no words, no typography, no wordmark, no logo text, no brand name in the image",
     "symbol only, one single focal symbol, clear hierarchy, no scattered decorations",
     "centered on a plain solid background"
   );
@@ -1164,5 +1190,168 @@ export async function handleLogoAnalyse(request, env) {
     image_prompt: imagePrompt,
     avertissements: valide.warnings,
     note: "Piste de travail à valider, pas un diagnostic. Daniel valide avant toute livraison.",
+  });
+}
+
+/* ============================================================================
+ * GÉNÉRATEUR D'IMAGE — POST /api/logo/image (FLUX.1 schnell).
+ * Voir l'en-tête du fichier pour le modèle vérifié et les limites.
+ * ========================================================================== */
+export const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
+export const IMAGE_STEPS = 4; /* schnell est distillé pour 4 étapes */
+export const IMAGE_RATE_LIMIT_PER_HOUR = 5;
+export const IMAGE_MAX_BODY_BYTES = 20480;
+
+/* Quota images : 5 / heure / IP, en mémoire (même limite que le quota
+   analyses : par instance de Worker, pas un compteur global exact).
+   Aucune donnée du questionnaire n'est conservée ici : que l'IP et
+   l'heure, comme pour les analyses. */
+const rateLimitImage = new Map();
+function quotaImageDepasse(ip) {
+  const now = Date.now();
+  const key = ip || "inconnue";
+  const entrees = (rateLimitImage.get(key) || []).filter((t) => now - t < 3600000);
+  if (entrees.length >= IMAGE_RATE_LIMIT_PER_HOUR) {
+    rateLimitImage.set(key, entrees);
+    return true;
+  }
+  entrees.push(now);
+  rateLimitImage.set(key, entrees);
+  return false;
+}
+
+function octetsEnBase64(octets) {
+  let binaire = "";
+  const TAILLE = 8192;
+  for (let i = 0; i < octets.length; i += TAILLE) {
+    binaire += String.fromCharCode.apply(null, octets.subarray(i, i + TAILLE));
+  }
+  return btoa(binaire);
+}
+
+/* Décodage du résultat image. FLUX renvoie { image: "<base64 JPEG>" }.
+   On gère aussi des octets bruts ou un flux, par prudence : si le
+   modèle change de format de retour un jour, la route ne casse pas
+   en erreur brute. */
+export async function imageToBase64(resultat) {
+  if (!resultat) return { ok: false, base64: null, mime: null };
+  if (typeof resultat.image === "string" && resultat.image.length > 100) {
+    return { ok: true, base64: resultat.image, mime: "image/jpeg" };
+  }
+  if (resultat instanceof Uint8Array) {
+    return { ok: true, base64: octetsEnBase64(resultat), mime: "image/jpeg" };
+  }
+  if (resultat instanceof ArrayBuffer) {
+    return { ok: true, base64: octetsEnBase64(new Uint8Array(resultat)), mime: "image/jpeg" };
+  }
+  if (resultat && typeof resultat.getReader === "function") {
+    const lecteur = resultat.getReader();
+    const morceaux = [];
+    let total = 0;
+    for (;;) {
+      const { done, value } = await lecteur.read();
+      if (done) break;
+      if (value) { morceaux.push(value); total += value.length; }
+    }
+    const octets = new Uint8Array(total);
+    let decalage = 0;
+    morceaux.forEach((m) => { octets.set(m, decalage); decalage += m.length; });
+    if (!total) return { ok: false, base64: null, mime: null };
+    return { ok: true, base64: octetsEnBase64(octets), mime: "image/jpeg" };
+  }
+  return { ok: false, base64: null, mime: null };
+}
+
+export async function handleLogoImage(request, env) {
+  if (request.method !== "POST") {
+    return json({ ok: false, error: "Méthode non acceptée." }, 405);
+  }
+  if (!env || !env.AI || typeof env.AI.run !== "function") {
+    return json({
+      ok: false,
+      error: "ia-indisponible",
+      message: "Le générateur d'image est indisponible pour le moment. Ton logo SVG reste disponible.",
+    }, 503);
+  }
+  const ip =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for") ||
+    "inconnue";
+  if (quotaImageDepasse(ip)) {
+    return json({
+      ok: false,
+      error: "quota-depasse",
+      message: "Quota d'images atteint pour cette heure (5 maximum). Réessaie plus tard.",
+    }, 429);
+  }
+  let texteBrut;
+  try {
+    texteBrut = await request.text();
+  } catch (e) {
+    return json({ ok: false, error: "Lecture de la requête impossible." }, 400);
+  }
+  if (new TextEncoder().encode(texteBrut).length > IMAGE_MAX_BODY_BYTES) {
+    return json({ ok: false, error: "Requête trop volumineuse (20 Ko maximum)." }, 413);
+  }
+  let body;
+  try {
+    body = JSON.parse(texteBrut);
+  } catch (e) {
+    return json({ ok: false, error: "JSON invalide." }, 400);
+  }
+  /* Le client envoie l'analyse validée + le questionnaire. Le prompt
+     image est TOUJOURS reconstruit côté serveur avec buildImagePrompt :
+     on n'accepte jamais un prompt fourni par le client. */
+  if (!isPlainObject(body) || !isPlainObject(body.questionnaire) || !isPlainObject(body.analyse)) {
+    return json({ ok: false, error: "Requête invalide : analyse et questionnaire requis." }, 400);
+  }
+  const entree = validateQuestionnaire(body.questionnaire);
+  if (!entree.ok) {
+    return json({ ok: false, error: "Questionnaire invalide : " + entree.errors.join("; ") }, 400);
+  }
+  const valide = validateAnalyse(body.analyse, entree.data);
+  if (!valide.ok) {
+    return json({ ok: false, error: "Analyse invalide : " + valide.errors.join("; ") }, 400);
+  }
+  const direction =
+    typeof body.directionStyle === "string" && STYLE_DIRECTION_IDS.includes(body.directionStyle)
+      ? body.directionStyle
+      : (entree.data.directionStyle || "plat");
+  let imagePrompt;
+  try {
+    imagePrompt = buildImagePrompt(valide.analyse, entree.data, { direction });
+  } catch (e) {
+    return json({ ok: false, error: "Analyse invalide pour le prompt image." }, 400);
+  }
+  const modeleImage =
+    (env.LOGO_IMAGE_MODEL && String(env.LOGO_IMAGE_MODEL).trim()) || IMAGE_MODEL;
+  let resultat;
+  try {
+    resultat = await env.AI.run(modeleImage, {
+      prompt: imagePrompt.prompt,
+      steps: IMAGE_STEPS,
+    });
+  } catch (e) {
+    return json({
+      ok: false,
+      error: "modele-image-indisponible",
+      message: "Le modèle d'image est indisponible pour le moment. Réessaie plus tard.",
+    }, 503);
+  }
+  const image = await imageToBase64(resultat);
+  if (!image.ok) {
+    return json({
+      ok: false,
+      error: "image-vide",
+      message: "Le modèle n'a pas renvoyé d'image. Réessaie.",
+    }, 502);
+  }
+  return json({
+    ok: true,
+    source: "ia-image",
+    model: modeleImage,
+    image: "data:image/jpeg;base64," + image.base64,
+    image_prompt: imagePrompt,
+    note: "Proposition générée par l'IA, à valider — image raster (JPEG 1024x1024), pas un fichier vectoriel. Symbole seulement, sans texte : aucune lettre, aucun mot, aucun texte dans l'image. Le nom de l'entreprise est ajouté par Archétype en dessous, en vrai texte vectoriel (SVG), lisible et modifiable. Pour un logo final, Daniel le retravaille en vectoriel.",
   });
 }

@@ -32,6 +32,7 @@
 .cl-logo-box.dark{background:#0d0d0f}
 .cl-logo-box.transparent{background:repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 0 0/24px 24px}
 .cl-logo-box svg{max-width:420px;width:100%;height:auto}
+.cl-img-gen{max-width:420px;width:100%;border-radius:16px;display:block;margin:18px auto 0}
 .cl-bg-toggle{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .cl-bg-toggle button{border:1px solid var(--line);background:#171719;color:#ddd;border-radius:99px;padding:9px 15px;cursor:pointer;font-weight:800;font-size:.8rem}
 .cl-bg-toggle button.active{background:var(--orange);color:#111;border-color:var(--orange)}
@@ -85,6 +86,12 @@
 <div class="cl-card" id="step3" hidden><h2>Étape 3 · Ton logo</h2><div id="resArchetype"></div><div id="resBars"></div>
 <h3>Ton logo</h3><div class="cl-logo-box" id="logoPreview"></div><p id="logoCaption" style="text-align:center;color:#999"></p>
 <div class="cl-bg-toggle" role="group" aria-label="Fond de l'aperçu"><button type="button" data-bg="blanc" class="active">Fond blanc</button><button type="button" data-bg="transparent">Fond transparent</button><button type="button" data-bg="fonce">Fond foncé</button></div>
+<h3>Image générée par l'IA — le symbole seulement, sans texte</h3>
+<p class="cl-note">Tu veux voir à quoi ressemblerait ton symbole en vraie image ? L'IA (FLUX) génère <b>uniquement le symbole du logo : aucune lettre, aucun mot, aucun texte dans l'image</b>. C'est Archétype qui ajoute ensuite le nom de ton entreprise en dessous, en vrai texte vectoriel (SVG), lisible et modifiable dans la retouche guidée — pas FLUX, qui invente souvent les lettres. L'image est générée à partir de ton analyse : ton archétype, ta palette, et le symbole que l'IA a créé selon tes réponses. C'est une <b>proposition à valider</b>, pas le logo final : c'est une image raster (JPEG, 1024 × 1024), pas un fichier vectoriel. Si l'image te plaît, Daniel la retravaille en vectoriel pour en faire ton vrai logo. Ton analyse est envoyée à l'IA pendant la requête seulement, puis oubliée, comme pour l'analyse. Limite : 5 images par heure, pour ne pas vider le quota.</p>
+<label for="imageDirection">Direction de style de l'image</label><select id="imageDirection"><option value="plat" selected>Plat minimaliste (base sûre)</option><option value="3d-propre">3D propre</option><option value="isometrique">Isométrique léger</option><option value="glassmorphism">Glassmorphism maîtrisé</option><option value="neo-brutalisme">Néo-brutalisme propre</option></select>
+<div class="cl-actions"><button type="button" class="button" id="btnGenererImage">GÉNÉRER L'IMAGE AVEC L'IA →</button></div>
+<p class="cl-note" id="imageGenStatut" hidden></p>
+<div id="imageGenBox" hidden><img id="imageGeneree" class="cl-img-gen" alt="Image de logo générée par l'IA"><div class="cl-actions"><button type="button" class="button" id="btnRegenererImage">↻ RÉGÉNÉRER</button><button type="button" class="button" id="btnDlImage">TÉLÉCHARGER L'IMAGE (JPEG)</button></div><p class="cl-note" id="imageGenPrompt"></p></div>
 <h3>Retouche guidée</h3><p>Tu peux changer la palette, la forme et la police, mais seulement parmi les choix compatibles avec ton archétype. C'est ça qui garde ton logo cohérent.</p>
 <label>Palette</label><div class="cl-choices" id="paletteChoices"></div>
 <label>Forme</label><div class="cl-choices" id="formeChoices"></div>
