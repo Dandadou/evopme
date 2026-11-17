@@ -63,7 +63,7 @@ async function load(){
  }
 }
 root.innerHTML=`<p class="cms-lead">Tes commandes clients, au même endroit que le reste de ta gestion. Fini le papier : chaque commande suit les étapes, de « Soumission » jusqu’à « En livraison ».</p>
-<form class="cms-editor-card design-board-form" data-design-board-form><h3 class="design-board-form-title">Nouvelle commande</h3><div class="cms-row"><label>Nom du client<input name="client" type="text" maxlength="160" required autocomplete="off"></label><label>Courriel (optionnel)<input name="email" type="email" maxlength="320" autocomplete="off"></label></div><div class="cms-row"><label>Téléphone<input name="phone" type="tel" maxlength="35" required autocomplete="off"></label><label>Date de la commande<input name="order_date" type="date"></label></div><label>Qu’est-ce qui a été commandé ?<textarea name="description" maxlength="2000" required placeholder="Ex. : 12 chandails noirs, logo Seth, grandeurs M à XL"></textarea></label><button class="cms-save" type="submit">+ AJOUTER LA COMMANDE</button><p class="cms-status" data-design-board-status role="status"></p></form>
+<form class="cms-editor-card design-board-form" data-design-board-form><h3 class="design-board-form-title">Nouvelle commande</h3><div class="cms-row"><label>Nom du client<input name="client" type="text" maxlength="160" required autocomplete="off"></label><label>Courriel (optionnel)<input name="email" type="email" maxlength="320" autocomplete="off"></label></div><div class="cms-row"><label>Téléphone (optionnel)<input name="phone" type="tel" maxlength="35" autocomplete="off"></label><label>Date de la commande<input name="order_date" type="date"></label></div><label>Qu’est-ce qui a été commandé ?<textarea name="description" maxlength="2000" required placeholder="Ex. : 12 chandails noirs, logo Seth, grandeurs M à XL"></textarea></label><button class="cms-save" type="submit">+ AJOUTER LA COMMANDE</button><p class="cms-status" data-design-board-status role="status"></p></form>
 <div class="design-board" data-design-board></div>`;
 const form=root.querySelector('[data-design-board-form]');
 form.querySelector('[name="order_date"]').value=today();
@@ -73,7 +73,6 @@ form.addEventListener('submit',async e=>{
  const card={client:get('client'),email:get('email').toLowerCase(),phone:get('phone'),description:get('description'),order_date:get('order_date')||today()};
  if(!card.client||!card.description)return say('Nom du client et description requis.',false);
  if(card.email&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(card.email))return say('Adresse courriel invalide.',false);
- if(!card.phone)return say('Numéro de téléphone requis.',false);
  say('Ajout de la commande…');
  try{await request('/api/cms/design-board',{method:'POST',body:JSON.stringify({card})});form.reset();form.querySelector('[name="order_date"]').value=today();await load();say('Commande ajoutée dans « Soumission ».')}catch(err){say(err.message,false)}
 });
