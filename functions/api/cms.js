@@ -349,7 +349,7 @@ export async function handleCms(request,env){
   const orderDate=/^\d{4}-\d{2}-\d{2}$/.test(String(c.order_date||''))?String(c.order_date):new Date().toISOString().slice(0,10);
   const status=String(c.status||'Soumission');
   if(!client||!description||!STATUSES.includes(status))return json({error:'Nom du client, description et colonne valides requis.'},400);
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Adresse courriel invalide.'},400);
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json({error:'Adresse courriel invalide.'},400);
   if(!phone)return json({error:'Numéro de téléphone requis.'},400);
   try{
    let position=0;
