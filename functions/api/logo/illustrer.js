@@ -39,7 +39,8 @@ async function auditVisual(env,encoded,q,family){
  if(!model)return {status:"non_verifie",reason:"Contrôle visuel automatique non configuré."};
  try{
   const criteria="Examine cette image comme un logo pour "+compact(q.entreprise,80)+" (secteur "+compact(q.secteurAutre||q.secteur,80)+"). Style demandé: "+family+". Vérifie les défauts visibles : texte inventé, animal ou fleur hors sujet, photo au lieu d'un logo, pictogrammes génériques, symbole sans lien. Réponds en JSON avec decision (accepter ou rejeter) et raison (phrase brève). Si incertain, accepter.";
-  const output=await env.AI.run(model,{messages:[{role:"user",content:[{type:"text",text:criteria},{type:"image_url",image_url:{url:"data:image/jpeg;base64,"+encoded}}]}],max_tokens:220});
+  const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+  const output=await env.AI.run(model,{messages:[{role:"system",content:"Tu es un contrôleur qualité visuel indépendant. Évalue seulement les éléments réellement visibles. Réponds en JSON."},{role:"user",content:[{type:"text",text:criteria},{type:"image",image:[...bytes]}]}],max_tokens:220});
   const raw=typeof output?.response==="string"?output.response:typeof output?.result?.response==="string"?output.result.response:"";
   const match=raw.match(/\{[\s\S]*\}/);
   if(!match)return {status:"non_verifie",reason:"Réponse de contrôle non exploitable."};
@@ -83,7 +84,10 @@ export async function onRequestPost({request,env}){
   if(output instanceof ArrayBuffer){
    const bytes=new Uint8Array(output);let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
    history.push({time:now,success:true});limiter.set(ip,history);
-   return json({ok:true,image:"data:image/jpeg;base64,"+btoa(binary),model});
+   const encodedBuffer=btoa(binary);
+   const audit=await auditVisual(env,encodedBuffer,q,family);
+   if(audit.status==="rejete")return json({ok:false,error:"Concept rejeté par le contrôle visuel.",raison:audit.reason,controle:audit.status},422);
+   return json({ok:true,image:"data:image/jpeg;base64,"+encodedBuffer,model,controle:audit});
   }
   return json({ok:false,error:"Le modèle image n'a pas retourné de fichier compatible."},502);
  }catch(err){
