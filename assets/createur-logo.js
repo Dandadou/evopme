@@ -629,12 +629,14 @@
       creativeButton.disabled = true;
       results.replaceChildren();
       var name = (state.entreprise || "Ta marque").trim();
-      var families = [
+      var allFamilies = [
         {famille:"illustration",titre:"Illustration originale",idee:"Une création illustrée inspirée de ton histoire et de tes valeurs."},
         {famille:"typographie",titre:"Expression typographique",idee:"Une exploration graphique expressive du caractère de ta marque."},
         {famille:"monogramme",titre:"Emblème et monogramme",idee:"Un symbole distinctif pensé pour l'identité de ta marque."},
         {famille:"mixte",titre:"Composition mixte",idee:"Une rencontre entre dessin et langage graphique."}
       ];
+      var selection = $("archetypeFamily")?.value || "illustration";
+      var families = selection === "toutes" ? allFamilies : allFamilies.filter(function(d){return d.famille === selection});
       function questionnaire() {
         return {
           entreprise:state.entreprise,secteur:state.secteur,secteurAutre:state.secteurAutre,
@@ -668,6 +670,16 @@
           var link=document.createElement("a");link.href=data.image;link.download="archetype-"+d.famille+".png";link.textContent="TÉLÉCHARGER L'IMAGE";
           link.style.cssText="display:inline-block;margin-top:12px;padding:10px 14px;border-radius:999px;background:#2dd4bf;color:#052e2b;font-weight:800;text-decoration:none";
           visual.parentElement.appendChild(link);
+          var report=document.createElement("details");
+          report.style.cssText="margin-top:14px;color:#d6e8ee;border-top:1px solid #326c73;padding-top:12px";
+          var summary=document.createElement("summary");
+          summary.textContent="Pourquoi cette création? · Rapport de corrélation";
+          summary.style.cssText="cursor:pointer;color:#5eead4;font-weight:700";
+          var explanation=document.createElement("p");
+          var answers=Object.values(state.reponses||{}).filter(function(v){return typeof v==="string"&&v.trim()}).slice(0,3);
+          explanation.textContent="Approche : "+d.titre+". Réponses prises en compte : "+(answers.length?answers.map(function(a){return "« "+a.slice(0,140)+" »"}).join(" · "):"le questionnaire")+". Cette correspondance est une interprétation créative, non une mesure scientifique. L'image peut comporter des éléments sans lien avec la marque.";
+          report.append(summary,explanation);
+          visual.parentElement.appendChild(report);
           return true;
         } catch(error) {
           visual.replaceChildren();
@@ -677,11 +689,11 @@
         }finally{clearTimeout(timer)}
       }
       try {
-        status.textContent="Archétype imagine quatre pistes visuelles pour "+name+"…";
+        status.textContent="Archétype imagine " + families.length + " pistes visuelles pour "+name+"…";
         var cards=families.map(function(d){return createCard(d)});
         var succeeded=0;
         for(var i=0;i<families.length;i++){
-          status.textContent="Génération de l'image "+(i+1)+" sur 4…";
+          status.textContent="Génération de l'image "+(i+1)+" sur "+families.length+"…";
           if(await generate(families[i],cards[i]))succeeded++;
         }
         status.textContent=succeeded
