@@ -39,12 +39,12 @@ export async function onRequestPost({request,env}){
  ].join("\n");
  const model=env.ARCHETYPE_IMAGE_MODEL||"@cf/black-forest-labs/flux-1-schnell";
  try{
-  const output=await env.AI.run(model,{prompt,num_steps:4});
+  const output=await env.AI.run(model,{prompt:prompt.slice(0,2048),steps:4});
   const encoded=typeof output?.image==="string"?output.image:typeof output?.result?.image==="string"?output.result.image:null;
-  if(encoded)return json({ok:true,image:"data:image/png;base64,"+encoded,model});
+  if(encoded)return json({ok:true,image:"data:image/jpeg;base64,"+encoded,model});
   if(output instanceof ArrayBuffer){
    const bytes=new Uint8Array(output);let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
-   return json({ok:true,image:"data:image/png;base64,"+btoa(binary),model});
+   return json({ok:true,image:"data:image/jpeg;base64,"+btoa(binary),model});
   }
   return json({ok:false,error:"Le modèle image n'a pas retourné de fichier compatible."},502);
  }catch(err){
