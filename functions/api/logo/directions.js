@@ -4,7 +4,7 @@
  * Exige le questionnaire et l'analyse déjà validée, puis demande 4 pistes créatives.
  */
 import {
-  validateQuestionnaire, validateAnalyse, MODEL_PRIMARY, MODEL_FALLBACK
+  validateQuestionnaire, validateAnalyse
 } from "../logo.js";
 import {
   prepareCreativeContext, buildCreativeDirectionMessages,
@@ -45,8 +45,8 @@ export async function onRequestPost({ request, env }) {
   const context = prepareCreativeContext(questionnaire.data, analyse.analyse);
   const messages = buildCreativeDirectionMessages(context);
   const models = [...new Set([
-    env.LOGO_AI_MODEL || MODEL_PRIMARY,
-    env.LOGO_AI_MODEL_FALLBACK || MODEL_FALLBACK
+    env.LOGO_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    env.LOGO_AI_MODEL_FALLBACK || "@cf/meta/llama-3.1-8b-instruct-fast"
   ])];
   for (const model of models) {
     try {
