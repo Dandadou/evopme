@@ -27,12 +27,15 @@ export default {
       try {
         return await handleLogoIllustrer({request,env});
       } catch (error) {
-        const type = error instanceof TypeError ? "TypeError" : "Erreur de traitement";
+        const type = error instanceof Error ? error.name : "UnknownError";
+        const raw = error instanceof Error ? error.message : "";
+        const safeMessage = raw.slice(0, 240).replace(/https?:\\/\\/\\S+/g, "[url]").replace(/(?:sk-|Bearer\\s+)\\S+/gi, "[secret]").replace(/[<>]/g, "");
         return new Response(JSON.stringify({
           ok: false,
           error: "Erreur serveur pendant la préparation de l'image.",
           diagnostic: "ARCHETYPE_ROUTE_EXCEPTION",
-          type
+          type,
+          detail: safeMessage || "Aucun détail disponible"
         }), {status:500,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
       }
     }
