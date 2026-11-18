@@ -37,8 +37,8 @@ export async function onRequestPost({request,env}){
  "No text, no words, no letters, no watermarks, no mockups, no stock icons.",
  "Avoid generic shields, stars, circles, swooshes and default corporate clipart."
  ].join("\n");
+ const model=env.ARCHETYPE_IMAGE_MODEL||"@cf/black-forest-labs/flux-1-schnell";
  try{
-  const model=env.ARCHETYPE_IMAGE_MODEL||"@cf/black-forest-labs/flux-1-schnell";
   const output=await env.AI.run(model,{prompt,num_steps:4});
   const encoded=typeof output?.image==="string"?output.image:typeof output?.result?.image==="string"?output.result.image:null;
   if(encoded)return json({ok:true,image:"data:image/png;base64,"+encoded,model});
