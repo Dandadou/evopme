@@ -10,12 +10,12 @@ const familyPrompts={
  mixte:"One cohesive symbol combining a meaningful illustration and an abstract letterform; not two disconnected stock icons."
 };
 const meaningfulKeys=["fierte","refus","ressenti","defi","dix-ans","soiree"];
-const compact=(s,n=160)=>String(s||"").replace(/\\s+/g," ").trim().slice(0,n);
+const compact=(s,n=160)=>String(s||"").replace(/\s+/g," ").trim().slice(0,n);
 const creativeBrief=(q,family,concept,revision)=>{
  const statements=meaningfulKeys.map(k=>compact(q.reponses?.[k],170)).filter(Boolean);
  const sector=compact(q.secteurAutre||q.secteur,80);
  const name=compact(q.entreprise,80);
- const initials=name.split(/\\s+/).filter(x=>x.length>2).slice(0,3).map(x=>x[0]?.toUpperCase()).join("");
+ const initials=name.split(/\s+/).filter(x=>x.length>2).slice(0,3).map(x=>x[0]?.toUpperCase()).join("");
  const audience=compact(q.clientele,50);
  const chosen=statements.slice(0,4).join(" | ");
  return [
@@ -31,7 +31,7 @@ const creativeBrief=(q,family,concept,revision)=>{
  "STRICT RELEVANCE: Every depicted element must be meaningful for this specific business. No unrelated animals, cats, flowers, medical crosses, hearts, leaves or wellness clichés unless directly supported by the declared brand identity. The questionnaire's favourite animal is NOT a mascot request.",
  "VISUAL EXECUTION: one flat vector-style mark, 2-3 solid colours, sharp contours, simple geometry, high contrast, centred on clean plain background, legible at favicon and embroidery size.",
  "NO TEXT OR WORDS, no fake brand names, no stock imagery, no photo, no 3D, no gradients, no bevels, no watermarks, no product mockup."
- ].filter(Boolean).join("\\n").slice(0,2048);
+ ].filter(Boolean).join("\n").slice(0,2048);
 };
 const limiter=new Map();
 export async function onRequestPost({request,env}){
@@ -69,7 +69,7 @@ export async function onRequestPost({request,env}){
   history.push({time:now,success:false});limiter.set(ip,history);
   const raw=String(err?.message||"").slice(0,260);
   const code=String(err?.code||err?.cause?.code||"").slice(0,50);
-  const safe=raw.replace(/https?:\/\/\S+/g,"[url]").replace(/(?:sk-|Bearer\\s+)\S+/gi,"[secret]").replace(/[<>]/g,"");
+  const safe=raw.replace(/https?:\/\/\S+/g,"[url]").replace(/(?:sk-|Bearer\s+)\S+/gi,"[secret]").replace(/[<>]/g,"");
   return json({ok:false,error:"Workers AI a refusé la génération.",detail:safe||"Erreur non précisée",code,model},503);
  }
 }
