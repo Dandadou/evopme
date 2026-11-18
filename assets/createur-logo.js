@@ -620,6 +620,64 @@
     var pngB = $("btnPngBlanc"); if (pngB) pngB.addEventListener("click", function () { exportPNG(false); });
     var dl = $("btnDlAnalyse"); if (dl) dl.addEventListener("click", downloadAnalysis);
     var pro = $("btnPro"); if (pro) pro.addEventListener("click", mailPro);
+
+    var creativeButton = $("btnDirectionsV2");
+    if (creativeButton) creativeButton.addEventListener("click", async function () {
+      var status = $("directionsV2Status"), results = $("directionsV2Results");
+      if (!state.iaAnalyse) {
+        status.textContent = "L'analyse IA est nécessaire pour cette version. Recommence l'analyse et réessaie si l'IA est disponible.";
+        return;
+      }
+      creativeButton.disabled = true;
+      status.textContent = "Le directeur artistique prépare quatre pistes…";
+      results.replaceChildren();
+      var controller = new AbortController();
+      var timeout = setTimeout(function () { controller.abort(); }, 45000);
+      try {
+        var response = await fetch("/api/logo/directions", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            questionnaire: {
+              entreprise: state.entreprise, secteur: state.secteur,
+              secteurAutre: state.secteurAutre, clientele: state.clientele,
+              typeLogo: state.typeLogo, style: state.style,
+              reponses: state.reponses,
+              aakerFondateur: state.aakerFondateur, aakerClient: state.aakerClient
+            },
+            analyse: state.iaAnalyse
+          })
+        });
+        var data = await response.json();
+        if (!response.ok || !data.ok || !Array.isArray(data.directions)) {
+          throw new Error(data.error || "Service indisponible.");
+        }
+        var labels = { illustration: "Dessin original", typographie: "Typographie", monogramme: "Monogramme", mixte: "Composition mixte" };
+        data.directions.forEach(function (d) {
+          var card = document.createElement("article");
+          card.style.cssText = "border:1px solid #bba47a;border-radius:12px;padding:1rem;min-width:0";
+          function line(tag, value) {
+            var el = document.createElement(tag);
+            el.textContent = value;
+            card.appendChild(el);
+          }
+          line("h4", labels[d.famille] || d.famille);
+          line("p", d.idee);
+          line("p", "Intention : " + d.intention);
+          line("p", "Éléments : " + d.elements);
+          line("p", "Pourquoi : " + d.justification);
+          line("p", "À surveiller : " + d.risque);
+          results.appendChild(card);
+        });
+        status.textContent = "Quatre concepts proposés. La génération des dessins et des fichiers vectoriels reste à développer.";
+      } catch (error) {
+        status.textContent = "Impossible de générer les pistes : " + (error.name === "AbortError" ? "délai dépassé." : error.message);
+      } finally {
+        clearTimeout(timeout);
+        creativeButton.disabled = false;
+      }
+    });
     var crash = $("btnCrash"); if (crash) crash.addEventListener("click", runCrashTest);
     showStep(1);
   }
