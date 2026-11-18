@@ -29,7 +29,7 @@ export default {
       } catch (error) {
         const type = error instanceof Error ? error.name : "UnknownError";
         const raw = error instanceof Error ? error.message : "";
-        const safeMessage = raw.slice(0, 240).replace(/https?:\\/\\/\\S+/g, "[url]").replace(/(?:sk-|Bearer\\s+)\\S+/gi, "[secret]").replace(/[<>]/g, "");
+        const safeMessage = raw.slice(0, 180).replace(/[<>]/g, "");
         return new Response(JSON.stringify({
           ok: false,
           error: "Erreur serveur pendant la préparation de l'image.",
