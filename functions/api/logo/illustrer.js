@@ -47,5 +47,10 @@ export async function onRequestPost({request,env}){
    return json({ok:true,image:"data:image/png;base64,"+btoa(binary),model});
   }
   return json({ok:false,error:"Le modèle image n'a pas retourné de fichier compatible."},502);
- }catch{return json({ok:false,error:"La génération image n'est pas disponible sur ce déploiement."},503)}
+ }catch(err){
+  const raw=String(err?.message||"").slice(0,260);
+  const code=String(err?.code||err?.cause?.code||"").slice(0,50);
+  const safe=raw.replace(/https?:\/\/\S+/g,"[url]").replace(/(?:sk-|Bearer\\s+)\S+/gi,"[secret]").replace(/[<>]/g,"");
+  return json({ok:false,error:"Workers AI a refusé la génération.",detail:safe||"Erreur non précisée",code,model},503);
+ }
 }
