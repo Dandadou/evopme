@@ -667,7 +667,7 @@
           if(!response.ok||!data.ok||!data.image)throw new Error([data.error,data.detail,data.code,data.diagnostic,data.type].filter(Boolean).join(" — ")||"Erreur HTTP "+response.status);
           var img=document.createElement("img");img.src=data.image;img.alt="Concept illustré pour "+name;img.style.cssText="display:block;width:100%;height:100%;object-fit:contain";
           visual.replaceChildren(img);
-          var link=document.createElement("a");link.href=data.image;link.download="archetype-"+d.famille+".png";link.textContent="TÉLÉCHARGER L'IMAGE";
+          var link=document.createElement("a");link.href=data.image;link.download="archetype-"+d.famille+".jpg";link.textContent="TÉLÉCHARGER L'IMAGE";
           link.style.cssText="display:inline-block;margin-top:12px;padding:10px 14px;border-radius:999px;background:#2dd4bf;color:#052e2b;font-weight:800;text-decoration:none";
           visual.parentElement.appendChild(link);
           var report=document.createElement("details");
@@ -680,6 +680,38 @@
           explanation.textContent="Approche : "+d.titre+". Réponses prises en compte : "+(answers.length?answers.map(function(a){return "« "+a.slice(0,140)+" »"}).join(" · "):"le questionnaire")+". Cette correspondance est une interprétation créative, non une mesure scientifique. L'image peut comporter des éléments sans lien avec la marque.";
           report.append(summary,explanation);
           visual.parentElement.appendChild(report);
+          var editor=document.createElement("div");
+          editor.style.cssText="margin-top:18px;padding:14px;border:1px solid #356875;border-radius:14px;background:#0c1b2c";
+          var editLabel=document.createElement("label");editLabel.textContent="Améliorer cette proposition avec tes mots";editLabel.style.cssText="display:block;font-weight:800;color:#ccfbf1;margin-bottom:9px";
+          var editInput=document.createElement("textarea");editInput.rows=3;editInput.maxLength=500;editInput.placeholder="Ex. : Rends le symbole plus chaleureux, avec une lumière douce et moins de détails.";
+          editInput.style.cssText="box-sizing:border-box;width:100%;border:1px solid #4b7280;border-radius:10px;background:#081423;color:white;padding:10px;font:inherit;resize:vertical";
+          var editButton=document.createElement("button");editButton.type="button";editButton.textContent="GÉNÉRER UNE VARIANTE →";editButton.style.cssText="display:block;margin-top:10px;background:#2dd4bf;color:#052e2b;border:0;border-radius:12px;padding:12px;font-weight:800;cursor:pointer";
+          var editStatus=document.createElement("p");editStatus.style.cssText="color:#cbd5e1;font-size:13px";
+          var comparison=document.createElement("div");comparison.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:12px";
+          editor.append(editLabel,editInput,editButton,editStatus,comparison);visual.parentElement.appendChild(editor);
+          editButton.addEventListener("click",async function(){
+            var instruction=editInput.value.trim();
+            if(instruction.length<8){editStatus.textContent="Décris le changement souhaité en quelques mots.";return}
+            editButton.disabled=true;editStatus.textContent="Création d'une nouvelle variante…";
+            var controller2=new AbortController();var timeout2=setTimeout(function(){controller2.abort()},65000);
+            try{
+              var response2=await fetch("/api/logo/illustrer",{method:"POST",headers:{"content-type":"application/json"},signal:controller2.signal,body:JSON.stringify({questionnaire:questionnaire(),famille:d.famille,concept:d.idee,revision:instruction})});
+              var result2=await response2.json();
+              if(!response2.ok||!result2.ok||!result2.image)throw new Error(result2.error||"Génération indisponible");
+              comparison.replaceChildren();
+              function panel(title,source){
+                var holder=document.createElement("div");var label=document.createElement("strong");label.textContent=title;label.style.color="#ccfbf1";
+                var picture=document.createElement("img");picture.src=source;picture.alt=title+" de "+name;picture.style.cssText="display:block;width:100%;border-radius:10px;margin-top:7px";
+                holder.append(label,picture);return holder;
+              }
+              comparison.append(panel("Avant",img.src),panel("Nouvelle variante",result2.image));
+              var explanation2=document.createElement("p");explanation2.textContent="Changement demandé : « "+instruction+" ». Archétype a généré une nouvelle interprétation à partir du même questionnaire. Vérifie visuellement si la modification demandée apparaît : ce n'est pas une retouche garantie de l'image originale.";
+              comparison.appendChild(explanation2);
+              var download2=document.createElement("a");download2.href=result2.image;download2.download="archetype-variante-"+d.famille+".jpg";download2.textContent="TÉLÉCHARGER LA VARIANTE";download2.style.cssText="display:inline-block;color:#5eead4;font-weight:800";comparison.appendChild(download2);
+              editStatus.textContent="Variante prête. Compare les deux propositions.";
+            }catch(error){editStatus.textContent="Impossible de créer la variante : "+String(error.message||"erreur inconnue").slice(0,150)}
+            finally{clearTimeout(timeout2);editButton.disabled=false}
+          });
           return true;
         } catch(error) {
           visual.replaceChildren();
