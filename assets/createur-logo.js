@@ -626,76 +626,65 @@
     var creativeButton = $("btnDirectionsV2");
     if (creativeButton) creativeButton.addEventListener("click", async function () {
       var status = $("directionsV2Status"), results = $("directionsV2Results");
-      if (!state.iaAnalyse) {
-        var name = (state.entreprise || "Ta marque").trim();
-        var first = name.charAt(0).toUpperCase() || "A";
-        var entries = [
-          ["Illustration", "Une signature illustrée inspirée de l'univers de " + name + ", de ses valeurs et de ses clients."],
-          ["Typographie", "Un lettrage original autour du nom « " + name + " », avec une hiérarchie expressive et lisible."],
-          ["Monogramme", "Une exploration de la lettre « " + first + " » comme signe distinctif de " + name + "."],
-          ["Composition mixte", "Une composition qui relie le nom « " + name + " » à un dessin spécifique à son histoire."]
-        ];
-        results.replaceChildren();
-        entries.forEach(function (entry) {
-          var card = document.createElement("article");
-          var heading = document.createElement("h4"); heading.textContent = entry[0];
-          var paragraph = document.createElement("p"); paragraph.textContent = entry[1];
-          card.append(heading, paragraph); results.appendChild(card);
-        });
-        if (window.ArchetypeVisuals) window.ArchetypeVisuals.render(results, name);
-        status.textContent = "IA indisponible : voici quatre esquisses SVG personnalisées à explorer et télécharger. Elles sont générées localement, pas par un modèle image.";
-        return;
-      }
       creativeButton.disabled = true;
-      status.textContent = "Le directeur artistique prépare quatre pistes…";
       results.replaceChildren();
-      var controller = new AbortController();
-      var timeout = setTimeout(function () { controller.abort(); }, 45000);
-      try {
-        var response = await fetch("/api/logo/directions", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          signal: controller.signal,
-          body: JSON.stringify({
-            questionnaire: {
-              entreprise: state.entreprise, secteur: state.secteur,
-              secteurAutre: state.secteurAutre, clientele: state.clientele,
-              typeLogo: state.typeLogo, style: state.style,
-              reponses: state.reponses,
-              aakerFondateur: state.aakerFondateur, aakerClient: state.aakerClient
-            },
-            analyse: state.iaAnalyse
-          })
-        });
-        var data = await response.json();
-        if (!response.ok || !data.ok || !Array.isArray(data.directions)) {
-          throw new Error(data.error || "Service indisponible.");
-        }
-        var labels = { illustration: "Dessin original", typographie: "Typographie", monogramme: "Monogramme", mixte: "Composition mixte" };
-        data.directions.forEach(function (d) {
-          var card = document.createElement("article");
-          card.style.cssText = "border:1px solid #bba47a;border-radius:12px;padding:1rem;min-width:0";
-          function line(tag, value) {
-            var el = document.createElement(tag);
-            el.textContent = value;
-            card.appendChild(el);
-          }
-          line("h4", labels[d.famille] || d.famille);
-          line("p", d.idee);
-          line("p", "Intention : " + d.intention);
-          line("p", "Éléments : " + d.elements);
-          line("p", "Pourquoi : " + d.justification);
-          line("p", "À surveiller : " + d.risque);
-          results.appendChild(card);
-        });
-        if (window.ArchetypeVisuals) window.ArchetypeVisuals.render(results, state.entreprise, data.directions);
-        status.textContent = "Quatre directions créatives et leurs esquisses SVG. Les illustrations finales restent à perfectionner.";
-      } catch (error) {
-        status.textContent = "Impossible de générer les pistes : " + (error.name === "AbortError" ? "délai dépassé." : error.message);
-      } finally {
-        clearTimeout(timeout);
-        creativeButton.disabled = false;
+      var name = (state.entreprise || "Ta marque").trim();
+      var families = [
+        {famille:"illustration",titre:"Illustration originale",idee:"Une création illustrée inspirée de ton histoire et de tes valeurs."},
+        {famille:"typographie",titre:"Expression typographique",idee:"Une exploration graphique expressive du caractère de ta marque."},
+        {famille:"monogramme",titre:"Emblème et monogramme",idee:"Un symbole distinctif pensé pour l'identité de ta marque."},
+        {famille:"mixte",titre:"Composition mixte",idee:"Une rencontre entre dessin et langage graphique."}
+      ];
+      function questionnaire() {
+        return {
+          entreprise:state.entreprise,secteur:state.secteur,secteurAutre:state.secteurAutre,
+          clientele:state.clientele,typeLogo:state.typeLogo,style:state.style,
+          directionStyle:state.directionStyle,reponses:state.reponses,
+          aakerFondateur:state.aakerFondateur,aakerClient:state.aakerClient
+        };
       }
+      function createCard(d) {
+        var card=document.createElement("article");
+        var heading=document.createElement("h4");heading.textContent=d.titre||d.famille;
+        var visual=document.createElement("div");visual.className="archetype-generated-image";
+        visual.style.cssText="aspect-ratio:1/1;background:#091424;border-radius:14px;display:grid;place-items:center;overflow:hidden;margin-bottom:14px";
+        var pending=document.createElement("span");pending.textContent="Création en cours…";pending.style.color="#99f6e4";visual.appendChild(pending);
+        var caption=document.createElement("p");caption.textContent=d.idee||"Concept créatif";
+        card.append(visual,heading,caption);results.appendChild(card);
+        return visual;
+      }
+      async function generate(d,visual) {
+        var controller=new AbortController();
+        var timer=setTimeout(function(){controller.abort()},65000);
+        try {
+          var response=await fetch("/api/logo/illustrer",{method:"POST",headers:{"content-type":"application/json"},signal:controller.signal,body:JSON.stringify({questionnaire:questionnaire(),famille:d.famille,concept:d.idee})});
+          var data=await response.json();
+          if(!response.ok||!data.ok||!data.image)throw new Error(data.error||"Image indisponible.");
+          var img=document.createElement("img");img.src=data.image;img.alt="Concept illustré pour "+name;img.style.cssText="display:block;width:100%;height:100%;object-fit:contain";
+          visual.replaceChildren(img);
+          var link=document.createElement("a");link.href=data.image;link.download="archetype-"+d.famille+".png";link.textContent="TÉLÉCHARGER L'IMAGE";
+          link.style.cssText="display:inline-block;margin-top:12px;padding:10px 14px;border-radius:999px;background:#2dd4bf;color:#052e2b;font-weight:800;text-decoration:none";
+          visual.parentElement.appendChild(link);
+          return true;
+        } catch(error) {
+          visual.replaceChildren();
+          var errorText=document.createElement("span");errorText.textContent=error.name==="AbortError"?"Délai de génération dépassé.":"Image indisponible.";
+          errorText.style.cssText="color:#cbd5e1;text-align:center;padding:12px";visual.appendChild(errorText);
+          return false;
+        }finally{clearTimeout(timer)}
+      }
+      try {
+        status.textContent="Archétype imagine quatre pistes visuelles pour "+name+"…";
+        var cards=families.map(function(d){return createCard(d)});
+        var succeeded=0;
+        for(var i=0;i<families.length;i++){
+          status.textContent="Génération de l'image "+(i+1)+" sur 4…";
+          if(await generate(families[i],cards[i]))succeeded++;
+        }
+        status.textContent=succeeded
+          ? succeeded+" image(s) créée(s) par IA. Ces images sont des concepts à affiner; elles ne sont pas des logos vectoriels prêts à imprimer."
+          : "Le modèle image Cloudflare ne répond pas. Vérifie la liaison Workers AI du déploiement : aucune image n'a été créée.";
+      }finally{creativeButton.disabled=false}
     });
     var crash = $("btnCrash"); if (crash) crash.addEventListener("click", runCrashTest);
     showStep(1);
