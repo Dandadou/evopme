@@ -265,7 +265,7 @@
     window.scrollTo(0, 0);
   }
   function renderResult() {
-    if (!state.top) return;
+    if (!state.top || !$("resArchetype")) return;
     var srcNote = state.sourceAnalyse === "ia"
       ? "<p class='cl-note'><b>Analyse IA</b>" + (state.iaModele ? " (" + esc(state.iaModele) + ")" : "") + " — piste de travail à valider, pas un diagnostic. Daniel valide avant toute livraison.</p>"
       : "<p class='cl-note'>Analyse locale par mots-clés — l'IA était indisponible pour cette analyse, le résultat local s'applique. Piste de travail à valider, pas un diagnostic.</p>";
@@ -551,7 +551,8 @@
         endroit: "La forêt, près d'un lac, ça m'apaise et ça me remet les idées en place."
       };
       document.querySelectorAll("[data-q]").forEach(function (t) { t.value = exemples[t.getAttribute("data-q")] || ""; });
-      collect(); analyze(); renderResult(); showStep(3);
+      collect(); analyze(); state.iaAnalyse = null; showStep(3);
+      var exampleCreative = $("btnDirectionsV2"); if (exampleCreative) exampleCreative.click();
     });
   }
   function collect() {
