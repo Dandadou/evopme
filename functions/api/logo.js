@@ -263,7 +263,7 @@ export const SYSTEM_PROMPT = [
 ].join("\n");
 
 /* ---------- validation du questionnaire (entrée) ---------- */
-export export function validateQuestionnaire(body) {
+export function validateQuestionnaire(body) {
   const errors = [];
   if (!isPlainObject(body)) return { ok: false, errors: ["corps JSON invalide"], data: null };
   const data = {};
