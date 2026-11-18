@@ -82,49 +82,36 @@
 <div id="aakerResult" class="cl-note">Bouge les curseurs : l'écart va se calculer ici.</div>
 <div class="cl-actions"><button type="button" class="button cl-ghost" id="backStep1">← RETOUR</button><button type="button" class="button" id="btnAnalyser">VOIR MON LOGO →</button></div></div>
 
-<div class="cl-card" id="step3" hidden><h2>Étape 3 · Ton logo</h2><div id="resArchetype"></div><div id="resBars"></div>
-<h3>Ton logo</h3><div class="cl-logo-box" id="logoPreview"></div><p id="logoCaption" style="text-align:center;color:#999"></p>
-<div class="cl-bg-toggle" role="group" aria-label="Fond de l'aperçu"><button type="button" data-bg="blanc" class="active">Fond blanc</button><button type="button" data-bg="transparent">Fond transparent</button><button type="button" data-bg="fonce">Fond foncé</button></div>
-<h3>Retouche guidée</h3><p>Tu peux changer la palette, la forme et la police, mais seulement parmi les choix compatibles avec ton archétype. C'est ça qui garde ton logo cohérent.</p>
-<label>Palette</label><div class="cl-choices" id="paletteChoices"></div>
-<label>Forme</label><div class="cl-choices" id="formeChoices"></div>
-<label>Police</label><div class="cl-choices" id="policeChoices"></div>
-<div class="cl-consent" id="consentBox">
-<label class="cl-radio"><input type="checkbox" id="consentGarder"> <span id="consentTexte">J'accepte qu'Évolution PME garde mes infos dans son CMS, au cas où, pour pouvoir me recontacter. Je peux demander la suppression en tout temps.</span></label>
-<div id="consentEmailWrap" hidden><label for="consentEmail" id="consentEmailLabel">Ton courriel (seulement si tu coches la case ci-dessus)</label><input type="email" id="consentEmail" placeholder="ton@courriel.ca" autocomplete="email"></div>
-<p class="cl-note" id="consentNote">Si tu coches la case, on garde seulement ton entreprise, ton courriel et ton archétype principal dans notre CMS, pour te recontacter au cas où. Si tu ne la coches pas, rien n'est gardé. Pas de liste de diffusion : Évolution PME n'en a pas.</p>
-<p class="cl-note" id="consentErreur" hidden></p>
-<p class="cl-note" id="consentStatut" hidden></p>
+<div class="cl-card archetype-stage" id="step3" hidden>
+<style>
+.archetype-stage{background:#0b1220!important;color:#f1f5f9!important;border:1px solid #164e50!important}
+.archetype-stage h2,.archetype-stage h3,.archetype-stage h4{font-family:Archivo,system-ui,sans-serif;color:#f8fafc}
+.archetype-stage .archetype-head{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:18px 0 24px;border-bottom:1px solid #334155}
+.archetype-stage .archetype-head svg{width:88px;height:88px;flex:none}
+.archetype-stage .archetype-head h2{font-size:clamp(28px,4vw,48px);margin:0;letter-spacing:-.04em}
+.archetype-stage .archetype-head h2 span{color:#2dd4bf}
+.archetype-stage .archetype-head p{color:#cbd5e1;margin:8px 0 0}
+.archetype-stage .archetype-label{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#2dd4bf;font-weight:800}
+.archetype-stage .archetype-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:24px 0}
+.archetype-stage .archetype-grid article{background:#111e30;border:1px solid #285b60;border-radius:16px;padding:20px}
+.archetype-stage .archetype-grid article h4{color:#2dd4bf;margin:0 0 12px}
+.archetype-stage .archetype-grid article p{color:#dbe5ed;line-height:1.6}
+.archetype-stage .archetype-grid article p:last-child{color:#94a3b8}
+.archetype-stage .archetype-actions .button{background:#f59e0b!important;color:#0b1220!important;border-radius:999px}
+.archetype-stage #directionsV2Status{color:#cbd5e1;padding:12px 0}
+</style>
+<div class="archetype-head">
+<svg viewBox="0 0 200 200" role="img" aria-label="Logo officiel Archétype"><path d="M100 14 L184 186 H152 L100 72 L48 186 H16 Z" fill="#f8fafc"/><path d="M100 96 L122 122 L100 148 L78 122 Z" fill="#0f766e"/><path d="M100 96 L122 122 L100 122 Z" fill="#2dd4bf"/><path d="M100 148 L122 122 L100 122 Z" fill="#d97706"/><circle cx="100" cy="14" r="6" fill="#f59e0b"/></svg>
+<div><div class="archetype-label">Par Évolution PME · Créateur de marques</div><h2>ARCH<span>É</span>TYPE</h2><p>Ton histoire inspire la création. L'atelier démarre automatiquement.</p></div>
 </div>
-<div class="cl-actions"><button type="button" class="button" id="btnPngBlanc">EXPORT PNG · FOND BLANC</button><button type="button" class="button" id="btnPngTransparent">EXPORT PNG · TRANSPARENT</button><button type="button" class="button cl-gold" id="btnDlAnalyse">TÉLÉCHARGER L'ANALYSE COMPLÈTE</button><button type="button" class="button" id="btnPro">FAIS-LE PEAUFINER PAR UN PRO →</button></div>
-<p class="cl-note">L'export PNG est en 1280 px, utilisable pour ton site et tes réseaux. Pour les vrais fichiers (vectoriels, déclinaisons, charte), le bouton « Fais-le peaufiner par un pro » prépare un courriel vers info@evolutionpme.ca avec le résumé de ton analyse. Tes réponses ne sont envoyées que pour l'analyse IA (puis oubliées, rien de conservé), jamais automatiquement pour autre chose.</p>
-
-<section id="directionsV2" style="margin:2rem 0;padding:1.4rem;border:1px solid #bba47a;border-radius:16px">
-<h3>Archétype V2 — Atelier de direction artistique</h3>
-<p>Découvre quatre pistes créatives élaborées par l'IA à partir de tes réponses : illustration, typographie, monogramme et mixte. Ce sont des concepts à explorer, pas encore des logos dessinés.</p>
-<button type="button" class="button cl-gold" id="btnDirectionsV2">IMAGINER MES 4 CONCEPTS →</button>
-<p class="cl-note" id="directionsV2Status" role="status" aria-live="polite"></p>
-<div id="directionsV2Results" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem"></div>
+<section aria-label="Création de marque"><h3>Ton atelier créatif</h3>
+<p id="directionsV2Status" role="status" aria-live="polite">Préparation de tes concepts…</p>
+<div class="archetype-grid" id="directionsV2Results"></div>
+<div class="cl-actions archetype-actions"><button type="button" class="button" id="btnDirectionsV2">RELANCER LA CRÉATION ↻</button></div>
+<p class="cl-note">Les pistes de direction artistique ne sont pas encore des logos illustrés ni des fichiers vectoriels. Les réponses servent uniquement à cette création.</p>
 </section>
-<h3>Approfondir</h3><p>La profondeur est ici, derrière des onglets, pas dans ton chemin. Ouvre ce qui t'intéresse, le reste peut attendre.</p>
-<div class="cl-tabs" role="tablist" aria-label="Approfondir">
-<button type="button" class="active" data-tab-group="depth" data-tab="pourquoi">Pourquoi TON logo</button>
-<button type="button" data-tab-group="depth" data-tab="archetypes">Les 12 archétypes</button>
-<button type="button" data-tab-group="depth" data-tab="couleurs">Couleurs et formes</button>
-<button type="button" data-tab-group="depth" data-tab="mythes">Mythes à bannir</button>
-<button type="button" data-tab-group="depth" data-tab="idees">Ce qui n'existe pas ailleurs</button>
+<div class="cl-actions"><button type="button" class="button cl-ghost" id="backStep2">← MODIFIER MES RÉPONSES</button><button type="button" class="button cl-ghost" id="btnRecommencer">RECOMMENCER</button></div>
 </div>
-<div class="cl-panel" data-panel-group="depth" data-panel="pourquoi"><div id="pourquoiBox"><p>Remplis le questionnaire, puis reviens ici : cet onglet va expliquer ton logo à partir de TES réponses, pas de généralités.</p></div></div>
-<div class="cl-panel" data-panel-group="depth" data-panel="archetypes" hidden><h3>Les 12 archétypes</h3><p>Vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung. Un récit pour aligner ton équipe, pas un diagnostic. Chaque archétype a une ombre, un excès à éviter.</p><div class="cl-explorer" id="archetypesExplorer"></div></div>
-<div class="cl-panel" data-panel-group="depth" data-panel="couleurs" hidden><h3>Couleurs, formes et polices</h3><p>Ce qui est le mieux prouvé : la <b>congruence</b> (couleur, forme et police doivent correspondre à ta personnalité, à ton secteur et à ton public), et la <b>saturation et la luminosité</b>, qui influencent l'émotion plus fiablement que la teinte seule. Un bleu marine saturé et un bleu ciel pastel, ce n'est pas le même bleu.</p><div class="cl-explorer" id="couleursExplorer"></div><p class="cl-note">Formes : le rond est doux et accueillant, l'anguleux est dur et résistant, les courbes sont préférées aux angles vifs. Typographie : la serif fait professionnel et formel, la sans-serif fait moderne et amical, le script fait chaleureux mais peu professionnel. La lisibilité passe avant la personnalité de la police, surtout avec les accents français.</p></div>
-<div class="cl-panel" data-panel-group="depth" data-panel="mythes" hidden><h3>Mythes à bannir</h3><p>Si quelqu'un te sort ces chiffres-là, il te vend du vent.</p><div id="mythesList"></div></div>
-<div class="cl-panel" data-panel-group="depth" data-panel="idees" hidden><h3>Ce qui n'existe pas ailleurs</h3><p>Les autres créateurs de logo génèrent des logos. Personne ne teste le logo auprès de vrais clients. C'est là que cet outil veut être différent.</p><div id="ideesList"></div></div>
-
-<h3>Le crash-test : 1 seconde, pas plus</h3><p>Un logo ne se juge pas en le regardant longtemps. On te le montre 1 seconde, puis on te demande ce que tu as retenu. C'est le début d'un vrai test, pas une preuve.</p>
-<div class="cl-actions"><button type="button" class="button" id="btnCrash">LANCER LE CRASH-TEST →</button></div><div id="crashBox"></div>
-
-<h3>Ton histoire, en une page</h3><div id="storyBox" class="cl-note">Ton histoire va apparaître ici après l'analyse.</div>
-<div class="cl-actions"><button type="button" class="button cl-ghost" id="backStep2">← MODIFIER MES RÉPONSES</button><button type="button" class="button cl-ghost" id="btnRecommencer">RECOMMENCER</button></div></div>
 </div></section></main>
 <footer class="site-footer"><span>© Évolution PME 2026 · <a class="cookie-preferences-link" href="#">Préférences de confidentialité</a></span><span>Une création d’Évolution PME — Créateur de marques. · info@evolutionpme.ca</span></footer>
 <script src="/assets/createur-logo-config.js"></script>
