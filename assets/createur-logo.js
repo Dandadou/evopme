@@ -659,7 +659,7 @@
         try {
           var response=await fetch("/api/logo/illustrer",{method:"POST",headers:{"content-type":"application/json"},signal:controller.signal,body:JSON.stringify({questionnaire:questionnaire(),famille:d.famille,concept:d.idee})});
           var data=await response.json();
-          if(!response.ok||!data.ok||!data.image)throw new Error(data.error||"Image indisponible.");
+          if(!response.ok||!data.ok||!data.image)throw new Error([data.error,data.detail,data.code].filter(Boolean).join(" — ")||"Image indisponible.");
           var img=document.createElement("img");img.src=data.image;img.alt="Concept illustré pour "+name;img.style.cssText="display:block;width:100%;height:100%;object-fit:contain";
           visual.replaceChildren(img);
           var link=document.createElement("a");link.href=data.image;link.download="archetype-"+d.famille+".png";link.textContent="TÉLÉCHARGER L'IMAGE";
