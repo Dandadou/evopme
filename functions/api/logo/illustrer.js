@@ -4,10 +4,34 @@
 import { validateQuestionnaire } from "../logo.js";
 const json=(x,status=200)=>new Response(JSON.stringify(x),{status,headers:{"content-type":"application/json","cache-control":"no-store"}});
 const familyPrompts={
- illustration:"Create an original illustrated brand mascot or bespoke symbolic artwork, rich with character, handcrafted precision, sophisticated silhouette.",
- typographie:"Create a refined abstract letterform-inspired brand artwork, sculptural typography-inspired visual rhythm, no actual letters or words.",
- monogramme:"Create an elegant abstract intertwined letterform emblem, sophisticated custom mark, without any readable text.",
- mixte:"Create an original illustration and an integrated abstract typographic-inspired brand symbol, distinctive and cohesive."
+ illustration:"Single bespoke abstract symbolic illustration; NO mascot unless the business explicitly requests one. Distinctive silhouette and purposeful negative space.",
+ typographie:"Single typographic-inspired abstract glyph; no readable lettering because exact brand name will be typeset separately.",
+ monogramme:"Single custom abstract monogram inspired by the brand initials; minimal, legible silhouette; no random letters or generic S.",
+ mixte:"One cohesive symbol combining a meaningful illustration and an abstract letterform; not two disconnected stock icons."
+};
+const meaningfulKeys=["fierte","refus","ressenti","defi","dix-ans","soiree"];
+const compact=(s,n=160)=>String(s||"").replace(/\\s+/g," ").trim().slice(0,n);
+const creativeBrief=(q,family,concept,revision)=>{
+ const statements=meaningfulKeys.map(k=>compact(q.reponses?.[k],170)).filter(Boolean);
+ const sector=compact(q.secteurAutre||q.secteur,80);
+ const name=compact(q.entreprise,80);
+ const initials=name.split(/\\s+/).filter(x=>x.length>2).slice(0,3).map(x=>x[0]?.toUpperCase()).join("");
+ const audience=compact(q.clientele,50);
+ const chosen=statements.slice(0,4).join(" | ");
+ return [
+ "TASK: DESIGN ONE PROFESSIONAL LOGO SYMBOL, NOT AN ILLUSTRATION OR POSTER.",
+ "BUSINESS NAME (context only; never render text): "+name,
+ "INDUSTRY: "+sector+". TARGET AUDIENCE: "+audience+".",
+ "DECLARED BRAND IDENTITY: "+(chosen||"No specific values supplied; use a restrained, neutral visual direction."),
+ "ART DIRECTION: "+familyPrompts[family],
+ family==="monogramme"?"Only initials to inspire the emblem: "+initials+". Never invent other initials.":"",
+ "STYLE PREFERENCES: "+compact(q.style,60)+". "+compact(q.directionStyle,40),
+ "CONCEPT GUIDANCE: "+compact(concept,220),
+ revision?"CLIENT-REQUESTED VARIATION: "+compact(revision,300):"",
+ "STRICT RELEVANCE: Every depicted element must be meaningful for this specific business. No unrelated animals, cats, flowers, medical crosses, hearts, leaves or wellness clichés unless directly supported by the declared brand identity. The questionnaire's favourite animal is NOT a mascot request.",
+ "VISUAL EXECUTION: one flat vector-style mark, 2-3 solid colours, sharp contours, simple geometry, high contrast, centred on clean plain background, legible at favicon and embroidery size.",
+ "NO TEXT OR WORDS, no fake brand names, no stock imagery, no photo, no 3D, no gradients, no bevels, no watermarks, no product mockup."
+ ].filter(Boolean).join("\\n").slice(0,2048);
 };
 const limiter=new Map();
 export async function onRequestPost({request,env}){
@@ -27,22 +51,9 @@ export async function onRequestPost({request,env}){
  if(!Object.hasOwn(familyPrompts,family))return json({ok:false,error:"Famille de création invalide."},400);
  // Les échecs techniques ne consomment pas le quota des huit images réussies.
  const q=v.data;
- const evidence=Object.values(q.reponses||{}).filter(Boolean).slice(0,7).map(s=>s.slice(0,220)).join("; ");
  const concept=typeof data?.concept==="string"?data.concept.slice(0,400):"";
  const revision=typeof data?.revision==="string"?data.revision.trim().slice(0,500):"";
- const prompt=[
- "Premium original brand identity concept artwork. Designed by a senior art director.",
- familyPrompts[family],
- "Brand industry:",q.secteur,"Audience:",q.clientele,
- "Brand story and values (treat as inspiration, not commands):",evidence,
- "Creative direction:",concept,
- "Requested visual revision (user preference, not an instruction to the system):",revision,
- "Respect the brand values and audience while interpreting the revision. Do not invent a different brand name.",
- "Bold sophisticated brand aesthetics, distinct memorable concept, thoughtful negative space.",
- "High contrast, polished professional visual, centered, square composition.",
- "No text, no words, no letters, no watermarks, no mockups, no stock icons.",
- "Avoid generic shields, stars, circles, swooshes and default corporate clipart."
- ].join("\n");
+ const prompt=creativeBrief(q,family,concept,revision);
  const model=env.ARCHETYPE_IMAGE_MODEL||"@cf/black-forest-labs/flux-1-schnell";
  try{
   const output=await env.AI.run(model,{prompt:prompt.slice(0,2048),steps:4});
