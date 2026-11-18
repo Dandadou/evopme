@@ -580,7 +580,8 @@
       var okIA = await analyserAvecIA();
       if (!okIA) { state.sourceAnalyse = "locale"; state.iaAnalyse = null; state.imagePrompt = null; analyze(); }
       go.disabled = false; go.textContent = label0;
-      renderResult(); showStep(3);
+      showStep(3);
+      var autoCreative = $("btnDirectionsV2"); if (autoCreative) autoCreative.click();
     });
     var back2 = $("backStep2"); if (back2) back2.addEventListener("click", function () { showStep(2); });
     var restart = $("btnRecommencer"); if (restart) restart.addEventListener("click", function () { showStep(1); });
@@ -625,7 +626,22 @@
     if (creativeButton) creativeButton.addEventListener("click", async function () {
       var status = $("directionsV2Status"), results = $("directionsV2Results");
       if (!state.iaAnalyse) {
-        status.textContent = "L'analyse IA est nécessaire pour cette version. Recommence l'analyse et réessaie si l'IA est disponible.";
+        var name = (state.entreprise || "Ta marque").trim();
+        var first = name.charAt(0).toUpperCase() || "A";
+        var entries = [
+          ["Illustration", "Une signature illustrée inspirée de l'univers de " + name + ", de ses valeurs et de ses clients."],
+          ["Typographie", "Un lettrage original autour du nom « " + name + " », avec une hiérarchie expressive et lisible."],
+          ["Monogramme", "Une exploration de la lettre « " + first + " » comme signe distinctif de " + name + "."],
+          ["Composition mixte", "Une composition qui relie le nom « " + name + " » à un dessin spécifique à son histoire."]
+        ];
+        results.replaceChildren();
+        entries.forEach(function (entry) {
+          var card = document.createElement("article");
+          var heading = document.createElement("h4"); heading.textContent = entry[0];
+          var paragraph = document.createElement("p"); paragraph.textContent = entry[1];
+          card.append(heading, paragraph); results.appendChild(card);
+        });
+        status.textContent = "Mode de secours : l'IA n'est pas disponible. Voici quatre points de départ, pas des concepts personnalisés générés par l'IA.";
         return;
       }
       creativeButton.disabled = true;
