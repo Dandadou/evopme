@@ -664,7 +664,7 @@
           var data;
           try { data=JSON.parse(raw); }
           catch { throw new Error("Erreur HTTP "+response.status+" : réponse non JSON du serveur. Vérifier le déploiement Cloudflare."); }
-          if(!response.ok||!data.ok||!data.image)throw new Error([data.error,data.detail,data.code,data.diagnostic,data.type].filter(Boolean).join(" — ")||"Erreur HTTP "+response.status);
+          if(!response.ok||!data.ok||!data.image)throw new Error([data.error,data.raison,data.detail,data.code,data.diagnostic,data.type].filter(Boolean).join(" — ")||"Erreur HTTP "+response.status);
           var img=document.createElement("img");img.src=data.image;img.alt="Concept illustré pour "+name;img.style.cssText="display:block;width:100%;height:100%;object-fit:contain";
           visual.replaceChildren(img);
           var link=document.createElement("a");link.href=data.image;link.download="archetype-"+d.famille+".jpg";link.textContent="TÉLÉCHARGER L'IMAGE";
@@ -679,6 +679,10 @@
           var answers=Object.values(state.reponses||{}).filter(function(v){return typeof v==="string"&&v.trim()}).slice(0,3);
           explanation.textContent="Approche : "+d.titre+". Réponses prises en compte : "+(answers.length?answers.map(function(a){return "« "+a.slice(0,140)+" »"}).join(" · "):"le questionnaire")+". Cette correspondance est une interprétation créative, non une mesure scientifique. L'image peut comporter des éléments sans lien avec la marque.";
           report.append(summary,explanation);
+          var quality=document.createElement("p");
+          quality.style.cssText="font-size:12px;margin-top:8px;color:#a9c7d4";
+          quality.textContent=data.controle?.status==="accepte"?"Contrôle visuel IA : concept accepté.":data.controle?.status==="non_verifie"?"Contrôle visuel IA non disponible : vérifie toi-même la pertinence de ce concept.":"Concept généré : contrôle qualité visuel non confirmé.";
+          visual.parentElement.appendChild(quality);
           visual.parentElement.appendChild(report);
           var editor=document.createElement("div");
           editor.style.cssText="margin-top:18px;padding:14px;border:1px solid #356875;border-radius:14px;background:#0c1b2c";
