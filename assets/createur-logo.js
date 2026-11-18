@@ -642,7 +642,8 @@
           var paragraph = document.createElement("p"); paragraph.textContent = entry[1];
           card.append(heading, paragraph); results.appendChild(card);
         });
-        status.textContent = "Mode de secours : l'IA n'est pas disponible. Voici quatre points de départ, pas des concepts personnalisés générés par l'IA.";
+        if (window.ArchetypeVisuals) window.ArchetypeVisuals.render(results, name);
+        status.textContent = "IA indisponible : voici quatre esquisses SVG personnalisées à explorer et télécharger. Elles sont générées localement, pas par un modèle image.";
         return;
       }
       creativeButton.disabled = true;
@@ -687,7 +688,8 @@
           line("p", "À surveiller : " + d.risque);
           results.appendChild(card);
         });
-        status.textContent = "Quatre concepts proposés. La génération des dessins et des fichiers vectoriels reste à développer.";
+        if (window.ArchetypeVisuals) window.ArchetypeVisuals.render(results, state.entreprise, data.directions);
+        status.textContent = "Quatre directions créatives et leurs esquisses SVG. Les illustrations finales restent à perfectionner.";
       } catch (error) {
         status.textContent = "Impossible de générer les pistes : " + (error.name === "AbortError" ? "délai dépassé." : error.message);
       } finally {
