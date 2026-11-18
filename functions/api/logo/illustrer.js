@@ -13,8 +13,11 @@ const limiter=new Map();
 export async function onRequestPost({request,env}){
  if(!env?.AI?.run)return json({ok:false,error:"Workers AI n'est pas configuré sur ce déploiement."},503);
  const ip=request.headers.get("cf-connecting-ip")||"unknown",now=Date.now();
- const recent=(limiter.get(ip)||[]).filter(t=>now-t<3600000);
- if(recent.length>=8)return json({ok:false,error:"Limite de génération atteinte. Réessaie plus tard."},429);
+ const history=(limiter.get(ip)||[]).filter(x=>now-x.time<3600000);
+ const successes=history.filter(x=>x.success).length;
+ const failures=history.filter(x=>!x.success).length;
+ if(successes>=8)return json({ok:false,error:"Huit images générées cette heure. Réessaie plus tard."},429);
+ if(failures>=24)return json({ok:false,error:"Trop de tentatives échouées cette heure. Réessaie plus tard."},429);
  let data;
  try{const raw=await request.text();if(raw.length>24000)return json({ok:false,error:"Requête trop volumineuse."},413);data=JSON.parse(raw)}
  catch{return json({ok:false,error:"Requête invalide."},400)}
@@ -22,7 +25,7 @@ export async function onRequestPost({request,env}){
  if(!v.ok)return json({ok:false,error:"Questionnaire invalide.",details:v.errors},400);
  const family=data?.famille;
  if(!Object.hasOwn(familyPrompts,family))return json({ok:false,error:"Famille de création invalide."},400);
- recent.push(now);limiter.set(ip,recent);
+ // Les échecs techniques ne consomment pas le quota des huit images réussies.
  const q=v.data;
  const evidence=Object.values(q.reponses||{}).filter(Boolean).slice(0,7).map(s=>s.slice(0,220)).join("; ");
  const concept=typeof data?.concept==="string"?data.concept.slice(0,400):"";
@@ -41,13 +44,15 @@ export async function onRequestPost({request,env}){
  try{
   const output=await env.AI.run(model,{prompt:prompt.slice(0,2048),steps:4});
   const encoded=typeof output?.image==="string"?output.image:typeof output?.result?.image==="string"?output.result.image:null;
-  if(encoded)return json({ok:true,image:"data:image/jpeg;base64,"+encoded,model});
+  if(encoded){history.push({time:now,success:true});limiter.set(ip,history);return json({ok:true,image:"data:image/jpeg;base64,"+encoded,model});}
   if(output instanceof ArrayBuffer){
    const bytes=new Uint8Array(output);let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+   history.push({time:now,success:true});limiter.set(ip,history);
    return json({ok:true,image:"data:image/jpeg;base64,"+btoa(binary),model});
   }
   return json({ok:false,error:"Le modèle image n'a pas retourné de fichier compatible."},502);
  }catch(err){
+  history.push({time:now,success:false});limiter.set(ip,history);
   const raw=String(err?.message||"").slice(0,260);
   const code=String(err?.code||err?.cause?.code||"").slice(0,50);
   const safe=raw.replace(/https?:\/\/\S+/g,"[url]").replace(/(?:sk-|Bearer\\s+)\S+/gi,"[secret]").replace(/[<>]/g,"");
