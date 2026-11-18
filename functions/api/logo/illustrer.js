@@ -33,6 +33,22 @@ const creativeBrief=(q,family,concept,revision)=>{
  "NO TEXT OR WORDS, no fake brand names, no stock imagery, no photo, no 3D, no gradients, no bevels, no watermarks, no product mockup."
  ].filter(Boolean).join("\n").slice(0,2048);
 };
+// Optional vision audit. Disabled until a compatible vision model is configured.
+async function auditVisual(env,encoded,q,family){
+ const model=env.ARCHETYPE_VISION_MODEL;
+ if(!model)return {status:"non_verifie",reason:"Contrôle visuel automatique non configuré."};
+ try{
+  const criteria="Examine cette image comme un logo pour "+compact(q.entreprise,80)+" (secteur "+compact(q.secteurAutre||q.secteur,80)+"). Style demandé: "+family+". Vérifie seulement les défauts VISIBLES : texte inventé, animal ou fleur hors sujet, photo au lieu d'un logo, pictogrammes génériques, symbole manifestement sans lien. Réponds STRICTEMENT en JSON: {\\\"decision\\\":\\\"accepter\\\" ou \\\"rejeter\\\",\\\"raison\\\":\\\"phrase brève\\\"}. Si incertain, accepter.";
+  const output=await env.AI.run(model,{messages:[{role:"user",content:[{type:"text",text:criteria},{type:"image_url",image_url:{url:"data:image/jpeg;base64,"+encoded}}]}],max_tokens:220});
+  const raw=typeof output?.response==="string"?output.response:typeof output?.result?.response==="string"?output.result.response:"";
+  const match=raw.match(/\\{[\\s\\S]*\\}/);
+  if(!match)return {status:"non_verifie",reason:"Réponse de contrôle non exploitable."};
+  const result=JSON.parse(match[0]);
+  if(result.decision==="rejeter")return {status:"rejete",reason:compact(result.raison,180)||"Incohérence visuelle."};
+  if(result.decision==="accepter")return {status:"accepte",reason:compact(result.raison,180)};
+  return {status:"non_verifie",reason:"Verdict ambigu."};
+ }catch{return {status:"non_verifie",reason:"Contrôle visuel indisponible."}}
+}
 const limiter=new Map();
 export async function onRequestPost({request,env}){
  if(!env?.AI?.run)return json({ok:false,error:"Workers AI n'est pas configuré sur ce déploiement."},503);
@@ -58,7 +74,12 @@ export async function onRequestPost({request,env}){
  try{
   const output=await env.AI.run(model,{prompt:prompt.slice(0,2048),steps:4});
   const encoded=typeof output?.image==="string"?output.image:typeof output?.result?.image==="string"?output.result.image:null;
-  if(encoded){history.push({time:now,success:true});limiter.set(ip,history);return json({ok:true,image:"data:image/jpeg;base64,"+encoded,model});}
+  if(encoded){
+   history.push({time:now,success:true});limiter.set(ip,history);
+   const audit=await auditVisual(env,encoded,q,family);
+   if(audit.status==="rejete")return json({ok:false,error:"Concept rejeté par le contrôle visuel.",raison:audit.reason,controle:audit.status},422);
+   return json({ok:true,image:"data:image/jpeg;base64,"+encoded,model,controle:audit});
+  }
   if(output instanceof ArrayBuffer){
    const bytes=new Uint8Array(output);let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
    history.push({time:now,success:true});limiter.set(ip,history);
