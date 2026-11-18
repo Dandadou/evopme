@@ -41,7 +41,7 @@ async function auditVisual(env,encoded,q,family){
   const criteria="Examine cette image comme un logo pour "+compact(q.entreprise,80)+" (secteur "+compact(q.secteurAutre||q.secteur,80)+"). Style demandé: "+family+". Vérifie les défauts visibles : texte inventé, animal ou fleur hors sujet, photo au lieu d'un logo, pictogrammes génériques, symbole sans lien. Réponds en JSON avec decision (accepter ou rejeter) et raison (phrase brève). Si incertain, accepter.";
   const output=await env.AI.run(model,{messages:[{role:"user",content:[{type:"text",text:criteria},{type:"image_url",image_url:{url:"data:image/jpeg;base64,"+encoded}}]}],max_tokens:220});
   const raw=typeof output?.response==="string"?output.response:typeof output?.result?.response==="string"?output.result.response:"";
-  const match=raw.match(/\\{[\\s\\S]*\\}/);
+  const match=raw.match(/\{[\s\S]*\}/);
   if(!match)return {status:"non_verifie",reason:"Réponse de contrôle non exploitable."};
   const result=JSON.parse(match[0]);
   if(result.decision==="rejeter")return {status:"rejete",reason:compact(result.raison,180)||"Incohérence visuelle."};
