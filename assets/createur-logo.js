@@ -582,7 +582,7 @@
       if (!okIA) { state.sourceAnalyse = "locale"; state.iaAnalyse = null; state.imagePrompt = null; analyze(); }
       go.disabled = false; go.textContent = label0;
       showStep(3);
-      var autoCreative = $("btnDirectionsV2"); if (autoCreative) autoCreative.click();
+      var creativeStatus = $("directionsV2Status"); if (creativeStatus) creativeStatus.textContent = "Choisis une approche créative, puis lance la génération de ton concept.";
     });
     var back2 = $("backStep2"); if (back2) back2.addEventListener("click", function () { showStep(2); });
     var restart = $("btnRecommencer"); if (restart) restart.addEventListener("click", function () { showStep(1); });
