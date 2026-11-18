@@ -24,7 +24,17 @@ export default {
     }
     if (url.pathname === '/api/logo/illustrer') {
       if (request.method !== 'POST') return new Response('Méthode non acceptée', {status:405});
-      return handleLogoIllustrer({request,env});
+      try {
+        return await handleLogoIllustrer({request,env});
+      } catch (error) {
+        const type = error instanceof TypeError ? "TypeError" : "Erreur de traitement";
+        return new Response(JSON.stringify({
+          ok: false,
+          error: "Erreur serveur pendant la préparation de l'image.",
+          diagnostic: "ARCHETYPE_ROUTE_EXCEPTION",
+          type
+        }), {status:500,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
+      }
     }
     if (url.pathname.startsWith('/api/workshops/')) return handleWorkshop(request, env);
     if (url.pathname.startsWith('/api/payments/')) return handlePayments(request, env);
