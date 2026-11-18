@@ -38,7 +38,7 @@ async function auditVisual(env,encoded,q,family){
  const model=env.ARCHETYPE_VISION_MODEL;
  if(!model)return {status:"non_verifie",reason:"Contrôle visuel automatique non configuré."};
  try{
-  const criteria="Examine cette image comme un logo pour "+compact(q.entreprise,80)+" (secteur "+compact(q.secteurAutre||q.secteur,80)+"). Style demandé: "+family+". Vérifie seulement les défauts VISIBLES : texte inventé, animal ou fleur hors sujet, photo au lieu d'un logo, pictogrammes génériques, symbole manifestement sans lien. Réponds STRICTEMENT en JSON: {\\\"decision\\\":\\\"accepter\\\" ou \\\"rejeter\\\",\\\"raison\\\":\\\"phrase brève\\\"}. Si incertain, accepter.";
+  const criteria="Examine cette image comme un logo pour "+compact(q.entreprise,80)+" (secteur "+compact(q.secteurAutre||q.secteur,80)+"). Style demandé: "+family+". Vérifie les défauts visibles : texte inventé, animal ou fleur hors sujet, photo au lieu d'un logo, pictogrammes génériques, symbole sans lien. Réponds en JSON avec decision (accepter ou rejeter) et raison (phrase brève). Si incertain, accepter.";
   const output=await env.AI.run(model,{messages:[{role:"user",content:[{type:"text",text:criteria},{type:"image_url",image_url:{url:"data:image/jpeg;base64,"+encoded}}]}],max_tokens:220});
   const raw=typeof output?.response==="string"?output.response:typeof output?.result?.response==="string"?output.result.response:"";
   const match=raw.match(/\\{[\\s\\S]*\\}/);
