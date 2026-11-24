@@ -7,7 +7,7 @@
  *  2. Appelle Workers AI avec le prompt système des normes (NORMES_LOGO,
  *     §11) : l'IA analyse des RÉPONSES DÉCLARÉES, pas une psychologie.
  *  3. Valide la sortie JSON (12 scores, archétypes, Aaker, hex, forme,
- *     phrases interdites). Sortie invalide = rejet.
+ *     symbole créé par l'IA, phrases interdites). Sortie invalide = rejet.
  *  4. Construit un prompt image FLUX DÉTERMINISTE à partir de l'analyse
  *     validée (voir buildImagePrompt) : le symbole seulement, JAMAIS le
  *     nom de l'entreprise, JAMAIS de texte dans l'image.
@@ -15,6 +15,23 @@
  *     retiré / 410) : repli sur l'analyse locale par mots-clés, côté
  *     navigateur, avec source: "locale" dans la réponse. Le client ne
  *     voit jamais une erreur brute ni un JSON cassé.
+ *
+ * GÉNÉRATEUR D'IMAGE — POST /api/logo/image (FLUX.1 schnell) :
+ *  Le client envoie l'analyse validée + le questionnaire ; le serveur
+ *  reconstruit le prompt image avec buildImagePrompt (jamais un prompt
+ *  fourni par le client), puis appelle Workers AI :
+ *  @cf/black-forest-labs/flux-1-schnell (vérifié le 2026-11-16 sur la
+ *  page officielle Cloudflare : text-to-image, 12 milliards de
+ *  paramètres, rétention de données nulle). env.AI.run(model,
+ *  { prompt, steps: 4 }) renvoie { image: "<base64 JPEG>" }, 1024x1024.
+ *  FLUX ne prend PAS de negative prompt ni de largeur/hauteur : les
+ *  interdits sont déjà dans le prompt positif (« no text, no letters,
+ *  no words... »). L'image est une PROPOSITION à valider, en raster —
+ *  jamais le logo final, qui reste le SVG vectoriel. Quota : 5 images /
+ *  heure / IP (une image coûte plus de Neurons qu'une analyse).
+ *  Aucune conservation : l'analyse et le prompt sont oubliés après la
+ *  requête, l'image n'est jamais écrite en D1 ni ailleurs.
+ *  Modèle changeable par la var LOGO_IMAGE_MODEL (wrangler.jsonc).
  *
  * LOI 25 — AUCUNE CONSERVATION :
  *  La route analyse pendant la requête, puis oublie. Les réponses ne
@@ -59,7 +76,7 @@ export const MODELS_NOT_USED = [
   "@cf/meta/llama-3.1-8b-instruct-fp8-fast", // statut non confirmable 2026-11-16
 ];
 export const AI_TEMPERATURE = 0.25;
-export const AI_MAX_TOKENS = 1600;
+export const AI_MAX_TOKENS = 2200; /* symbole créé = plus de JSON */
 export const MAX_BODY_BYTES = 20480;
 export const RATE_LIMIT_PER_HOUR = 10;
 
@@ -75,6 +92,85 @@ export const FORMES = [
   "cercle", "bouclier", "losange", "vague", "etoile", "hexagone",
   "fleche", "goutte",
 ];
+/* SYMBOLE CRÉÉ PAR L'IA — plus de banque de pictogrammes ------------
+   Décision de Daniel (2026-11-16), mot pour mot : « Non c'est L'IA qui
+   doit Créer quelque chose selon les Questions ». Il n'y a donc PLUS
+   de liste de 39 pictogrammes à choisir : l'IA INVENTE le symbole à
+   partir des réponses du questionnaire, et le renvoie sous forme de
+   spec paramétrique que le générateur rend en SVG déterministe.
+   Une spec = { nom, description, justification, elements: [...] }.
+   Un élément = { type, ...coordonnées 0-100..., couleur } avec
+     type : cercle | ellipse | rect | triangle | ligne
+     couleur : dominante | appui | accent | fond  (rôles de la palette,
+       JAMAIS une couleur hors palette, JAMAIS du noir pur #000000)
+   Règles de la spec (validées dans validateSymbole) :
+     - 2 à 6 éléments, 2 couleurs distinctes minimum ;
+     - chaque coordonnée entre 0 et 100, chaque taille >= 8 (sauf les
+       rayons de cercle >= 4) : pas de détail minuscule illisible ;
+     - aucun texte, aucune lettre, aucune initiale, aucun monogramme :
+       la spec n'a pas de type "texte", c'est structurel ;
+     - chaque élément doit venir d'une réponse du client (la
+       justification cite sa phrase exacte).
+   Le repli local (navigateur) compose un symbole à partir des mots
+   du questionnaire, avec des briques de base — pas des logos finis. */
+export const SYMBOLE_COULEURS = ["dominante", "appui", "accent", "fond"];
+export const SYMBOLE_TYPES = ["cercle", "ellipse", "rect", "triangle", "ligne"];
+export const SYMBOLE_MIN_ELEMENTS = 2;
+export const SYMBOLE_MAX_ELEMENTS = 6;
+
+/* Valide une spec de symbole créée par l'IA. Invalide ou absente =
+   avertissement, pas un rejet de toute l'analyse : le générateur
+   local compose alors le symbole à partir des réponses. */
+export function validateSymbole(obj) {
+  const errors = [];
+  if (!isPlainObject(obj)) return { ok: false, errors: ["symbole manquant"], symbole: null };
+  const nom = cleanStr(obj.nom, 80);
+  if (nom.length < 3) errors.push("symbole.nom trop court");
+  if (/lettre|initiale|monogramme/i.test(norm(nom))) errors.push("symbole.nom : pas de lettre ni de monogramme");
+  const description = cleanStr(obj.description, 500);
+  if (description.length < 10) errors.push("symbole.description trop courte");
+  if (/lettre|initiale|monogramme/i.test(norm(description))) errors.push("symbole.description : pas de lettre ni de monogramme");
+  const justification = cleanStr(obj.justification, 500);
+  if (justification.length < 8) errors.push("symbole.justification trop courte");
+  const elements = obj.elements;
+  if (!Array.isArray(elements) || elements.length < SYMBOLE_MIN_ELEMENTS || elements.length > SYMBOLE_MAX_ELEMENTS) {
+    errors.push("symbole.elements : 2 à 6 éléments requis");
+    return { ok: false, errors, symbole: null };
+  }
+  const couleurs = new Set();
+  const clean = [];
+  function num(v) { return typeof v === "number" && Number.isFinite(v) ? v : null; }
+  function dans(v, min, max) { return v !== null && v >= min && v <= max; }
+  elements.forEach((el, i) => {
+    if (!isPlainObject(el)) { errors.push("symbole.elements[" + i + "] invalide"); return; }
+    if (!SYMBOLE_TYPES.includes(el.type)) { errors.push("symbole.elements[" + i + "].type invalide"); return; }
+    if (!SYMBOLE_COULEURS.includes(el.couleur)) { errors.push("symbole.elements[" + i + "].couleur invalide"); return; }
+    couleurs.add(el.couleur);
+    const e = { type: el.type, couleur: el.couleur };
+    if (el.type === "cercle") {
+      e.cx = num(el.cx); e.cy = num(el.cy); e.r = num(el.r);
+      if (!dans(e.cx, 0, 100) || !dans(e.cy, 0, 100) || !dans(e.r, 4, 50)) errors.push("symbole.elements[" + i + "] cercle hors limites");
+    } else if (el.type === "ellipse") {
+      e.cx = num(el.cx); e.cy = num(el.cy); e.rx = num(el.rx); e.ry = num(el.ry);
+      if (!dans(e.cx, 0, 100) || !dans(e.cy, 0, 100) || !dans(e.rx, 4, 50) || !dans(e.ry, 4, 50)) errors.push("symbole.elements[" + i + "] ellipse hors limites");
+    } else if (el.type === "rect") {
+      e.x = num(el.x); e.y = num(el.y); e.w = num(el.w); e.h = num(el.h); e.rx = num(el.rx) || 0;
+      if (!dans(e.x, 0, 100) || !dans(e.y, 0, 100) || !dans(e.w, 8, 100) || !dans(e.h, 8, 100) || e.x + e.w > 105 || e.y + e.h > 105) errors.push("symbole.elements[" + i + "] rect hors limites");
+    } else if (el.type === "triangle") {
+      if (typeof el.points !== "string") { errors.push("symbole.elements[" + i + "] triangle sans points"); return; }
+      const pts = el.points.split(/[\s,]+/).filter(Boolean).map(Number);
+      if (pts.length !== 6 || pts.some((v) => !Number.isFinite(v) || v < 0 || v > 100)) { errors.push("symbole.elements[" + i + "] triangle : 3 points 0-100 requis"); return; }
+      e.points = pts.join(",");
+    } else if (el.type === "ligne") {
+      e.x1 = num(el.x1); e.y1 = num(el.y1); e.x2 = num(el.x2); e.y2 = num(el.y2); e.epaisseur = num(el.epaisseur) || 4;
+      if (!dans(e.x1, 0, 100) || !dans(e.y1, 0, 100) || !dans(e.x2, 0, 100) || !dans(e.y2, 0, 100) || !dans(e.epaisseur, 2, 10)) errors.push("symbole.elements[" + i + "] ligne hors limites");
+    }
+    clean.push(e);
+  });
+  if (couleurs.size < 2) errors.push("symbole : 2 couleurs distinctes minimum");
+  if (errors.length) return { ok: false, errors, symbole: null };
+  return { ok: true, errors: [], symbole: { nom, description, justification, elements: clean } };
+}
 export const QUESTION_IDS = [
   "fierte", "refus", "soiree", "ressenti", "defi", "dix-ans",
   "animal", "moment", "endroit",
@@ -233,6 +329,30 @@ export const SYSTEM_PROMPT = [
   "Si ta direction ressemble aux laids (texte script seul, bouton",
   "glossy, monogramme illisible, décor sans sens), change de direction.",
   "",
+  "SYMBOLE CRÉÉ PAR TOI — le logo doit REPRESENTER quelque chose :",
+  "INVENTE un symbole original à partir des réponses du questionnaire.",
+  "Il n'y a AUCUNE liste de pictogrammes à choisir, ne recopie aucun",
+  "logo du corpus ci-dessus et aucune icône de banque d'images : crée",
+  "quelque chose qui n'existe que pour CE client, à partir de SES mots.",
+  "Composition : 2 à 6 formes géométriques simples dans une boîte de",
+  "100 x 100 (cercle, ellipse, rect, triangle, ligne). Couleurs :",
+  "uniquement les rôles de la palette (dominante, appui, accent, fond),",
+  "jamais une couleur hors palette, jamais de noir pur #000000, jamais",
+  "de détail plus petit que 8 unités, jamais de texte, de lettre,",
+  "d'initiale ni de monogramme : une lettre seule dans un cercle,",
+  "c'est exactement « Il ne représente rien », et c'est refusé.",
+  "Chaque élément doit venir d'une réponse du client : cite sa phrase",
+  "exacte dans « symbole_justification », et explique dans",
+  "« symbole_description » ce que le symbole représente et pourquoi.",
+  "EXEMPLE, à titre d'illustration (pas à recopier pour un autre",
+  "client) : Maison Bien-Être Lueur, Protecteur, santé — « Je suis",
+  "fier quand un client me dit qu'il se sent écouté et en sécurité",
+  "chez nous, comme à la maison » + « Le matin, tôt, quand la lumière",
+  "entre par la fenêtre ». Symbole inventé : « Maison et lueur » —",
+  "une maison qui accueille, avec un soleil qui se lève au-dessus du",
+  "toit. Éléments : rect corps de maison (dominante), triangle toit",
+  "(appui), cercle soleil (accent), 4 lignes rayons (accent).",
+  "",
   "SORTIE — réponds UNIQUEMENT avec ce JSON, sans texte avant ni après :",
   "{",
   '  "archetype_principal": "<id parmi les 12>",',
@@ -251,6 +371,14 @@ export const SYSTEM_PROMPT = [
   "  ],",
   '  "forme": "<cercle|bouclier|losange|vague|etoile|hexagone|fleche|goutte>",',
   '  "forme_justification": "<phrase du client citée>",',
+  '  "symbole_nom": "<nom court du symbole inventé, ex. : Maison et lueur>",',
+  '  "symbole_description": "<1-2 phrases : ce que le symbole représente, et pourquoi ça parle du client>",',
+  '  "symbole_justification": "<phrase EXACTE du client citée, qui a inspiré le symbole>",',
+  '  "symbole_elements": [',
+  '    { "type": "cercle", "cx": <0-100>, "cy": <0-100>, "r": <4-50>, "couleur": "dominante|appui|accent|fond" },',
+  '    { "type": "rect", "x": <0-100>, "y": <0-100>, "w": <8-100>, "h": <8-100>, "couleur": "dominante|appui|accent|fond" },',
+  '    ... 2 à 6 éléments, types cercle|ellipse|rect|triangle|ligne, coordonnées 0-100 ...',
+  '  ],',
   '  "police": "<nom de famille, ex. : Serif classique>",',
   '  "police_justification": "<phrase du client citée>",',
   '  "histoire_une_page": "<3 à 5 phrases reliant chaque élément du logo à une réponse du client>",',
@@ -436,6 +564,17 @@ export function validateAnalyse(obj, questionnaire) {
   if (!FORMES.includes(obj.forme)) errors.push("forme invalide");
   else a.forme = obj.forme;
   a.forme_justification = cleanStr(obj.forme_justification, 500);
+  /* Symbole créé par l'IA : invalide ou absent = avertissement, pas un
+     rejet — le générateur local compose alors le symbole à partir des
+     réponses du client (briques de base, pas des logos finis).
+     Un symbole valide est toujours repris tel quel côté client. */
+  const symboleValide = validateSymbole(obj.symbole);
+  if (symboleValide.ok) {
+    a.symbole = symboleValide.symbole;
+  } else {
+    a.symbole = null;
+    warnings.push("symbole invalide ou absent — le générateur local composera le symbole (" + symboleValide.errors.join("; ") + ")");
+  }
   a.police = cleanStr(obj.police, 80);
   if (!a.police) errors.push("police manquante");
   a.police_justification = cleanStr(obj.police_justification, 500);
@@ -463,6 +602,7 @@ export function validateAnalyse(obj, questionnaire) {
     const fragments = phrasesClient(questionnaire);
     const justifs = [
       a.forme_justification,
+      a.symbole ? a.symbole.justification : "",
       a.police_justification,
       ...a.palette.map((c) => c.justification),
     ];
@@ -482,9 +622,17 @@ export function validateAnalyse(obj, questionnaire) {
  * d'inspiration), JAMAIS au logo final, qui reste un SVG vectoriel.
  *
  * RÈGLES ANTI-CHEAP (normes §9 + demande de Daniel) :
- *  - Symbole seulement. AUCUN texte dans l'image : ni nom, ni lettres,
- *    ni mots. Le nom de l'entreprise est ajouté ensuite en vrai texte
- *    vectoriel, dans le SVG, jamais rendu par le générateur d'image.
+ *  - SYMBOLE SEULEMENT, SANS TEXTE — go de Daniel, confirmé le
+ *    2026-11-16 (« FLUX en mode symbole seulement, SANS texte »).
+ *    AUCUN texte dans l'image : ni nom, ni lettres, ni mots, ni
+ *    wordmark, ni typographie. FLUX ne prend pas de negative prompt :
+ *    l'interdiction est donc écrite noir sur blanc DANS le prompt
+ *    positif (« symbol only, absolutely no text, no letters, no
+ *    words, no typography, no wordmark... »), et les mêmes mots sont
+ *    dans le negative prompt (pour la documentation et l'analyse
+ *    téléchargeable). Le nom de l'entreprise est ajouté ensuite par
+ *    Archétype, en dessous, en vrai texte vectoriel dans le SVG —
+ *    lisible et modifiable — jamais rendu par le générateur d'image.
  *  - Style vectoriel plat, minimaliste, net. Pas de clip-art générique,
  *    pas d'icône de banque d'images, pas de dégradé arc-en-ciel,
  *    pas d'ombre portée, pas de biseau, pas d'effet 3D / chrome /
@@ -504,7 +652,8 @@ export const IMAGE_QUALITY_TOKENS = [
    le prompt positif. */
 export const IMAGE_BANNED_TOKENS = [
   "text", "letters", "alphabet", "words", "typography", "watermark",
-  "logo text", "clipart", "clip-art", "generic stock icon",
+  "logo text", "wordmark", "brand name", "company name",
+  "clipart", "clip-art", "generic stock icon",
   "rainbow", "rainbow gradient", "multicolor gradient",
   "drop shadow", "bevel", "emboss", "chrome", "metallic",
   "glossy", "glassy", "photorealistic", "photo", "messy", "cluttered",
@@ -873,7 +1022,10 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
   const parties = [
     [...style.tokens, "logo symbol", "high-end branding", "crisp edges", "balanced composition", "generous negative space", "scalable", "legible at small size", "single centered symbol"].join(", "),
     FORME_IMAGE[analyse.forme] + " for a brand whose personality is " +
-      ARCHETYPE_IMAGE[principal],
+      ARCHETYPE_IMAGE[principal] +
+      (analyse.symbole && analyse.symbole.description
+        ? ", symbol: " + analyse.symbole.description
+        : ""),
   ];
   if (secondaire && secondaire !== principal) {
     parties.push("with a secondary touch of " + ARCHETYPE_IMAGE[secondaire]);
@@ -881,7 +1033,7 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
   parties.push(
     "limited palette of exactly " + hexes.length + " colors: " + hexes.join(", ") +
       " (" + roles + "), " + tonPalette(analyse.palette) + ", no other colors",
-    "no text, no letters, no words, no typography in the image",
+    "symbol only, absolutely no text, no letters, no words, no typography, no wordmark, no logo text, no brand name in the image",
     "symbol only, one single focal symbol, clear hierarchy, no scattered decorations",
     "centered on a plain solid background"
   );
@@ -896,6 +1048,7 @@ export function buildImagePrompt(analyse, questionnaire, options = {}) {
     forme: analyse.forme,
     palette_hex: hexes,
     ton_palette: tonPalette(analyse.palette),
+    symbole_nom: analyse.symbole ? analyse.symbole.nom : "",
     /* Le nom de l'entreprise ne figure JAMAIS dans le prompt ni dans
        l'image : il sera ajouté en vrai texte vectoriel, dans le SVG. */
     nom_exclu_de_l_image: true,
@@ -1037,5 +1190,168 @@ export async function handleLogoAnalyse(request, env) {
     image_prompt: imagePrompt,
     avertissements: valide.warnings,
     note: "Piste de travail à valider, pas un diagnostic. Daniel valide avant toute livraison.",
+  });
+}
+
+/* ============================================================================
+ * GÉNÉRATEUR D'IMAGE — POST /api/logo/image (FLUX.1 schnell).
+ * Voir l'en-tête du fichier pour le modèle vérifié et les limites.
+ * ========================================================================== */
+export const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
+export const IMAGE_STEPS = 4; /* schnell est distillé pour 4 étapes */
+export const IMAGE_RATE_LIMIT_PER_HOUR = 5;
+export const IMAGE_MAX_BODY_BYTES = 20480;
+
+/* Quota images : 5 / heure / IP, en mémoire (même limite que le quota
+   analyses : par instance de Worker, pas un compteur global exact).
+   Aucune donnée du questionnaire n'est conservée ici : que l'IP et
+   l'heure, comme pour les analyses. */
+const rateLimitImage = new Map();
+function quotaImageDepasse(ip) {
+  const now = Date.now();
+  const key = ip || "inconnue";
+  const entrees = (rateLimitImage.get(key) || []).filter((t) => now - t < 3600000);
+  if (entrees.length >= IMAGE_RATE_LIMIT_PER_HOUR) {
+    rateLimitImage.set(key, entrees);
+    return true;
+  }
+  entrees.push(now);
+  rateLimitImage.set(key, entrees);
+  return false;
+}
+
+function octetsEnBase64(octets) {
+  let binaire = "";
+  const TAILLE = 8192;
+  for (let i = 0; i < octets.length; i += TAILLE) {
+    binaire += String.fromCharCode.apply(null, octets.subarray(i, i + TAILLE));
+  }
+  return btoa(binaire);
+}
+
+/* Décodage du résultat image. FLUX renvoie { image: "<base64 JPEG>" }.
+   On gère aussi des octets bruts ou un flux, par prudence : si le
+   modèle change de format de retour un jour, la route ne casse pas
+   en erreur brute. */
+export async function imageToBase64(resultat) {
+  if (!resultat) return { ok: false, base64: null, mime: null };
+  if (typeof resultat.image === "string" && resultat.image.length > 100) {
+    return { ok: true, base64: resultat.image, mime: "image/jpeg" };
+  }
+  if (resultat instanceof Uint8Array) {
+    return { ok: true, base64: octetsEnBase64(resultat), mime: "image/jpeg" };
+  }
+  if (resultat instanceof ArrayBuffer) {
+    return { ok: true, base64: octetsEnBase64(new Uint8Array(resultat)), mime: "image/jpeg" };
+  }
+  if (resultat && typeof resultat.getReader === "function") {
+    const lecteur = resultat.getReader();
+    const morceaux = [];
+    let total = 0;
+    for (;;) {
+      const { done, value } = await lecteur.read();
+      if (done) break;
+      if (value) { morceaux.push(value); total += value.length; }
+    }
+    const octets = new Uint8Array(total);
+    let decalage = 0;
+    morceaux.forEach((m) => { octets.set(m, decalage); decalage += m.length; });
+    if (!total) return { ok: false, base64: null, mime: null };
+    return { ok: true, base64: octetsEnBase64(octets), mime: "image/jpeg" };
+  }
+  return { ok: false, base64: null, mime: null };
+}
+
+export async function handleLogoImage(request, env) {
+  if (request.method !== "POST") {
+    return json({ ok: false, error: "Méthode non acceptée." }, 405);
+  }
+  if (!env || !env.AI || typeof env.AI.run !== "function") {
+    return json({
+      ok: false,
+      error: "ia-indisponible",
+      message: "Le générateur d'image est indisponible pour le moment. Ton logo SVG reste disponible.",
+    }, 503);
+  }
+  const ip =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for") ||
+    "inconnue";
+  if (quotaImageDepasse(ip)) {
+    return json({
+      ok: false,
+      error: "quota-depasse",
+      message: "Quota d'images atteint pour cette heure (5 maximum). Réessaie plus tard.",
+    }, 429);
+  }
+  let texteBrut;
+  try {
+    texteBrut = await request.text();
+  } catch (e) {
+    return json({ ok: false, error: "Lecture de la requête impossible." }, 400);
+  }
+  if (new TextEncoder().encode(texteBrut).length > IMAGE_MAX_BODY_BYTES) {
+    return json({ ok: false, error: "Requête trop volumineuse (20 Ko maximum)." }, 413);
+  }
+  let body;
+  try {
+    body = JSON.parse(texteBrut);
+  } catch (e) {
+    return json({ ok: false, error: "JSON invalide." }, 400);
+  }
+  /* Le client envoie l'analyse validée + le questionnaire. Le prompt
+     image est TOUJOURS reconstruit côté serveur avec buildImagePrompt :
+     on n'accepte jamais un prompt fourni par le client. */
+  if (!isPlainObject(body) || !isPlainObject(body.questionnaire) || !isPlainObject(body.analyse)) {
+    return json({ ok: false, error: "Requête invalide : analyse et questionnaire requis." }, 400);
+  }
+  const entree = validateQuestionnaire(body.questionnaire);
+  if (!entree.ok) {
+    return json({ ok: false, error: "Questionnaire invalide : " + entree.errors.join("; ") }, 400);
+  }
+  const valide = validateAnalyse(body.analyse, entree.data);
+  if (!valide.ok) {
+    return json({ ok: false, error: "Analyse invalide : " + valide.errors.join("; ") }, 400);
+  }
+  const direction =
+    typeof body.directionStyle === "string" && STYLE_DIRECTION_IDS.includes(body.directionStyle)
+      ? body.directionStyle
+      : (entree.data.directionStyle || "plat");
+  let imagePrompt;
+  try {
+    imagePrompt = buildImagePrompt(valide.analyse, entree.data, { direction });
+  } catch (e) {
+    return json({ ok: false, error: "Analyse invalide pour le prompt image." }, 400);
+  }
+  const modeleImage =
+    (env.LOGO_IMAGE_MODEL && String(env.LOGO_IMAGE_MODEL).trim()) || IMAGE_MODEL;
+  let resultat;
+  try {
+    resultat = await env.AI.run(modeleImage, {
+      prompt: imagePrompt.prompt,
+      steps: IMAGE_STEPS,
+    });
+  } catch (e) {
+    return json({
+      ok: false,
+      error: "modele-image-indisponible",
+      message: "Le modèle d'image est indisponible pour le moment. Réessaie plus tard.",
+    }, 503);
+  }
+  const image = await imageToBase64(resultat);
+  if (!image.ok) {
+    return json({
+      ok: false,
+      error: "image-vide",
+      message: "Le modèle n'a pas renvoyé d'image. Réessaie.",
+    }, 502);
+  }
+  return json({
+    ok: true,
+    source: "ia-image",
+    model: modeleImage,
+    image: "data:image/jpeg;base64," + image.base64,
+    image_prompt: imagePrompt,
+    note: "Proposition générée par l'IA, à valider — image raster (JPEG 1024x1024), pas un fichier vectoriel. Symbole seulement, sans texte : aucune lettre, aucun mot, aucun texte dans l'image. Le nom de l'entreprise est ajouté par Archétype en dessous, en vrai texte vectoriel (SVG), lisible et modifiable. Pour un logo final, Daniel le retravaille en vectoriel.",
   });
 }

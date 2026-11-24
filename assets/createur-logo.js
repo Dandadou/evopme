@@ -85,16 +85,262 @@
     "Manuscrite d'atelier": "'Courier New', Courier, monospace"
   };
 
+
+  /* ---------- symbole créé, jamais une icône de banque ---------------
+     Règle de Daniel (2026-11-16) : « Non c'est L'IA qui doit Créer
+     quelque chose selon les Questions ». Il n'y a donc PLUS de banque
+     de 39 pictogrammes préfaits : le symbole est CRÉÉ pour chaque
+     client, à partir de ses réponses.
+     - Par l'IA : elle renvoie une spec (2 à 6 formes géométriques
+       simples dans une boîte 100 x 100, couleurs = rôles de la palette).
+     - En repli local : le compositeur assemble des BRIQUES de base
+       (maison, soleil, coeur...) selon les mots du questionnaire —
+       des briques, pas des logos finis : la même maison + un soleil
+       n'est pas le même logo qu'une maison + un coeur.
+     Une spec = { nom, description, elements: [...], sources: [...] }.
+     Un élément = { type: cercle|ellipse|rect|triangle|ligne,
+       ...coordonnées 0-100..., couleur: dominante|appui|accent|fond }.
+     Jamais de texte, jamais de lettre, jamais de noir pur : les
+     éléments prennent uniquement les couleurs de la palette. */
+  function couleurRole(role, pal, fond) {
+    if (role === "dominante") return pal.couleurs[0];
+    if (role === "appui") return pal.couleurs[1] || pal.couleurs[0];
+    if (role === "accent") return pal.couleurs[2] || pal.couleurs[1] || pal.couleurs[0];
+    return fond || "#ffffff"; /* "fond" = couleur du contenant */
+  }
+  function num(v, def) { var n = parseFloat(v); return isFinite(n) ? n : def; }
+  function renderElement(el, pal, fond) {
+    if (!el || typeof el !== "object") return "";
+    var c = couleurRole(el.couleur, pal, fond);
+    function cl(v) { return Math.max(0, Math.min(100, num(v, 0))); }
+    switch (el.type) {
+      case "cercle": return '<circle cx="' + cl(el.cx) + '" cy="' + cl(el.cy) + '" r="' + Math.max(2, Math.min(50, num(el.r, 10))) + '" fill="' + c + '"/>';
+      case "ellipse": return '<ellipse cx="' + cl(el.cx) + '" cy="' + cl(el.cy) + '" rx="' + Math.max(2, Math.min(50, num(el.rx, 10))) + '" ry="' + Math.max(2, Math.min(50, num(el.ry, 10))) + '" fill="' + c + '"/>';
+      case "rect": return '<rect x="' + cl(el.x) + '" y="' + cl(el.y) + '" width="' + Math.max(4, Math.min(100, num(el.w, 20))) + '" height="' + Math.max(4, Math.min(100, num(el.h, 20))) + '" rx="' + Math.max(0, Math.min(20, num(el.rx, 0))) + '" fill="' + c + '"/>';
+      case "triangle": {
+        var pts = String(el.points || "").split(/[\s,]+/).filter(Boolean).map(Number);
+        if (pts.length !== 6 || pts.some(function (v) { return !isFinite(v); })) return "";
+        return '<polygon points="' + pts.map(function (v) { return Math.max(0, Math.min(100, v)); }).join(",") + '" fill="' + c + '"/>';
+      }
+      case "ligne": return '<line x1="' + cl(el.x1) + '" y1="' + cl(el.y1) + '" x2="' + cl(el.x2) + '" y2="' + cl(el.y2) + '" stroke="' + c + '" stroke-width="' + Math.max(2, Math.min(10, num(el.epaisseur, 4))) + '" stroke-linecap="round"/>';
+      default: return "";
+    }
+  }
+  function renderSymboleSpec(spec, pal, fond) {
+    if (!spec || !Array.isArray(spec.elements)) return "";
+    return spec.elements.map(function (el) { return renderElement(el, pal, fond); }).join("");
+  }
+  /* Briques de construction : des formes de base, paramétrées par les
+     rôles de couleur, jamais des logos finis. Chaque brique retourne
+     ses éléments dans la boîte 100 x 100. */
+  var BRIQUES = {
+    maison: { label: "Maison", desc: "Une maison qui accueille.", elements: function () { return [
+      { type: "rect", x: 18, y: 52, w: 64, h: 38, couleur: "dominante" },
+      { type: "triangle", points: "10,56 50,22 90,56", couleur: "appui" },
+      { type: "rect", x: 44, y: 68, w: 12, h: 22, couleur: "fond" }]; } },
+    soleil: { label: "Soleil", desc: "Un soleil qui se lève.", elements: function () { return [
+      { type: "cercle", cx: 50, cy: 46, r: 16, couleur: "accent" },
+      { type: "ligne", x1: 50, y1: 14, x2: 50, y2: 24, epaisseur: 5, couleur: "accent" },
+      { type: "ligne", x1: 50, y1: 68, x2: 50, y2: 78, epaisseur: 5, couleur: "accent" },
+      { type: "ligne", x1: 18, y1: 46, x2: 28, y2: 46, epaisseur: 5, couleur: "accent" },
+      { type: "ligne", x1: 82, y1: 46, x2: 72, y2: 46, epaisseur: 5, couleur: "accent" }]; } },
+    coeur: { label: "Coeur", desc: "Un coeur : on tient à toi.", elements: function () { return [
+      { type: "cercle", cx: 35, cy: 38, r: 16, couleur: "dominante" },
+      { type: "cercle", cx: 65, cy: 38, r: 16, couleur: "dominante" },
+      { type: "triangle", points: "20,46 80,46 50,84", couleur: "dominante" }]; } },
+    feuille: { label: "Feuille", desc: "Une feuille : nature, ça pousse.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 50, rx: 26, ry: 36, couleur: "dominante" },
+      { type: "ligne", x1: 50, y1: 22, x2: 50, y2: 82, epaisseur: 4, couleur: "fond" }]; } },
+    voiture: { label: "Voiture", desc: "Une auto en un geste : route, vitesse.", elements: function () { return [
+      { type: "rect", x: 8, y: 52, w: 84, h: 20, rx: 6, couleur: "dominante" },
+      { type: "rect", x: 28, y: 36, w: 40, h: 18, rx: 4, couleur: "appui" },
+      { type: "cercle", cx: 30, cy: 74, r: 9, couleur: "fond" },
+      { type: "cercle", cx: 70, cy: 74, r: 9, couleur: "fond" }]; } },
+    camion: { label: "Camion", desc: "Un camion : transport, livraison, route.", elements: function () { return [
+      { type: "rect", x: 8, y: 30, w: 46, h: 36, couleur: "dominante" },
+      { type: "triangle", points: "54,42 82,42 92,66 54,66", couleur: "appui" },
+      { type: "cercle", cx: 28, cy: 72, r: 9, couleur: "fond" },
+      { type: "cercle", cx: 72, cy: 72, r: 9, couleur: "fond" }]; } },
+    cloche: { label: "Cloche de service", desc: "La cloche du resto : on sert, c'est chaud.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 54, rx: 32, ry: 24, couleur: "dominante" },
+      { type: "rect", x: 12, y: 74, w: 76, h: 8, rx: 3, couleur: "dominante" },
+      { type: "cercle", cx: 50, cy: 26, r: 5, couleur: "accent" }]; } },
+    casque: { label: "Casque de chantier", desc: "Le casque : on bâtit solide, en sécurité.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 52, rx: 34, ry: 26, couleur: "dominante" },
+      { type: "rect", x: 12, y: 72, w: 76, h: 8, rx: 3, couleur: "appui" },
+      { type: "rect", x: 46, y: 28, w: 8, h: 40, couleur: "fond" }]; } },
+    sac: { label: "Sac de boutique", desc: "Un sac : commerce, on repart avec quelque chose.", elements: function () { return [
+      { type: "triangle", points: "24,38 76,38 84,86 16,86", couleur: "dominante" },
+      { type: "rect", x: 38, y: 24, w: 24, h: 6, rx: 3, couleur: "appui" }]; } },
+    puce: { label: "Puce électronique", desc: "Une puce : technologie, ça connecte.", elements: function () { return [
+      { type: "rect", x: 28, y: 28, w: 44, h: 44, rx: 6, couleur: "dominante" },
+      { type: "rect", x: 42, y: 42, w: 16, h: 16, couleur: "fond" },
+      { type: "rect", x: 44, y: 12, w: 6, h: 12, couleur: "appui" },
+      { type: "rect", x: 44, y: 76, w: 6, h: 12, couleur: "appui" }]; } },
+    graphique: { label: "Graphique en hausse", desc: "Des barres qui montent : ça grandit.", elements: function () { return [
+      { type: "rect", x: 18, y: 58, w: 14, h: 30, couleur: "dominante" },
+      { type: "rect", x: 43, y: 44, w: 14, h: 44, couleur: "dominante" },
+      { type: "rect", x: 68, y: 28, w: 14, h: 60, couleur: "dominante" },
+      { type: "ligne", x1: 18, y1: 52, x2: 84, y2: 18, epaisseur: 5, couleur: "accent" }]; } },
+    haltere: { label: "Haltère", desc: "Un haltère : sport, force, on se dépasse.", elements: function () { return [
+      { type: "rect", x: 28, y: 46, w: 44, h: 8, couleur: "dominante" },
+      { type: "rect", x: 12, y: 32, w: 13, h: 36, rx: 3, couleur: "dominante" },
+      { type: "rect", x: 75, y: 32, w: 13, h: 36, rx: 3, couleur: "dominante" },
+      { type: "rect", x: 25, y: 40, w: 6, h: 20, couleur: "accent" },
+      { type: "rect", x: 69, y: 40, w: 6, h: 20, couleur: "accent" }]; } },
+    vague: { label: "Vagues", desc: "Des vagues : fluide, apaisant.", elements: function () { return [
+      { type: "ligne", x1: 12, y1: 34, x2: 88, y2: 34, epaisseur: 7, couleur: "dominante" },
+      { type: "ligne", x1: 12, y1: 54, x2: 88, y2: 54, epaisseur: 7, couleur: "appui" },
+      { type: "ligne", x1: 12, y1: 74, x2: 88, y2: 74, epaisseur: 7, couleur: "dominante" }]; } },
+    fleur: { label: "Fleur", desc: "Une fleur : beauté, douceur.", elements: function () { return [
+      { type: "cercle", cx: 50, cy: 24, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 50, cy: 76, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 24, cy: 50, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 76, cy: 50, r: 12, couleur: "dominante" },
+      { type: "cercle", cx: 50, cy: 50, r: 12, couleur: "accent" }]; } },
+    livre: { label: "Livre", desc: "Un livre ouvert : savoir.", elements: function () { return [
+      { type: "rect", x: 12, y: 26, w: 34, h: 52, rx: 3, couleur: "dominante" },
+      { type: "rect", x: 54, y: 26, w: 34, h: 52, rx: 3, couleur: "appui" },
+      { type: "ligne", x1: 50, y1: 26, x2: 50, y2: 78, epaisseur: 4, couleur: "fond" }]; } },
+    montagne: { label: "Montagne", desc: "Une montagne : horizon, plein air.", elements: function () { return [
+      { type: "triangle", points: "6,88 38,30 62,66 74,48 94,88", couleur: "dominante" },
+      { type: "cercle", cx: 74, cy: 20, r: 9, couleur: "accent" }]; } },
+    patte: { label: "Patte", desc: "Une patte : animaux, on en prend soin.", elements: function () { return [
+      { type: "ellipse", cx: 50, cy: 68, rx: 22, ry: 15, couleur: "dominante" },
+      { type: "cercle", cx: 26, cy: 44, r: 9, couleur: "dominante" },
+      { type: "cercle", cx: 42, cy: 32, r: 9, couleur: "dominante" },
+      { type: "cercle", cx: 58, cy: 32, r: 9, couleur: "dominante" },
+      { type: "cercle", cx: 74, cy: 44, r: 9, couleur: "dominante" }]; } },
+    note: { label: "Note de musique", desc: "Une note : fête, musique.", elements: function () { return [
+      { type: "cercle", cx: 36, cy: 76, r: 11, couleur: "dominante" },
+      { type: "rect", x: 45, y: 24, w: 6, h: 54, couleur: "dominante" },
+      { type: "triangle", points: "51,24 74,30 70,48 51,42", couleur: "appui" }]; } },
+    "bouclier-coeur": { label: "Bouclier et coeur", desc: "Un bouclier avec un coeur : on protège.", elements: function () { return [
+      { type: "triangle", points: "50,10 86,24 86,54 50,90 14,54 14,24", couleur: "dominante" },
+      { type: "cercle", cx: 41, cy: 46, r: 10, couleur: "accent" },
+      { type: "cercle", cx: 59, cy: 46, r: 10, couleur: "accent" },
+      { type: "triangle", points: "32,50 68,50 50,72", couleur: "accent" }]; } }
+  };
+  var SECTEUR_BRIQUES = {
+    restauration: "cloche", construction: "casque", mecanique: "voiture",
+    sante: "coeur", beaute: "fleur", "services-pro": "livre",
+    immobilier: "maison", detail: "sac", mode: "fleur", agro: "feuille",
+    education: "livre", arts: "fleur", techno: "puce",
+    finance: "graphique", tourisme: "montagne", domicile: "maison",
+    animaux: "patte", sport: "haltere", evenementiel: "note",
+    obnl: "coeur", transport: "camion", autre: ""
+  };
+  var ARCHETYPE_BRIQUES = {
+    innocent: "soleil", sage: "livre", explorateur: "montagne",
+    rebelle: "soleil", magicien: "soleil", heros: "montagne",
+    amoureux: "coeur", bouffon: "soleil", "homme-ordinaire": "maison",
+    protecteur: "bouclier-coeur", souverain: "montagne", createur: "soleil"
+  };
+  var MOTS_BRIQUES = [
+    { mots: ["maison", "foyer"], brique: "maison" },
+    { mots: ["lueur", "lumiere", "soleil", "aurore"], brique: "soleil" },
+    { mots: ["coeur", "amour", "soin", "sante", "ecoute"], brique: "coeur" },
+    { mots: ["voiture", "auto", "garage", "carrosserie", "mecanique"], brique: "voiture" },
+    { mots: ["camion", "livraison", "transport", "route"], brique: "camion" },
+    { mots: ["dent"], brique: "coeur" },
+    { mots: ["cafe", "the"], brique: "soleil" },
+    { mots: ["arbre", "foret", "bois", "lac", "riviere"], brique: "feuille" },
+    { mots: ["mer", "ocean", "plage"], brique: "vague" },
+    { mots: ["montagne"], brique: "montagne" },
+    { mots: ["fleur", "jardin"], brique: "fleur" },
+    { mots: ["livre", "lecture", "enseigner", "formation", "apprendre"], brique: "livre" },
+    { mots: ["musique", "chanson", "dj", "fete"], brique: "note" },
+    { mots: ["avion", "voyage"], brique: "soleil" },
+    { mots: ["vetement", "mode", "couture"], brique: "fleur" },
+    { mots: ["argent", "banque", "finance", "assurance"], brique: "montagne" },
+    { mots: ["outil", "bricolage", "renovation"], brique: "casque" },
+    { mots: ["restaurant", "resto", "cuisine", "pain", "boulangerie"], brique: "cloche" },
+    { mots: ["boutique", "commerce", "magasin"], brique: "sac" },
+    { mots: ["technologie", "numerique", "informatique", "logiciel"], brique: "puce" },
+    { mots: ["finance", "investissement"], brique: "graphique" },
+    { mots: ["sport", "gym", "entrainement", "course"], brique: "haltere" }
+  ];
+  /* Replace un élément dans la boîte : échelle puis décalage. */
+  function placer(elements, echelle, dx, dy) {
+    function X(v) { return Math.round((num(v, 0) * echelle + dx) * 10) / 10; }
+    function Y(v) { return Math.round((num(v, 0) * echelle + dy) * 10) / 10; }
+    function S(v) { return Math.round(num(v, 0) * echelle * 10) / 10; }
+    return elements.map(function (el) {
+      var n = { type: el.type, couleur: el.couleur };
+      if (el.type === "cercle") { n.cx = X(el.cx); n.cy = Y(el.cy); n.r = S(el.r); }
+      else if (el.type === "ellipse") { n.cx = X(el.cx); n.cy = Y(el.cy); n.rx = S(el.rx); n.ry = S(el.ry); }
+      else if (el.type === "rect") { n.x = X(el.x); n.y = Y(el.y); n.w = S(el.w); n.h = S(el.h); if (el.rx) n.rx = S(el.rx); }
+      else if (el.type === "triangle") {
+        var pts = String(el.points || "").split(/[\s,]+/).filter(Boolean).map(Number);
+        n.points = pts.map(function (v, i) { return i % 2 === 0 ? X(v) : Y(v); }).join(",");
+      }
+      else if (el.type === "ligne") { n.x1 = X(el.x1); n.y1 = Y(el.y1); n.x2 = X(el.x2); n.y2 = Y(el.y2); n.epaisseur = Math.max(2, Math.round(num(el.epaisseur, 4) * echelle)); }
+      return n;
+    });
+  }
+  /* Compositeur local : il ASSEMBLE un symbole à partir des mots du
+     questionnaire. La réponse « animal » ne décide pas du symbole :
+     dire « un chat », c'est un signal d'archétype, pas un métier.
+     Le symbole vient du nom, du secteur et des 8 autres réponses. */
+  function composerSymboleLocal(themeForce) {
+    var txt = norm([state.entreprise, state.secteurAutre].concat(CFG.questionsOuvertes.filter(function (q) { return q.id !== "animal"; }).map(function (q) { return state.reponses[q.id] || ""; })).join(" "));
+    var principal = null, secondaire = null, sources = [];
+    var i, j, r;
+    if (themeForce && BRIQUES[themeForce]) {
+      principal = themeForce;
+      sources.push("Thème choisi dans l'éditeur : " + BRIQUES[themeForce].label + ".");
+    } else {
+      for (i = 0; i < MOTS_BRIQUES.length; i++) {
+        r = MOTS_BRIQUES[i];
+        for (j = 0; j < r.mots.length; j++) {
+          if (txt.indexOf(r.mots[j]) !== -1) {
+            if (!principal) { principal = r.brique; sources.push("Mot détecté : « " + r.mots[j] + " » → " + BRIQUES[r.brique].label + "."); }
+            else if (r.brique !== principal && !secondaire) { secondaire = r.brique; sources.push("Mot détecté : « " + r.mots[j] + " » → " + BRIQUES[r.brique].label + "."); }
+            break;
+          }
+        }
+      }
+      if (!principal) principal = SECTEUR_BRIQUES[state.secteur] || "";
+      if (!principal && state.top) principal = ARCHETYPE_BRIQUES[state.top.id] || "soleil";
+      if (!principal) principal = "soleil";
+      if (!secondaire && state.top) {
+        var rep = ARCHETYPE_BRIQUES[state.top.id];
+        if (rep && rep !== principal) secondaire = rep;
+      }
+      if (!secondaire && principal === "maison") secondaire = "soleil";
+    }
+    var elements = placer(BRIQUES[principal].elements(), 0.72, 14, 18);
+    /* Deux briques au maximum : 10 éléments simples au plus, jamais plus. */
+    if (secondaire && BRIQUES[secondaire]) elements = elements.concat(placer(BRIQUES[secondaire].elements(), 0.30, 62, 2));
+    var nom = BRIQUES[principal].label + (secondaire ? " et " + BRIQUES[secondaire].label.toLowerCase() : "");
+    return {
+      nom: nom,
+      description: "Symbole composé à partir de tes réponses : " + BRIQUES[principal].desc + (secondaire ? " " + BRIQUES[secondaire].desc : ""),
+      elements: elements,
+      sources: sources,
+      origine: "locale"
+    };
+  }
+  function symboleActuel() {
+    /* 1) Thème forcé dans l'éditeur, 2) symbole créé par l'IA,
+       3) symbole composé localement à partir des réponses. */
+    if (state.themeSymbole) return composerSymboleLocal(state.themeSymbole);
+    if (state.symbole && Array.isArray(state.symbole.elements) && state.symbole.elements.length) return state.symbole;
+    return composerSymboleLocal("");
+  }
+
+
   /* ---------- état ---------- */
   var state = {
     step: 1,
     entreprise: "", secteur: "", secteurAutre: "", clientele: "", typeLogo: "symbole", style: "",
     reponses: {}, aakerFondateur: {}, aakerClient: {},
     scores: null, top: null, second: null, trace: [],
-    paletteIdx: 0, forme: "", police: "", palette: null,
+    paletteIdx: 0, forme: "", police: "", palette: null, symbole: null, themeSymbole: "",
     crash: null, previewBg: "blanc",
     consentement: false, consentEmail: "", leadGardeId: null, leadGardeErreur: "",
-    sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null
+    sourceAnalyse: "locale", iaModele: "", iaAnalyse: null, imagePrompt: null,
+    imageGen: null, imageGenStatut: "", imageDirection: "plat"
   };
   CFG.dimensionsAaker.forEach(function (d) { state.aakerFondateur[d.id] = 3; state.aakerClient[d.id] = 3; });
 
@@ -151,7 +397,7 @@
     if (style) style.boost.forEach(function (id) { scores[id] = (scores[id] || 0) + 3; });
     var ranked = CFG.archetypes.slice().sort(function (a, b) { return scores[b.id] - scores[a.id]; });
     state.scores = scores; state.trace = trace;
-    state.top = ranked[0]; state.second = ranked[1];
+    state.top = ranked[0]; state.second = ranked[1]; state.symbole = null; state.themeSymbole = "";
     state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0;
     state.forme = state.top.formes[0]; state.police = state.top.polices[0];
   }
@@ -163,12 +409,18 @@
      Si l'IA est indisponible, en quota, ou renvoie une sortie invalide,
      la route répond source:"locale" et on garde l'analyse locale par
      mots-clés. Le client voit toujours un résultat, jamais une erreur. */
-  async function analyserAvecIA() {
-    var payload = {
+  /* Le questionnaire, dans le format exact qu'attend le serveur
+     (validateQuestionnaire) : le même objet sert à l'analyse ET à
+     l'image, pour que le serveur reconstruise le prompt. */
+  function questionnairePayload() {
+    return {
       entreprise: state.entreprise, secteur: state.secteur, secteurAutre: state.secteurAutre,
       clientele: state.clientele, typeLogo: state.typeLogo, style: state.style,
       reponses: state.reponses, aakerFondateur: state.aakerFondateur, aakerClient: state.aakerClient
     };
+  }
+  async function analyserAvecIA() {
+    var payload = questionnairePayload();
     try {
       var ctrl = new AbortController();
       var timer = setTimeout(function () { ctrl.abort(); }, 30000);
@@ -201,6 +453,7 @@
     } else { state.palette = palettesFor(state.top)[0]; state.paletteIdx = 0; }
     state.forme = (a.forme && CFG.formes.some(function (f) { return f.id === a.forme; })) ? a.forme : state.top.formes[0];
     state.police = (a.police && state.top.polices.indexOf(a.police) !== -1) ? a.police : state.top.polices[0];
+    state.symbole = (a.symbole && Array.isArray(a.symbole.elements) && a.symbole.elements.length) ? a.symbole : null;
     // Aaker IA (1-5) : on les applique, le double portrait se recalcule.
     CFG.dimensionsAaker.forEach(function (d) {
       if (a.aaker_fondateur && a.aaker_fondateur[d.id]) state.aakerFondateur[d.id] = a.aaker_fondateur[d.id];
@@ -214,19 +467,141 @@
     });
   }
 
+  /* ---------- image générée par l'IA (FLUX) ----------
+     POST /api/logo/image : le client envoie l'analyse validée + le
+     questionnaire, le serveur reconstruit le prompt image avec
+     buildImagePrompt (jamais un prompt fourni par le client) et
+     appelle FLUX.1 schnell. L'image est une PROPOSITION à valider,
+     en JPEG raster — pas le logo final, qui reste le SVG vectoriel.
+     Le texte y est souvent approximatif : le nom de l'entreprise
+     n'est jamais dans l'image, il est ajouté en vrai texte dans le
+     SVG. Quota côté serveur : 5 images / heure / IP. */
+  function analysePourImage() {
+    if (state.iaAnalyse) return state.iaAnalyse;
+    /* Analyse locale : on reconstruit un objet analyse complet à
+       partir de l'état, pour que le serveur puisse le valider et
+       reconstruire le prompt. Confiance faible, c'est honnête : ce
+       n'est pas une analyse IA, c'est le pointage par mots-clés. */
+    var pal = state.palette || { couleurs: ["#0f766e", "#334155", "#f59e0b"] };
+    var roles = ["dominante", "appui", "accent"];
+    var palette = pal.couleurs.slice(0, 3).map(function (hex, i) {
+      var hsl = hexToHsl(hex);
+      return { hex: String(hex).toLowerCase(), role: roles[i], saturation: hsl.s, luminosite: hsl.l, justification: "" };
+    });
+    var scores = {};
+    CFG.archetypes.forEach(function (a) { scores[a.id] = state.scores ? (state.scores[a.id] || 0) : 0; });
+    var secondId = (state.second && state.second.id && state.second.id !== state.top.id)
+      ? state.second.id
+      : CFG.archetypes.filter(function (a) { return a.id !== state.top.id; })[0].id;
+    var sym = symboleActuel();
+    var symbole = null;
+    if (sym && Array.isArray(sym.elements) && sym.elements.length) {
+      symbole = {
+        nom: sym.nom, description: sym.description || sym.nom,
+        justification: (sym.sources && sym.sources.join(" ")) || sym.description || sym.nom,
+        elements: sym.elements
+      };
+    }
+    return {
+      archetype_principal: state.top.id,
+      archetype_secondaire: secondId,
+      scores_archetypes: scores,
+      aaker_fondateur: state.aakerFondateur,
+      aaker_clientele: state.aakerClient,
+      ecart_fondateur_clientele: "Écart calculé localement à partir des curseurs.",
+      strategie_recommandee: "compromis",
+      palette: palette,
+      forme: state.forme,
+      forme_justification: "",
+      symbole: symbole,
+      police: state.police,
+      police_justification: "",
+      histoire_une_page: "« " + (state.entreprise || "Ton entreprise") + " existe parce que " + (state.reponses["fierte"] || "…") + " Même après " + (state.reponses["defi"] || "…") + ", l'idée reste la même : que les gens repartent en se sentant " + (state.reponses["ressenti"] || "…") + " »",
+      ombre: state.top.ombre,
+      confiance: "faible",
+      confiance_raison: "Analyse locale par mots-clés, pas une analyse IA.",
+      non_determine: [],
+      a_tester: ["Crash-test auprès de vrais clients."]
+    };
+  }
+  function direImageStatut(msg) {
+    var statut = $("imageGenStatut");
+    if (statut) { statut.hidden = false; statut.textContent = msg; }
+  }
+  async function genererImageIA() {
+    if (!state.top) return;
+    var btn = $("btnGenererImage"), btn2 = $("btnRegenererImage");
+    [btn, btn2].forEach(function (b) { if (b) b.disabled = true; });
+    direImageStatut("Génération de ton image en cours… ça prend quelques secondes.");
+    var direction = ($("imageDirection") && $("imageDirection").value) || "plat";
+    try {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 60000);
+      var res = await fetch("/api/logo/image", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ analyse: analysePourImage(), questionnaire: questionnairePayload(), directionStyle: direction }),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      var data = null; try { data = await res.json(); } catch (e) { data = null; }
+      if (!res.ok || !data || !data.ok || !data.image) {
+        var msg = (data && data.message) ? data.message : "La génération a échoué. Réessaie dans un moment.";
+        direImageStatut("L'image n'a pas pu être générée : " + msg + " Ton logo SVG, lui, reste disponible juste au-dessus.");
+        return;
+      }
+      state.imageGen = { image: data.image, model: data.model || "", prompt: data.image_prompt ? data.image_prompt.prompt : "", direction: direction };
+      state.imageDirection = direction;
+      direImageStatut("Image générée par l'IA (" + (data.model || "FLUX") + "). Symbole seulement, sans texte : aucune lettre, aucun mot dans l'image. Ton nom est ajouté par Archétype en dessous, en vrai texte vectoriel. C'est une proposition à valider, pas le logo final : c'est une image raster.");
+      renderImageGen();
+    } catch (e) {
+      direImageStatut("La génération a été interrompue (délai dépassé ou réseau). Réessaie : ton logo SVG reste disponible juste au-dessus.");
+    } finally {
+      [btn, btn2].forEach(function (b) { if (b) b.disabled = false; });
+    }
+  }
+  function renderImageGen() {
+    var box = $("imageGenBox"); if (!box) return;
+    var img = $("imageGeneree");
+    if (state.imageGen && state.imageGen.image) {
+      box.hidden = false;
+      if (img) img.src = state.imageGen.image;
+      var p = $("imageGenPrompt");
+      if (p) p.textContent = state.imageGen.prompt ? "Prompt utilisé : " + state.imageGen.prompt : "";
+    } else {
+      box.hidden = true;
+    }
+  }
+  function telechargerImageGeneree() {
+    if (!state.imageGen || !state.imageGen.image) return;
+    var a = document.createElement("a");
+    a.href = state.imageGen.image;
+    a.download = "logo-ia-" + (state.entreprise || "entreprise").toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".jpg";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
   /* ---------- SVG du logo ---------- */
   function shapeMarkup(forme, couleur, lettre) {
     var fill = couleur, ink = isLight(couleur) ? "#111111" : "#ffffff";
+    var shape = "";
     switch (forme) {
-      case "bouclier": return '<path d="M100 18 L168 44 V102 C168 144 136 170 100 182 C64 170 32 144 32 102 V44 Z" fill="' + fill + '"/><text x="100" y="112" text-anchor="middle" font-size="52" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "losange": return '<polygon points="100,18 182,88 100,158 18,88" fill="' + fill + '"/><text x="100" y="106" text-anchor="middle" font-size="48" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "vague": return '<path d="M18 108 C48 62 78 142 100 104 C122 66 152 142 182 104 L182 160 L18 160 Z" fill="' + fill + '"/><text x="100" y="82" text-anchor="middle" font-size="48" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "etoile": return '<polygon points="100,14 122,72 184,72 134,108 152,170 100,132 48,170 66,108 16,72 78,72" fill="' + fill + '"/><text x="100" y="112" text-anchor="middle" font-size="34" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "hexagone": return '<polygon points="100,16 172,58 172,124 100,166 28,124 28,58" fill="' + fill + '"/><text x="100" y="106" text-anchor="middle" font-size="48" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "fleche": return '<polygon points="18,52 118,52 118,22 184,92 118,162 118,132 18,132" fill="' + fill + '"/><text x="78" y="108" text-anchor="middle" font-size="42" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      case "goutte": return '<path d="M100 16 C100 16 168 92 168 122 A68 68 0 1 1 32 122 C32 92 100 16 100 16 Z" fill="' + fill + '"/><text x="100" y="138" text-anchor="middle" font-size="46" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
-      default: return '<circle cx="100" cy="88" r="70" fill="' + fill + '"/><text x="100" y="106" text-anchor="middle" font-size="52" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
+      case "bouclier": shape = '<path d="M100 18 L168 44 V102 C168 144 136 170 100 182 C64 170 32 144 32 102 V44 Z" fill="' + fill + '"/>'; break;
+      case "losange": shape = '<polygon points="100,18 182,88 100,158 18,88" fill="' + fill + '"/>'; break;
+      case "vague": shape = '<path d="M18 108 C48 62 78 142 100 104 C122 66 152 142 182 104 L182 160 L18 160 Z" fill="' + fill + '"/>'; break;
+      case "etoile": shape = '<polygon points="100,14 122,72 184,72 134,108 152,170 100,132 48,170 66,108 16,72 78,72" fill="' + fill + '"/>'; break;
+      case "hexagone": shape = '<polygon points="100,16 172,58 172,124 100,166 28,124 28,58" fill="' + fill + '"/>'; break;
+      case "fleche": shape = '<polygon points="18,52 118,52 118,22 184,92 118,162 118,132 18,132" fill="' + fill + '"/>'; break;
+      case "goutte": shape = '<path d="M100 16 C100 16 168 92 168 122 A68 68 0 1 1 32 122 C32 92 100 16 100 16 Z" fill="' + fill + '"/>'; break;
+      default: shape = '<circle cx="100" cy="88" r="70" fill="' + fill + '"/>'; break;
     }
+    /* La lettre n'est dessinée que pour le monogramme, choisi
+       explicitement par le client. Pour un symbole, jamais de lettre :
+       le pictogramme représente l'entreprise, pas son initiale. */
+    if (lettre) {
+      var y = forme === "etoile" ? 112 : forme === "fleche" ? 108 : forme === "goutte" ? 138 : forme === "bouclier" ? 112 : 106;
+      var fs = forme === "etoile" ? 34 : forme === "fleche" ? 42 : 52;
+      shape += '<text x="100" y="' + y + '" text-anchor="middle" font-size="' + fs + '" font-weight="bold" fill="' + ink + '" font-family="Arial, sans-serif">' + esc(lettre) + '</text>';
+    }
+    return shape;
   }
   function initials(nom) {
     var mots = (nom || "Ton entreprise").trim().split(/\s+/);
@@ -242,17 +617,35 @@
     var textColor = state.previewBg === "fonce" ? "#ffffff" : "#111111";
     var s = size || 640;
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + s + '" height="' + s + '" viewBox="0 0 200 200">'
-      + (bg !== "none" ? '<rect width="200" height="200" fill="' + bg + '"/>' : '')
-      + shapeMarkup(state.forme, pal.couleurs[0], initials(nom))
-      + '<text x="100" y="196" text-anchor="middle" font-size="13" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>'
-      + '</svg>';
+      + (bg !== "none" ? '<rect width="200" height="200" fill="' + bg + '"/>' : '');
+    if (state.typeLogo === "texte") {
+      /* Texte seulement, choisi explicitement : le nom en gros, sans forme
+         vide et sans initiale. */
+      svg += '<text x="100" y="98" text-anchor="middle" font-size="22" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>'
+        + '<rect x="70" y="112" width="60" height="5" fill="' + pal.couleurs[0] + '"/>';
+    } else if (state.typeLogo === "monogramme") {
+      /* Monogramme choisi explicitement : les initiales dans la forme,
+         comme un blason. Ce n'est pas le cas par défaut. */
+      svg += shapeMarkup(state.forme, pal.couleurs[0], initials(nom));
+    } else {
+      /* Symbole : la forme choisie sert de contenant, le pictogramme
+         dessine ce que l'entreprise représente. Jamais une initiale. */
+      var sym = symboleActuel();
+      var contenant = state.forme === "vague" ? shade(pal.couleurs[0], 70) : pal.couleurs[0];
+      svg += shapeMarkup(state.forme, contenant, "");
+      svg += '<g transform="translate(62,52) scale(0.76)">' + renderSymboleSpec(sym, pal, contenant) + '</g>';
+    }
+    if (state.typeLogo !== "texte") {
+      svg += '<text x="100" y="196" text-anchor="middle" font-size="13" font-weight="bold" fill="' + textColor + '" font-family="' + esc(font) + '">' + esc(nom.toUpperCase()) + '</text>';
+    }
+    svg += '</svg>';
     return svg;
   }
   function renderLogo() {
     var box = $("logoPreview"); if (!box || !state.top) return;
     box.innerHTML = logoSVG(640);
     var cap = $("logoCaption");
-    if (cap) cap.textContent = (state.entreprise || "Ton entreprise") + " — " + state.top.nom + " · " + state.palette.nom + " · " + (CFG.formes.find(function (f) { return f.id === state.forme; }) || {}).label + " · " + state.police;
+    if (cap) cap.textContent = (state.entreprise || "Ton entreprise") + " — " + state.top.nom + " · Symbole : " + symboleActuel().nom + " · " + state.palette.nom + " · " + (CFG.formes.find(function (f) { return f.id === state.forme; }) || {}).label + " · " + state.police;
   }
 
   /* ---------- rendu des étapes ---------- */
@@ -288,6 +681,13 @@
       var meta = CFG.formes.find(function (x) { return x.id === f; }) || { label: f, description: "" };
       return '<button type="button" class="cl-choice' + (state.forme === f ? " active" : "") + '" data-forme="' + f + '">' + esc(meta.label) + '<small>' + esc(meta.description) + '</small></button>';
     }).join("");
+    var symSel = $("symboleSelect");
+    if (symSel) {
+      var cur = state.themeSymbole || "";
+      symSel.innerHTML = '<option value="">Laisser l\'IA / le questionnaire créer le symbole</option>' + Object.keys(BRIQUES).map(function (id) {
+        return '<option value="' + id + '"' + (id === cur ? " selected" : "") + '>' + esc(BRIQUES[id].label) + " — " + esc(BRIQUES[id].desc) + "</option>";
+      }).join("");
+    }
     $("policeChoices").innerHTML = state.top.polices.map(function (p) {
       return '<button type="button" class="cl-choice' + (state.police === p ? " active" : "") + '" data-police="' + esc(p) + '" style="font-family:' + esc(FONT_STACKS[p] || "Arial, sans-serif") + '">' + esc(p) + '</button>';
     }).join("");
@@ -346,7 +746,11 @@
     CFG.momentMap.forEach(function (m) { if (m.mots.some(function (w) { return momentTxt.indexOf(norm(w)) !== -1; })) html += "<p class='cl-note'>Ton moment préféré : " + esc(m.note) + "</p>"; });
     CFG.lieuMap.forEach(function (m) { if (m.mots.some(function (w) { return lieuTxt.indexOf(norm(w)) !== -1; })) html += "<p class='cl-note'>Ton endroit préféré : " + esc(m.note) + "</p>"; });
     var formeMeta = CFG.formes.find(function (x) { return x.id === state.forme; }) || {};
-    html += "<h4>4. Ta forme et ta police</h4><p><b>" + esc(formeMeta.label || state.forme) + "</b> — " + esc(formeMeta.description || "") + " <b>Police : " + esc(state.police) + ".</b> La forme et la police doivent rester congruentes avec l'archétype " + esc(state.top.nom) + ", sinon le logo envoie deux messages en même temps.</p>";
+    var sym = symboleActuel();
+    html += "<h4>4. Ton symbole, ta forme et ta police</h4><p><b>Symbole : " + esc(sym.nom) + "</b> — " + esc(sym.description || "") + " Un logo qui ne représente rien, on le refuse : le symbole doit dire ton secteur ou ta personnalité en 1 seconde.</p>";
+    if (sym.sources && sym.sources.length) html += "<p class='cl-note'>Ce symbole vient de tes mots : " + esc(sym.sources.join(" ")) + "</p>";
+    if (sym.origine === "ia") html += "<p class='cl-note'>Symbole créé par l'IA à partir de tes réponses, pas choisi dans une banque d'icônes.</p>";
+    html += "<p><b>" + esc(formeMeta.label || state.forme) + "</b> — " + esc(formeMeta.description || "") + " <b>Police : " + esc(state.police) + ".</b> La forme et la police doivent rester congruentes avec l'archétype " + esc(state.top.nom) + ", sinon le logo envoie deux messages en même temps.</p>";
     html += "<p class='cl-note'>Ce que ce logo ne prouve pas : qu'il va vendre plus, ni que tes clients vont le percevoir comme tu le perçois. C'est pour ça qu'il y a le crash-test, juste en dessous.</p>";
     el.innerHTML = html;
   }
@@ -382,9 +786,9 @@
       + "<p>Ceci est une piste de travail à valider, pas un diagnostic. Les archétypes sont le vocabulaire de Pearson (1991) et de Mark et Pearson (2001), inspiré de Jung.</p>"
       + "<p><b>Source de l'analyse : " + (state.sourceAnalyse === "ia" ? "IA (Workers AI" + (state.iaModele ? ", " + esc(state.iaModele) : "") + ")" : "locale, par mots-clés") + ".</b></p>"
       + (state.iaAnalyse && state.iaAnalyse.histoire_une_page ? "<h3>Ton histoire, selon l'IA</h3><p>" + esc(state.iaAnalyse.histoire_une_page) + "</p><p><b>Ombre à éviter :</b> " + esc(state.iaAnalyse.ombre) + " · <b>Confiance :</b> " + esc(state.iaAnalyse.confiance) + "</p>" : "")
-      + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Pour FLUX, en inspiration seulement — le logo final reste un SVG vectoriel, et ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
+      + (state.imagePrompt ? "<h3>Prompt image (symbole seulement, sans texte)</h3><p>Tu peux générer cette image avec le bouton « Générer l'image avec l'IA » dans l'étape 3 : c'est une proposition à valider, en raster, pas le logo final vectoriel — ton nom est ajouté en vrai texte, jamais rendu par l'image.</p><p><b>Prompt :</b> " + esc(state.imagePrompt.prompt) + "</p><p><b>Negative prompt :</b> " + esc(state.imagePrompt.negative_prompt) + "</p>" : "")
       + "<h3>Pointage des 12 archétypes</h3><table><tr><th>Archétype</th><th>Points</th><th>Promesse</th></tr>" + rows + "</table>"
-      + "<h3>Couleurs, forme et police choisies</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Police : " + esc(state.police) + "</p>"
+      + "<h3>Couleurs, forme, symbole et police choisis</h3><p>" + esc(pal.nom) + " : " + pal.couleurs.join(", ") + " · Forme : " + esc(state.forme) + " · Symbole : " + esc(symboleActuel().nom) + " · Police : " + esc(state.police) + "</p>"
       + "<h3>Double portrait (Aaker)</h3><p>" + esc(($("aakerResult") || {}).textContent || "") + "</p>"
       + "<h3>Crash-test</h3>" + crash
       + "<h3>Tes réponses</h3>" + state.trace.map(function (t) { return "<p><b>" + esc(t.question.texte) + "</b><br>« " + esc(t.reponse || "") + " »</p>"; }).join("")
@@ -459,7 +863,7 @@
       "Secteur : " + (state.secteur || "—") + " · Clientèle : " + (state.clientele || "—"),
       "Archétype : " + state.top.nom + " (secondaire : " + state.second.nom + ")",
       "Couleurs : " + state.palette.couleurs.join(", "),
-      "Forme : " + state.forme + " · Police : " + state.police,
+      "Forme : " + state.forme + " · Symbole : " + symboleActuel().nom + " · Police : " + state.police,
       "",
       consentLigne,
       state.consentement ? "Courriel du client : " + state.consentEmail : "",
@@ -579,6 +983,7 @@
       go.disabled = true; var label0 = go.textContent; go.textContent = "ANALYSE EN COURS…";
       var okIA = await analyserAvecIA();
       if (!okIA) { state.sourceAnalyse = "locale"; state.iaAnalyse = null; state.imagePrompt = null; analyze(); }
+      state.imageGen = null; renderImageGen();
       go.disabled = false; go.textContent = label0;
       renderResult(); showStep(3);
     });
@@ -616,13 +1021,20 @@
       var wrap = $("consentEmailWrap"); if (wrap) wrap.hidden = !consentBox.checked;
       var erreur = $("consentErreur"); if (erreur) erreur.hidden = true;
     });
+    var symSel = $("symboleSelect");
+    if (symSel) symSel.addEventListener("change", function () { state.themeSymbole = symSel.value; renderLogo(); renderPourquoi(); });
     var pngT = $("btnPngTransparent"); if (pngT) pngT.addEventListener("click", function () { exportPNG(true); });
     var pngB = $("btnPngBlanc"); if (pngB) pngB.addEventListener("click", function () { exportPNG(false); });
     var dl = $("btnDlAnalyse"); if (dl) dl.addEventListener("click", downloadAnalysis);
     var pro = $("btnPro"); if (pro) pro.addEventListener("click", mailPro);
     var crash = $("btnCrash"); if (crash) crash.addEventListener("click", runCrashTest);
+    var gen = $("btnGenererImage"); if (gen) gen.addEventListener("click", genererImageIA);
+    var regen = $("btnRegenererImage"); if (regen) regen.addEventListener("click", genererImageIA);
+    var dlImg = $("btnDlImage"); if (dlImg) dlImg.addEventListener("click", telechargerImageGeneree);
+    var dirSel = $("imageDirection"); if (dirSel) dirSel.addEventListener("change", function () { state.imageDirection = dirSel.value; });
     showStep(1);
   }
+  window.EVOPME_LOGO_TEST = { renderSymboleSpec: renderSymboleSpec, composerSymboleLocal: composerSymboleLocal, symboleActuel: symboleActuel, logoSVG: logoSVG, state: state, analysePourImage: analysePourImage, genererImageIA: genererImageIA, renderImageGen: renderImageGen };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
