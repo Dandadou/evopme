@@ -11,9 +11,11 @@ try{
   if(!card?.published) throw new Error('invalid');
   name.textContent=card.name;
   company.textContent=[card.title,card.company].filter(Boolean).join(' · ');
-  company.hidden=!company.textContent;
+  company.hidden=card.hideHeading||!company.textContent;
+  name.classList.toggle('dc__sr-only',card.hideHeading===true);
+  document.querySelector('.dc__kicker').hidden=card.hideHeading===true;
   document.title=card.name+' | Carte numérique';
-  renderCard(document.querySelector('#public-card'),card);
+  renderCard(document.querySelector('#public-card'),card,{contact:!card.hideActions});
 }catch(error){
   name.textContent=error.message==='invalid'?'Cette carte n’est pas disponible.':'Impossible de charger la carte.';
 }

@@ -1,3 +1,4 @@
+import { cardLink } from './digital-card-links.js';
 const el = (tag,className='',text='') => {
   const node=document.createElement(tag);
   node.className=className;
@@ -30,15 +31,16 @@ function lightOrDark(hex){
 function image(url,alt,className){
   const img=el('img',className);img.src=url;img.alt=alt;return img;
 }
-export function renderCard(root, card = {}, { contact = true } = {}) {
+export function renderCard(root, card = {}, { contact = true, preview = false, testLinks = false, side = 'front', onSide, onPlace } = {}) {
   root.classList.add('dc');
   root.style.setProperty('--dc-accent',card.accent||'#fa7824');
   root.style.setProperty('--dc-accent-text',lightOrDark(card.accent||'#fa7824'));
   root.style.setProperty('--dc-ink',card.background||'#202328');
   root.style.setProperty('--dc-text',lightOrDark(card.background||'#202328'));
-  const button=el('button','dc__turn');
-  button.type='button';button.setAttribute('aria-label','Retourner la carte : afficher le verso');
-  const flip=el('span','dc__flip');flip.dataset.back='false';
+  const frame=el('div','dc__turn');
+  const button=el('button','dc__flip-button dc__button');
+  button.type='button';
+  const flip=el('div','dc__flip');
   const front=el('span','dc__face');
   const back=el('span','dc__face dc__face--back');back.setAttribute('aria-hidden','true');
   const fallbackFront=el('span','dc__fallback');
@@ -55,17 +57,53 @@ export function renderCard(root, card = {}, { contact = true } = {}) {
   if(!details.childElementCount) details.append(el('span','dc__small','Téléphone, courriel ou site web'));
   fallbackBack.append(details);
   back.append(card.back?image(card.back,'Verso de la carte','dc__art'):fallbackBack);
+  for(const [face,faceNode] of [['front',front],['back',back]]){
+    for(const [index,zone] of (card.zones||[]).entries()){
+      if(zone.face!==face)continue;
+      const url=cardLink(zone.url);
+      if(!preview&&!url)continue;
+      const fake=preview&&(!testLinks||!url);
+      const zoneNode=el(fake?'span':'a','dc__hotspot'+(preview?' dc__hotspot--demo':'')+(fake?'':' dc__hotspot--live'));
+      zoneNode.style.left=zone.x+'%';zoneNode.style.top=zone.y+'%';
+      zoneNode.style.width=zone.w+'%';zoneNode.style.height=zone.h+'%';
+      if(fake){
+        zoneNode.textContent=zone.label||String(index+1);
+        zoneNode.setAttribute('aria-hidden','true');
+      }else{
+        zoneNode.href=url;zoneNode.title=zone.label;zoneNode.setAttribute('aria-label',zone.label);
+        if(preview){zoneNode.textContent=zone.label;if(/^https?:/.test(url)){zoneNode.target='_blank';zoneNode.rel='noopener noreferrer';}}
+      }
+      faceNode.append(zoneNode);
+    }
+  }
   flip.append(front,back);
-  const hint=el('span','dc__hint','Recto · Clique ou touche la carte pour la retourner');
-  button.append(flip,hint);
-  button.addEventListener('click',()=>{
-    const isBack=flip.dataset.back!=='true';
+  const hint=el('span','dc__hint');
+  const setSide=isBack=>{
     flip.dataset.back=String(isBack);
-    front.setAttribute('aria-hidden',String(isBack));back.setAttribute('aria-hidden',String(!isBack));
-    button.setAttribute('aria-label','Retourner la carte : afficher le '+(isBack?'recto':'verso'));
-    hint.textContent=(isBack?'Verso':'Recto')+' · Clique ou touche la carte pour la retourner';
+    front.setAttribute('aria-hidden',String(isBack));front.inert=isBack;
+    back.setAttribute('aria-hidden',String(!isBack));back.inert=!isBack;
+    button.textContent=isBack?'Voir le recto':'Voir le verso';
+    button.setAttribute('aria-label','Retourner la carte : voir le '+(isBack?'recto':'verso'));
+    hint.textContent=isBack?'Verso':'Recto';
+  };
+  const turn=()=>{
+    const isBack=flip.dataset.back!=='true';
+    setSide(isBack);
+    onSide?.(isBack?'back':'front');
+  };
+  setSide(side==='back');
+  button.addEventListener('click',turn);
+  frame.addEventListener('click',event=>{
+    if(event.target.closest('a'))return;
+    if(onPlace){
+      const bounds=frame.getBoundingClientRect();
+      onPlace((event.clientX-bounds.left)*100/bounds.width,(event.clientY-bounds.top)*100/bounds.height);
+    }else turn();
   });
-  root.replaceChildren(button);
+  frame.append(flip);
+  const controls=el('div','dc__flip-controls');
+  controls.append(hint,button);
+  root.replaceChildren(frame,controls);
   if(!contact||!card.name) return;
   const actions=el('div','dc__actions');
   const download=el('button','dc__button dc__button--primary','Ajouter à mes contacts');

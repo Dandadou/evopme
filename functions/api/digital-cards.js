@@ -1,3 +1,4 @@
+import { cleanCardLinks } from '../../assets/digital-card-links.js';
 const MAX_BODY = 1_100_000;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const COLORS = /^#[0-9a-f]{6}$/i;
@@ -44,6 +45,11 @@ export function cleanCard(body) {
     }
     card[key] = value;
   }
+  for(const key of ['hideHeading','hideActions']) {
+    if(body[key]!==undefined&&typeof body[key]!=='boolean')throw new Error('Option d’affichage invalide.');
+    card[key]=body[key]===true;
+  }
+  card.zones = cleanCardLinks(body.zones);
   return card;
 }
 async function readBody(request) {

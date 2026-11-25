@@ -2,6 +2,8 @@
 
 La section est à `/admin/?page=cartes-numeriques`. Elle utilise la permission CMS existante `cms.content.edit`. « Essayer la démo » remplit un exemple fictif sans rien enregistrer. Téléverser au besoin le recto, le verso et un logo (PNG, JPG ou WebP). Le navigateur réduit les images avant l’enregistrement; les faces complètes gardent leur composition et ne sont pas recadrées.
 
+Ajoute une ou plusieurs zones cliquables sur le recto ou le verso : choisis leur destination, place-les sur l’image ou rends toute une face cliquable. Le bouton de rotation reste accessible séparément. Les contours de repérage restent dans l’admin. Tu peux aussi masquer l’en-tête et/ou les boutons de contact pour ne pas répéter ce qui est imprimé.
+
 La première sauvegarde est toujours un brouillon. « Publier la carte » rend le lien `/carte/identifiant` accessible à toute personne qui le possède, sans connexion. Ne publier que des visuels et coordonnées prévus pour le public. « Retirer du public » rend le même lien inaccessible sans effacer la carte. Le lien et le QR restent identiques après modification. Imprimer le QR seulement après avoir testé l’URL finale sur le bon domaine.
 
 ## Mise en service

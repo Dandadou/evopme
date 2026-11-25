@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import worker from '../_worker.js';
 import { cleanCard, getDigitalCard, handleDigitalCardsAdmin } from '../functions/api/digital-cards.js';
+import { cleanCardLinks } from '../assets/digital-card-links.js';
 import { renderCard, toVcard } from '../assets/digital-card.js';
 
 const origin='https://cartes.example';
@@ -36,10 +37,16 @@ test('publication explicite, retrait, lien stable et séparation des organisatio
   assert.equal((await handleDigitalCardsAdmin(request(edit),env,2)).status,404);
   assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,published:true}),env,2)).status,404);
   assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,slug:'autre'}),env,1)).status,400);
-  assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,published:true}),env,1)).status,200);
+  const zones=[{face:'front',label:'Site web',url:'https://example.com/',x:0,y:0,w:100,h:100},
+    {face:'back',label:'Courriel',url:'mailto:contact@example.com',x:35,y:49,w:32,h:14}];
+  assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,published:true,zones,hideHeading:true,hideActions:true}),env,1)).status,200);
   const publicRes=await worker.fetch(request(publicPath),env);
   assert.equal(publicRes.headers.get('cache-control'),'no-store');
-  assert.equal((await publicRes.json()).card.name,base.name);
+  const {card}=await publicRes.json();
+  assert.equal(card.name,base.name);
+  assert.deepEqual(card.zones,zones);
+  assert.equal(card.hideHeading,true);
+  assert.equal(card.hideActions,true);
   assert.equal((await worker.fetch(request('/carte/'+base.slug),env)).headers.get('x-robots-tag'),'noindex, nofollow');
   assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',base),env,1)).status,200);
   assert.equal((await getDigitalCard(request(publicPath),env,base.slug)).status,404);
@@ -78,17 +85,43 @@ test('le recto et le verso sont rendus et le bouton inverse la face accessible',
   globalThis.document={createElement:tag=>new Node(tag)};
   try{
     const root=new Node('div');
-    renderCard(root,{...base,front:'recto.png',back:'verso.png'},{contact:false});
-    const [button]=root.children, [flip,hint]=button.children, [front,back]=flip.children;
+    const zones=[{face:'front',label:'Site',url:'https://example.com',x:2,y:3,w:30,h:20},
+      {face:'back',label:'Appeler',url:'tel:+14505550100',x:0,y:0,w:100,h:100}];
+    renderCard(root,{...base,front:'recto.png',back:'verso.png',zones},{contact:false});
+    const [frame,controls]=root.children, [hint,button]=controls.children, [flip]=frame.children, [front,back]=flip.children;
     assert.equal(front.children[0].src,'recto.png');
     assert.equal(back.children[0].src,'verso.png');
     assert.equal(back.attrs['aria-hidden'],'true');
+    assert.equal(back.inert,true);
+    assert.equal(front.children[1].href,'https://example.com/');
+    assert.equal(front.children[1].attrs['aria-label'],'Site');
+    assert.equal(back.children[1].href,'tel:+14505550100');
+    assert.equal(back.children[1].style.width,'100%');
+    frame.click({target:{closest:()=>true}});
+    assert.equal(flip.dataset.back,'false');
     button.click();
     assert.equal(flip.dataset.back,'true');
     assert.equal(front.attrs['aria-hidden'],'true');
     assert.equal(back.attrs['aria-hidden'],'false');
+    assert.equal(front.inert,true);
+    assert.equal(back.inert,false);
     assert.match(hint.textContent,/^Verso/);
     button.click();
     assert.equal(flip.dataset.back,'false');
   }finally{globalThis.document=before;}
+});
+
+test('zones recto-verso validées et présentation sans texte facultative',()=>{
+  const front={face:'front',label:'Portfolio',url:'https://example.com',x:0,y:0,w:100,h:100};
+  const back={face:'back',label:'Téléphone',url:'tel:+14505550100',x:30,y:32,w:47,h:18};
+  const valid=cleanCard({...base,hideHeading:true,hideActions:true,zones:[front,back]});
+  assert.deepEqual(valid.zones.map(z=>z.face),['front','back']);
+  assert.equal(valid.hideHeading,true);
+  assert.equal(valid.hideActions,true);
+  assert.equal(cleanCard(base).hideHeading,false);
+  assert.deepEqual(cleanCard(base).zones,[]);
+  for(const url of ['javascript:alert(1)','data:text/html,abc','mailto:x@example.com?subject=no','https://user:pass@example.com']){
+    assert.throws(()=>cleanCardLinks([{...front,url}]));
+  }
+  assert.throws(()=>cleanCardLinks([{...back,x:60}]));
 });

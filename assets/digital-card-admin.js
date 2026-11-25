@@ -1,4 +1,5 @@
 import {renderCard} from './digital-card.js';
+import {cleanCardLinks} from './digital-card-links.js';
 const root=document.querySelector('[data-digital-cards]');
 if(root) init(root);
 function init(root) {
@@ -21,13 +22,40 @@ function init(root) {
         <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
         <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
         <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
+        <fieldset class="dc__wide dc__visibility"><legend>Texte autour de la carte</legend>
+          <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
+          <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
+        </fieldset>
         <div class="dc__wide dc__actions"><button class="dc__button dc__button--primary" type="submit">Enregistrer</button><button class="dc__button" type="button" data-publish hidden></button></div>
       </form>
       <p role="status" class="dc__status" data-status></p>
     </div>
     <div class="dc__box">
       <h2>Aperçu recto-verso</h2>
+      <div class="dc__public-heading" data-card-heading></div>
       <div data-card-preview></div>
+      <div class="dc__zone-editor">
+        <h3>Zones cliquables</h3>
+        <p class="dc__muted">Les contours sont visibles seulement ici. Ajoute un lien sur une partie de l’image ou sur tout un côté.</p>
+        <div class="dc__actions">
+          <button type="button" class="dc__button" data-zone-add="front">Ajouter sur le recto</button>
+          <button type="button" class="dc__button" data-zone-add="back">Ajouter sur le verso</button>
+        </div>
+        <label class="dc__visibility dc__note"><input type="checkbox" data-test-links> Tester les liens dans l’aperçu</label>
+        <label class="dc__note">Zone à modifier<select data-zone-select><option value="">Aucune zone sélectionnée</option></select></label>
+        <div class="dc__form" data-zone-editor hidden>
+          <label class="dc__wide">Libellé du lien<input data-zone-label maxlength="80" placeholder="Ex. Visiter le site"></label>
+          <label class="dc__wide">Lien de destination<input data-zone-url maxlength="250" placeholder="https://… ou tel:… ou mailto:…"></label>
+          <label class="dc__wide dc__visibility"><span><input type="checkbox" data-zone-full> Rendre tout ce côté cliquable</span></label>
+          <label>Largeur (%)<input type="number" data-zone-width min="8" max="100" step="1"></label>
+          <label>Hauteur (%)<input type="number" data-zone-height min="12" max="100" step="1"></label>
+          <div class="dc__wide dc__actions">
+            <button type="button" class="dc__button" data-zone-place>Placer sur la carte</button>
+            <button type="button" class="dc__button" data-zone-remove>Enlever la zone</button>
+          </div>
+          <p class="dc__wide dc__muted" data-zone-status role="status"></p>
+        </div>
+      </div>
       <div class="dc__qr" data-qrcode hidden>
         <p class="dc__muted" data-qr-note></p>
         <div data-qr-image aria-label="Code QR du lien de la carte"></div>
@@ -38,6 +66,13 @@ function init(root) {
   </div>`;
   const form=root.querySelector('form'), field=key=>form.elements.namedItem(key), list=root.querySelector('select');
   const preview=root.querySelector('[data-card-preview]'), status=root.querySelector('[data-status]');
+  const heading=root.querySelector('[data-card-heading]');
+  const zoneEditor=root.querySelector('[data-zone-editor]'), zoneList=root.querySelector('[data-zone-select]');
+  const zoneLabel=root.querySelector('[data-zone-label]'), zoneURL=root.querySelector('[data-zone-url]');
+  const zoneFull=root.querySelector('[data-zone-full]'), zoneWidth=root.querySelector('[data-zone-width]'), zoneHeight=root.querySelector('[data-zone-height]');
+  const zonePlace=root.querySelector('[data-zone-place]'), zoneStatus=root.querySelector('[data-zone-status]');
+  const testLinks=root.querySelector('[data-test-links]');
+  let zones=[], selected=-1, side='front', placing=false;
   const toggle=root.querySelector('[data-publish]'), save=form.querySelector('[type=submit]'), demo=root.querySelector('[data-demo]');
   const qr=root.querySelector('[data-qrcode]'), qrImage=root.querySelector('[data-qr-image]'), link=root.querySelector('[data-public-link]');
   let active='', published=false, busy=false, pending=0, revision=0, images={}, stableURL='', imageJobs={};
@@ -49,11 +84,48 @@ function init(root) {
     save.disabled=busy||pending>0;toggle.disabled=save.disabled;list.disabled=busy;demo.disabled=busy;
     toggle.hidden=!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
-  const read=()=>Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()]));
+  const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
+    hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked});
+  const faceLabel=face=>face==='front'?'Recto':'Verso';
+  const limit=(n,min,max)=>Math.min(max,Math.max(min,Math.round(n)));
+  const currentZone=()=>zones[selected];
+  function drawZoneEditor(){
+    const z=currentZone();
+    zoneList.replaceChildren(new Option('Aucune zone sélectionnée',''),...zones.map((zone,i)=>new Option(faceLabel(zone.face)+' · '+(zone.label||'Lien '+(i+1)),String(i))));
+    zoneList.value=z?String(selected):'';
+    zoneEditor.hidden=!z;
+    zoneStatus.textContent=placing?'Clique à l’endroit voulu sur la carte pour placer la zone.':'';
+    if(!z)return;
+    zoneLabel.value=z.label;zoneURL.value=z.url;
+    zoneWidth.value=z.w;zoneHeight.value=z.h;
+    zoneFull.checked=z.x===0&&z.y===0&&z.w===100&&z.h===100;
+    zoneWidth.disabled=zoneHeight.disabled=zonePlace.disabled=zoneFull.checked;
+  }
+  function editZone(){
+    const z=currentZone();
+    if(!z)return;
+    z.label=zoneLabel.value;
+    z.url=zoneURL.value.trim();
+    if(!zoneFull.checked){
+      const w=limit(Number(zoneWidth.value),8,100),h=limit(Number(zoneHeight.value),12,100);
+      Object.assign(z,{w,h,x:Math.min(z.x,100-w),y:Math.min(z.y,100-h)});
+    }
+    if(zoneList.selectedOptions[0])zoneList.selectedOptions[0].textContent=faceLabel(z.face)+' · '+(z.label||'Lien '+(selected+1));
+    draw();
+  }
   const draw=()=>{
-    const card={...read(),...images};
+    const card={...read(),...images,zones};
     if(card.website&&!/^https?:\/\//i.test(card.website)) card.website='';
-    renderCard(preview,card);
+    heading.hidden=card.hideHeading;
+    heading.textContent=[card.name,card.title,card.company].filter(Boolean).join(' · ');
+    renderCard(preview,card,{preview:true,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,
+      onSide:face=>{side=face;},
+      onPlace:placing?(x,y)=>{
+        const z=currentZone();
+        if(!z||!Number.isFinite(x)||!Number.isFinite(y))return;
+        z.x=limit(x-z.w/2,0,100-z.w);z.y=limit(y-z.h/2,0,100-z.h);
+        placing=false;drawZoneEditor();draw();zonePlace.focus();
+      }:undefined});
   };
   const makeQR=()=>{
     stableURL=active?new URL('/carte/'+active,location.origin).href:'';
@@ -61,17 +133,21 @@ function init(root) {
     qrImage.replaceChildren();
     if(!stableURL)return;
     link.href=stableURL;link.textContent=stableURL;
-    root.querySelector('[data-qr-note]').textContent=published?'Lien public · aucun compte requis':'Brouillon · ce QR fonctionnera après publication.';
+    root.querySelector('[data-qr-note]').textContent=location.hostname.endsWith('.workers.dev')?'Aperçu de test · ne pas imprimer ce QR.':published?'Lien public · aucun compte requis':'Brouillon · ce QR fonctionnera après publication.';
     try{new window.QRCode(qrImage,{text:stableURL,width:320,height:320,correctLevel:window.QRCode.CorrectLevel.M});}
     catch{qrImage.textContent='QR indisponible';}
   };
   const setCard=(card={},saved=false)=>{
     revision++;pending=0;imageJobs={};images={};
     active=saved?card.slug:'';published=saved&&!!card.published;
+    zones=(card.zones||[]).map(zone=>({...zone}));
+    selected=-1;side='front';placing=false;testLinks.checked=false;
+    field('hideHeading').checked=card.hideHeading===true;
+    field('hideActions').checked=card.hideActions===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
     field('slug').readOnly=!!active;
     for(const key of ['front','back','logo']){images[key]=card[key]||'';field(key).value='';}
-    setButtons();draw();makeQR();
+    setButtons();drawZoneEditor();draw();makeQR();
   };
   const request=async(path,options)=>{
     const res=await fetch(api+path,{...options,credentials:'same-origin',cache:'no-store'});
@@ -96,10 +172,42 @@ function init(root) {
   list.addEventListener('change',()=>select(list.value));
   demo.addEventListener('click',()=>{
     if(active&&!confirm('Remplacer l’aperçu actuel par une nouvelle démo vierge? Les modifications non enregistrées seront perdues.')) return;
-    list.value='';setCard({name:'Alex Tremblay',company:'Atelier Démo',title:'Création et design',slug:'atelier-demo',phone:'450 555-0100',email:'bonjour@example.com'});
+    list.value='';setCard({name:'Alex Tremblay',company:'Atelier Démo',title:'Création et design',slug:'atelier-demo',phone:'450 555-0100',email:'bonjour@example.com',zones:[
+      {face:'front',label:'Site web',url:'https://example.com/',x:59,y:8,w:33,h:20},
+      {face:'back',label:'Écrire',url:'mailto:bonjour@example.com',x:54,y:57,w:36,h:22}
+    ]});
     show('Exemple fictif. Change les couleurs et retourne la carte pour essayer.');
   });
   form.addEventListener('input',event=>{if(event.target.type!=='file')draw();});
+  testLinks.addEventListener('change',()=>{placing=false;drawZoneEditor();draw();});
+  for(const button of root.querySelectorAll('[data-zone-add]'))button.addEventListener('click',()=>{
+    if(zones.length>=12)return show('Tu peux créer jusqu’à 12 zones par carte.',true);
+    const face=button.dataset.zoneAdd;
+    zones.push({face,label:'',url:'',x:32,y:39,w:36,h:22});
+    selected=zones.length-1;side=face;placing=false;
+    drawZoneEditor();draw();zoneLabel.focus();
+  });
+  zoneList.addEventListener('change',()=>{
+    selected=zoneList.value===''?-1:Number(zoneList.value);
+    const z=currentZone();
+    if(z)side=z.face;
+    placing=false;drawZoneEditor();draw();
+  });
+  for(const input of [zoneLabel,zoneURL,zoneWidth,zoneHeight])input.addEventListener('input',editZone);
+  for(const input of [zoneWidth,zoneHeight])input.addEventListener('change',drawZoneEditor);
+  zonePlace.addEventListener('click',()=>{
+    const z=currentZone();if(!z)return;
+    placing=!placing;side=z.face;drawZoneEditor();draw();
+  });
+  zoneFull.addEventListener('change',()=>{
+    const z=currentZone();if(!z)return;
+    Object.assign(z,zoneFull.checked?{x:0,y:0,w:100,h:100}:{x:32,y:39,w:36,h:22});
+    side=z.face;placing=false;drawZoneEditor();draw();
+  });
+  root.querySelector('[data-zone-remove]').addEventListener('click',()=>{
+    if(!currentZone())return;
+    zones.splice(selected,1); selected=-1;placing=false;drawZoneEditor();draw();zoneList.focus();
+  });
   for(const key of ['front','back','logo']){
     field(key).addEventListener('change',async()=>{
       const file=field(key).files[0];if(!file)return;
@@ -116,10 +224,12 @@ function init(root) {
   }
   async function persist(nextPublished){
     if(busy||pending||!form.reportValidity())return;
+    let validZones;
+    try{validZones=cleanCardLinks(zones);}catch(error){show(error.message,true);zoneList.focus();return;}
     busy=true;setButtons();
     try{
       const {card}=await request(active?'?slug='+encodeURIComponent(active):'',{
-        method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,published:nextPublished})
+        method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,zones:validZones,published:nextPublished})
       });
       setCard(card,true);
       try{await refresh();show(published?'Carte publiée. Le lien et le QR sont prêts.':'Brouillon enregistré.');}
