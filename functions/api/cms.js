@@ -1,3 +1,4 @@
+import { handleDigitalCardsAdmin } from './digital-cards.js';
 import { workshopAdmin } from './workshops.js';
 
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
@@ -145,6 +146,12 @@ export async function getCmsMedia(request,env){
 export async function handleCms(request,env){
  if(!env.CMS_DB)return json({error:'La base D1 du CMS n’est pas encore liée au Worker.'},503);
  const url=new URL(request.url);
+
+ if(url.pathname==='/api/cms/digital-cards'){
+  const auth=await requireUser(request,env,'cms.content.edit');
+  if(auth.response)return auth.response;
+  return handleDigitalCardsAdmin(request,env,auth.user.organization_id);
+ }
 
  // ---------------------------------------------------------------------------
  // Créateur de logo — garder un lead dans le CMS, SEULEMENT avec consentement.

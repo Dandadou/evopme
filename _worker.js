@@ -1,3 +1,4 @@
+import { getDigitalCard, validSlug } from './functions/api/digital-cards.js';
 import { onRequestPost, onRequest } from './functions/api/forms.js';
 import { handleCms, getPublicCmsContent, getPublicHeyzineCatalogues, getCmsMedia } from './functions/api/cms.js';
 import { handlePayments } from './functions/api/payments.js';
@@ -8,6 +9,16 @@ import { handleLogoAnalyse } from './functions/api/logo.js';
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/cartes/')) return getDigitalCard(request,env,url.pathname.slice(12));
+    if (url.pathname.startsWith('/carte/') && (request.method==='GET'||request.method==='HEAD')) {
+      const slug=url.pathname.slice(7).replace(/\/$/,'');
+      if (!validSlug(slug)) return new Response('Carte introuvable.',{status:404});
+      const page=await env.ASSETS.fetch(new Request(new URL('/carte',url),request));
+      const headers=new Headers(page.headers);
+      headers.set('x-robots-tag','noindex, nofollow');
+      headers.set('referrer-policy','no-referrer');
+      return new Response(page.body,{status:page.status,headers});
+    }
     if (url.pathname === '/api/forms') {
       if (request.method === 'POST') return onRequestPost({ request, env });
       return onRequest();
