@@ -136,3 +136,29 @@ test('la préversion de branche ne lit ni ne modifie les cartes en D1',async()=>
     assert.equal((await worker.fetch(new Request(origin+route),env)).status,404);
   }
 });
+
+test('les modèles créent deux faces éditables et les éléments sont conservés à la publication',async()=>{
+  const {makeCardTemplate}=await import('../assets/digital-card-templates.js');
+  for(const theme of ['minimal','graphite','signature']){
+    const preset=makeCardTemplate(theme,{...base,phone:'450 555-0100',website:'https://example.com'});
+    const card=cleanCard({...base,...preset,blankFront:true,blankBack:true});
+    assert.equal(card.theme,theme);
+    assert.equal(card.zones.filter(z=>z.kind==='button').length,3);
+    assert.ok(card.zones.some(z=>z.source==='name'));
+    assert.ok(card.zones.every(z=>z.x+z.w<=100&&z.y+z.h<=100));
+  }
+  const data={...base,...makeCardTemplate('signature',base),blankFront:true,blankBack:true};
+  data.zones.push({face:'back',kind:'icon',icon:'email',color:'#ffffff',size:18,align:'center',label:'Écrire',url:'mailto:info@example.com',x:68,y:52,w:14,h:21});
+  const env=environment(), path='/api/cms/digital-cards';
+  assert.equal((await handleDigitalCardsAdmin(request(path,'POST',data),env,1)).status,201);
+  assert.equal((await handleDigitalCardsAdmin(request(path+'?slug='+base.slug,'PUT',{...data,published:true}),env,1)).status,200);
+  const {card}=await (await getDigitalCard(request('/api/cartes/'+base.slug),env,base.slug)).json();
+  assert.equal(card.theme,'signature');
+  assert.equal(card.blankFront,true);
+  assert.equal(card.zones.at(-1).icon,'email');
+  assert.throws(()=>cleanCard({...data,theme:'mauvais'}));
+  assert.throws(()=>cleanCardLinks([{...data.zones.at(-1),url:'javascript:alert(1)'}]));
+  assert.throws(()=>cleanCardLinks([{...data.zones.at(-1),icon:'constructor'}]));
+  assert.throws(()=>cleanCardLinks([{...data.zones.at(-1),color:'url(https://example.com)'}]));
+  assert.throws(()=>cleanCardLinks([{...data.zones.find(z=>z.kind==='button'),url:''}]));
+});

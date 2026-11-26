@@ -115,3 +115,39 @@
 @media(max-width:1050px) {[data-digital-cards] .dc__admin {grid-template-columns:minmax(0,1fr);grid-template-areas:"canvas" "settings";}}
 @media(max-width:520px) {.dc__studio-chip{display:none;}.dc__stage{padding:.5rem;}}
 @media(prefers-reduced-motion:reduce){.dc__flip {transition:none;}}
+
+/* Éléments dessinés dans les coordonnées de la face, zoomés avec la carte. */
+.dc__turn { container-type:inline-size; }
+.dc__layer {
+  color:var(--dc-layer-color,#fff);font:700 var(--dc-layer-size,4cqw)/1.08 system-ui,sans-serif;
+  text-align:var(--dc-layer-align,center);display:flex;justify-content:center;align-items:center;
+  white-space:normal;overflow-wrap:anywhere;overflow:hidden;padding:0 .25em;
+  pointer-events:none;border:0;background:transparent;
+}
+.dc__layer[style*="--dc-layer-align: left"] {justify-content:flex-start;}
+.dc__layer[style*="--dc-layer-align: right"] {justify-content:flex-end;}
+.dc__layer--button {background:var(--dc-accent,#fa7824);border:1px solid #ffffff40;box-shadow:0 .16em .35em #0005;}
+.dc__layer--icon {font-size:calc(var(--dc-layer-size,4cqw) * 1.5);}
+a.dc__layer {pointer-events:auto;}
+.dc__layer[data-drag-zone] {
+  pointer-events:auto;touch-action:none;cursor:grab;
+  outline:1px dashed #72e7ef;outline-offset:-1px;
+}
+.dc__layer[data-drag-zone]:focus-visible,.dc__layer.dc__dragging {
+  outline:2px solid #72e7ef;outline-offset:0;box-shadow:inset 0 0 0 1px #0a273b;
+}
+.dc__layer.dc__dragging {cursor:grabbing;}
+.dc__element-tools {padding:.6rem;background:#0a121d;border:1px solid #30475e;border-radius:.7rem;}
+.dc__templates {margin:.65rem 0;border:1px solid #526781;border-radius:.65rem;padding:.65rem;background:#111c2a;}
+.dc__templates summary {cursor:pointer;font-weight:750;}
+.dc__templates p {padding-top:.45rem;}
+.dc__template-list {display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.55rem;}
+.dc__template {gap:.45rem;}
+.dc__swatch {display:inline-block;width:1.35rem;height:.85rem;border-radius:.15rem;border:1px solid #777;background:#f3f3ed;box-shadow:inset 0 -.15rem #17404b;}
+[data-template-key="graphite"] .dc__swatch {background:#111d29;box-shadow:inset 0 -.15rem #66e3ed;}
+[data-template-key="signature"] .dc__swatch {background:#221926;box-shadow:inset 0 -.15rem #dcb480;}
+.dc__face[data-template="minimal"] {background:linear-gradient(90deg,var(--dc-accent) 0 2.5%,transparent 2.5%),var(--dc-ink);}
+.dc__face[data-template="graphite"] {background:radial-gradient(ellipse at 100% 0,#3577866b,transparent 57%),
+  linear-gradient(155deg,transparent 80%,#63e3ed26 80% 81%,transparent 81%),var(--dc-ink);}
+.dc__face[data-template="signature"] {background:radial-gradient(ellipse at 50% -30%,#ac7b6564,transparent 75%),var(--dc-ink);}
+.dc__face[data-template="signature"]::before {content:"";position:absolute;inset:6%;border:1px solid var(--dc-accent);border-radius:inherit;opacity:.6;pointer-events:none;}

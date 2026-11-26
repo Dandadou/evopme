@@ -1,4 +1,5 @@
-import { cardLink } from './digital-card-links.js';
+import { cardTemplates } from './digital-card-templates.js';
+import { cardLink, cardIcons } from './digital-card-links.js';
 const el = (tag,className='',text='') => {
   const node=document.createElement(tag);
   node.className=className;
@@ -47,7 +48,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   fallbackFront.append(card.logo?image(card.logo,'','dc__logo'):el('span','dc__brand',card.company||'Carte professionnelle'));
   const title=el('span');title.append(el('strong','dc__name',card.name||'Nom de la cliente'),el('span','dc__small',card.title||''));
   fallbackFront.append(title);
-  front.append(card.front?image(card.front,'Recto de la carte','dc__art'):fallbackFront);
+  if(card.front||!card.blankFront)front.append(card.front?image(card.front,'Recto de la carte','dc__art'):fallbackFront);
   const fallbackBack=el('span','dc__fallback');
   fallbackBack.append(el('span','dc__brand',card.company||card.name||'Coordonnées'));
   const details=el('span');
@@ -56,27 +57,40 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   }
   if(!details.childElementCount) details.append(el('span','dc__small','Téléphone, courriel ou site web'));
   fallbackBack.append(details);
-  back.append(card.back?image(card.back,'Verso de la carte','dc__art'):fallbackBack);
+  if(card.back||!card.blankBack)back.append(card.back?image(card.back,'Verso de la carte','dc__art'):fallbackBack);
+  if(Object.hasOwn(cardTemplates,card.theme)){
+    if(card.blankFront&&!card.front)front.dataset.template=card.theme;
+    if(card.blankBack&&!card.back)back.dataset.template=card.theme;
+  }
   for(const [face,faceNode] of [['front',front],['back',back]]){
     for(const [index,zone] of (card.zones||[]).entries()){
       if(zone.face!==face)continue;
-      const url=cardLink(zone.url);
-      if(!preview&&!url)continue;
-      const fake=preview&&(!testLinks||!url);
-      const draggable=fake&&editZones&&!onPlace;
-      const zoneNode=el(fake?(draggable?'button':'span'):'a','dc__hotspot'+(preview?' dc__hotspot--demo':'')+(fake?'':' dc__hotspot--live'));
+      const url=cardLink(zone.url), kind=zone.kind||'hotspot', visible=kind!=='hotspot';
+      const label=(['name','company','title'].includes(zone.source)&&card[zone.source])||zone.label;
+      if(!preview&&!visible&&!url)continue;
+      const editing=preview&&!testLinks, draggable=editing&&editZones&&!onPlace;
+      const link=Boolean(url&&(!preview||testLinks)&&!onPlace);
+      const classes='dc__hotspot'+(visible?' dc__layer dc__layer--'+kind:'')+
+        (editing&&!visible?' dc__hotspot--demo':'')+(link?' dc__hotspot--live':'');
+      const zoneNode=el(draggable?'button':link?'a':'span',classes);
       zoneNode.style.left=zone.x+'%';zoneNode.style.top=zone.y+'%';
       zoneNode.style.width=zone.w+'%';zoneNode.style.height=zone.h+'%';
-      if(fake){
-        zoneNode.textContent=zone.label||String(index+1);
-        if(draggable){
-          zoneNode.type='button';zoneNode.dataset.dragZone=String(index);
-          zoneNode.setAttribute('aria-label','Déplacer : '+(zone.label||'zone '+(index+1)));
-        }else zoneNode.setAttribute('aria-hidden','true');
-      }else{
-        zoneNode.href=url;zoneNode.title=zone.label;zoneNode.setAttribute('aria-label',zone.label);
-        if(preview){zoneNode.textContent=zone.label;if(/^https?:/.test(url)){zoneNode.target='_blank';zoneNode.rel='noopener noreferrer';}}
+      if(visible){
+        zoneNode.textContent=kind==='icon'?(Object.hasOwn(cardIcons,zone.icon)?cardIcons[zone.icon]:cardIcons.web):label;
+        zoneNode.style.setProperty('--dc-layer-color',zone.color||'#ffffff');
+        zoneNode.style.setProperty('--dc-layer-size',String((zone.size||16)/4)+'cqw');
+        zoneNode.style.setProperty('--dc-layer-align',zone.align||'center');
+        if(kind==='icon')zoneNode.setAttribute('aria-label',label);
+      }else if(editing){
+        zoneNode.textContent=label||String(index+1);
       }
+      if(draggable){
+        zoneNode.type='button';zoneNode.dataset.dragZone=String(index);
+        zoneNode.setAttribute('aria-label','Déplacer : '+(label||'zone '+(index+1)));
+      }else if(link){
+        zoneNode.href=url;zoneNode.title=label;zoneNode.setAttribute('aria-label',label);
+        if(preview&&/^https?:/.test(url)){zoneNode.target='_blank';zoneNode.rel='noopener noreferrer';}
+      }else if(!visible)zoneNode.setAttribute('aria-hidden','true');
       faceNode.append(zoneNode);
     }
   }

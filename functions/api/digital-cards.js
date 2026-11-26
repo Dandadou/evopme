@@ -1,3 +1,4 @@
+import { cardTemplates } from '../../assets/digital-card-templates.js';
 import { cleanCardLinks } from '../../assets/digital-card-links.js';
 const MAX_BODY = 1_100_000;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -45,10 +46,12 @@ export function cleanCard(body) {
     }
     card[key] = value;
   }
-  for(const key of ['hideHeading','hideActions']) {
+  for(const key of ['hideHeading','hideActions','blankFront','blankBack']) {
     if(body[key]!==undefined&&typeof body[key]!=='boolean')throw new Error('Option d’affichage invalide.');
     card[key]=body[key]===true;
   }
+  if(body.theme!==undefined&&body.theme!==''&&!Object.hasOwn(cardTemplates,body.theme))throw new Error('Modèle inconnu.');
+  card.theme=body.theme||'';
   card.zones = cleanCardLinks(body.zones);
   return card;
 }

@@ -1,37 +1,62 @@
+import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
-import {cleanCardLinks} from './digital-card-links.js';
+import {cardLink,cleanCardLinks} from './digital-card-links.js';
 const root=document.querySelector('[data-digital-cards]');
 if(root) init(root);
 function init(root) {
   root.innerHTML=`
-  <div class="dc__studio-banner"><div><span>ÉVOLUTION PME / STUDIO NUMÉRIQUE</span><strong>Studio de cartes</strong><p>Compose le recto et le verso, place tes liens et vérifie le résultat.</p></div><span class="dc__studio-chip">RECTO / VERSO</span></div>
+  <div class="dc__studio-banner"><div><span>ÉVOLUTION PME / STUDIO NUMÉRIQUE</span><strong>Studio de cartes</strong><p>Crée une carte à partir de tes images ou d’un fond vierge, puis dispose tes éléments.</p></div><span class="dc__studio-chip">RECTO / VERSO</span></div>
   <p class="dc__muted dc__studio-local" data-local-note hidden></p>
   <div class="dc__list"><select aria-label="Choisir une carte existante"><option value="">Nouvelle carte</option></select><button type="button" class="dc__button" data-demo>Essayer la démo</button></div>
   <div class="dc__admin">
     <div class="dc__box dc__box--canvas">
       <span class="dc__section-id">01 / PLAN DE TRAVAIL</span>
       <h2>Aperçu recto-verso</h2>
+      <details class="dc__templates"><summary>Partir d’un modèle (sans image)</summary>
+        <p class="dc__muted">Remplis tes coordonnées dans Personnalisation, puis choisis un modèle. Les faces avec une image importée ne sont pas remplacées.</p>
+        <div class="dc__template-list">${Object.entries(cardTemplates).map(([key,{label}])=>`<button class="dc__button dc__template" type="button" data-template-key="${key}"><span class="dc__swatch" aria-hidden="true"></span>${label}</button>`).join('')}</div>
+        <p class="dc__muted" role="status" data-template-status></p>
+      </details>
       <label class="dc__visibility dc__note"><input type="checkbox" data-clean-preview> Voir comme un visiteur (sans contours)</label>
       <div class="dc__public-heading" data-card-heading></div>
       <div class="dc__stage"><div data-card-preview></div></div>
       <div class="dc__zone-editor">
-        <h3>Zones cliquables</h3>
-        <p class="dc__muted">Glisse une zone directement sur l’image. Au clavier, sélectionne-la avec Tab et déplace-la avec les flèches. Les contours restent dans l’éditeur.</p>
-        <div class="dc__actions">
-          <button type="button" class="dc__button" data-zone-add="front">Ajouter sur le recto</button>
-          <button type="button" class="dc__button" data-zone-add="back">Ajouter sur le verso</button>
+        <h3>Éléments de la carte</h3>
+        <p class="dc__muted">Ajoute un bloc sur la face affichée, puis glisse-le où tu veux. Les liens invisibles ne montrent aucun contour aux visiteurs.</p>
+        <div class="dc__actions dc__element-tools" aria-label="Ajouter un élément">
+          <button type="button" class="dc__button" data-add-layer="text">+ Texte</button>
+          <button type="button" class="dc__button" data-add-layer="icon">+ Icône</button>
+          <button type="button" class="dc__button" data-add-layer="button">+ Bouton</button>
         </div>
+        <div class="dc__actions">
+          <button type="button" class="dc__button" data-zone-add="front">+ Lien invisible au recto</button>
+          <button type="button" class="dc__button" data-zone-add="back">+ Lien invisible au verso</button>
+        </div>
+        <details class="dc__templates">
+          <summary>Liens rapides : réseaux sociaux et autres</summary>
+          <div class="dc__form">
+            <label>Type de lien<select data-quick-type><option value="facebook">Facebook</option><option value="linkedin">LinkedIn</option><option value="instagram">Instagram</option><option value="calendar">Prendre rendez-vous</option><option value="location">Itinéraire</option><option value="web">Site web ou autre lien</option></select></label>
+            <label>Affichage<select data-quick-display><option value="icon">Icône</option><option value="button">Bouton</option><option value="hotspot">Lien invisible</option></select></label>
+            <label class="dc__wide">Adresse du lien<input data-quick-url type="text" maxlength="250" inputmode="url" placeholder="https://…"></label>
+            <button type="button" class="dc__button" data-quick-add>+ Ajouter ce lien</button>
+          </div>
+          <p class="dc__muted" role="status" data-quick-status></p>
+        </details>
         <label class="dc__visibility dc__note"><input type="checkbox" data-test-links> Tester les liens dans l’aperçu</label>
-        <label class="dc__note">Zone à modifier<select data-zone-select><option value="">Aucune zone sélectionnée</option></select></label>
+        <label class="dc__note">Élément à modifier<select data-zone-select><option value="">Aucun élément sélectionné</option></select></label>
         <div class="dc__form" data-zone-editor hidden>
-          <label class="dc__wide">Libellé du lien<input data-zone-label maxlength="80" placeholder="Ex. Visiter le site"></label>
-          <label class="dc__wide">Lien de destination<input data-zone-url maxlength="250" placeholder="https://… ou tel:… ou mailto:…"></label>
-          <label class="dc__wide dc__visibility"><span><input type="checkbox" data-zone-full> Rendre tout ce côté cliquable</span></label>
+          <label class="dc__wide"><span data-label-title>Libellé du lien</span><input data-zone-label maxlength="80" placeholder="Ex. Visiter le site"></label>
+          <label class="dc__wide"><span data-link-title>Lien de destination</span><input data-zone-url maxlength="250" placeholder="https://… ou tel:… ou mailto:…"></label>
+          <label class="dc__wide" data-icon-field hidden>Icône<select data-zone-icon><option value="web">↗ Site web</option><option value="phone">☎ Téléphone</option><option value="email">✉ Courriel</option><option value="location">⌖ Adresse</option><option value="calendar">▦ Rendez-vous</option><option value="star">★ Étoile</option><option value="facebook">f Facebook</option><option value="linkedin">in LinkedIn</option><option value="instagram">◎ Instagram</option></select></label>
+          <label data-style-field hidden>Couleur du texte ou de l’icône<input type="color" data-zone-color value="#ffffff"></label>
+          <label data-style-field hidden>Taille du texte ou de l’icône<input type="number" data-zone-size min="8" max="38" step="1"></label>
+          <label data-style-field hidden>Alignement<select data-zone-align><option value="left">Gauche</option><option value="center">Centre</option><option value="right">Droite</option></select></label>
+          <label class="dc__wide dc__visibility" data-full-field><span><input type="checkbox" data-zone-full> Rendre tout ce côté cliquable</span></label>
           <label>Largeur (%)<input type="number" data-zone-width min="8" max="100" step="1"></label>
           <label>Hauteur (%)<input type="number" data-zone-height min="12" max="100" step="1"></label>
           <div class="dc__wide dc__actions">
             <button type="button" class="dc__button" data-zone-place>Placer sur la carte</button>
-            <button type="button" class="dc__button" data-zone-remove>Enlever la zone</button>
+            <button type="button" class="dc__button" data-zone-remove>Enlever l’élément</button>
           </div>
           <p class="dc__wide dc__muted" data-zone-status role="status"></p>
         </div>
@@ -60,6 +85,10 @@ function init(root) {
         <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
         <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
         <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
+        <fieldset class="dc__wide dc__visibility"><legend>Fond sans image</legend>
+          <label><input name="blankFront" type="checkbox"> Recto vierge, sans texte automatique</label>
+          <label><input name="blankBack" type="checkbox"> Verso vierge, sans texte automatique</label>
+        </fieldset>
         <fieldset class="dc__wide dc__visibility"><legend>Texte autour de la carte</legend>
           <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
           <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
@@ -76,6 +105,8 @@ function init(root) {
   const zoneLabel=root.querySelector('[data-zone-label]'), zoneURL=root.querySelector('[data-zone-url]');
   const zoneFull=root.querySelector('[data-zone-full]'), zoneWidth=root.querySelector('[data-zone-width]'), zoneHeight=root.querySelector('[data-zone-height]');
   const zonePlace=root.querySelector('[data-zone-place]'), zoneStatus=root.querySelector('[data-zone-status]');
+  const zoneIcon=root.querySelector('[data-zone-icon]'),zoneColor=root.querySelector('[data-zone-color]');
+  const zoneSize=root.querySelector('[data-zone-size]'),zoneAlign=root.querySelector('[data-zone-align]');
   const testLinks=root.querySelector('[data-test-links]');
   const cleanPreview=root.querySelector('[data-clean-preview]');
   const localNote=root.querySelector('[data-local-note]');
@@ -83,7 +114,7 @@ function init(root) {
   const previewHost=location.hostname.endsWith('.workers.dev')||['localhost','127.0.0.1'].includes(location.hostname);
   const draftKey='evopme.digital-card.test-draft.v1';
   let local=false;
-  let zones=[], selected=-1, side='front', placing=false;
+  let theme='',zones=[], selected=-1, side='front', placing=false;
   const toggle=root.querySelector('[data-publish]'), save=form.querySelector('[type=submit]'), demo=root.querySelector('[data-demo]');
   const qr=root.querySelector('[data-qrcode]'), qrImage=root.querySelector('[data-qr-image]'), link=root.querySelector('[data-public-link]');
   let active='', published=false, busy=false, pending=0, revision=0, images={}, stableURL='', imageJobs={};
@@ -96,32 +127,46 @@ function init(root) {
     toggle.hidden=local||!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
   const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
-    hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked});
+    theme,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
   const faceLabel=face=>face==='front'?'Recto':'Verso';
   const limit=(n,min,max)=>Math.min(max,Math.max(min,Math.round(n)));
   const currentZone=()=>zones[selected];
+  const layerLabel=z=>(z.source&&field(z.source)?.value.trim())||z.label;
+  const layerName=z=>({hotspot:'Lien invisible',text:'Texte',icon:'Icône',button:'Bouton'}[z.kind||'hotspot']);
+  const zoneCaption=(z,i)=>faceLabel(z.face)+' · '+layerName(z)+' : '+(layerLabel(z)||'Élément '+(i+1));
   function drawZoneEditor(){
     const z=currentZone();
-    zoneList.replaceChildren(new Option('Aucune zone sélectionnée',''),...zones.map((zone,i)=>new Option(faceLabel(zone.face)+' · '+(zone.label||'Lien '+(i+1)),String(i))));
+    zoneList.replaceChildren(new Option('Aucun élément sélectionné',''),...zones.map((zone,i)=>new Option(zoneCaption(zone,i),String(i))));
     zoneList.value=z?String(selected):'';
     zoneEditor.hidden=!z;
     zoneStatus.textContent=placing?'Clique à l’endroit voulu sur la carte pour placer la zone.':'';
     if(!z)return;
-    zoneLabel.value=z.label;zoneURL.value=z.url;
+    const kind=z.kind||'hotspot',visible=kind!=='hotspot';
+    zoneLabel.value=layerLabel(z);zoneURL.value=z.url;
+    root.querySelector('[data-label-title]').textContent=kind==='text'?'Texte à afficher':kind==='button'?'Texte du bouton':'Libellé accessible';
+    root.querySelector('[data-link-title]').textContent=['text','icon'].includes(kind)?'Lien de destination (facultatif)':'Lien de destination';
+    root.querySelector('[data-icon-field]').hidden=kind!=='icon';
+    root.querySelector('[data-full-field]').hidden=visible;
+    for(const label of root.querySelectorAll('[data-style-field]'))label.hidden=!visible;
+    zoneIcon.value=z.icon||'web';zoneColor.value=z.color||'#ffffff';
+    zoneSize.value=z.size||16;zoneAlign.value=z.align||'center';
     zoneWidth.value=z.w;zoneHeight.value=z.h;
     zoneFull.checked=z.x===0&&z.y===0&&z.w===100&&z.h===100;
     zoneWidth.disabled=zoneHeight.disabled=zonePlace.disabled=zoneFull.checked;
   }
-  function editZone(){
+  function editZone(event){
     const z=currentZone();
     if(!z)return;
-    z.label=zoneLabel.value;
+    if(event.target===zoneLabel){z.label=zoneLabel.value;delete z.source;}
     z.url=zoneURL.value.trim();
+    if(z.kind&&z.kind!=='hotspot'){
+      z.icon=zoneIcon.value;z.color=zoneColor.value;z.size=limit(Number(zoneSize.value),8,38);z.align=zoneAlign.value;
+    }
     if(!zoneFull.checked){
       const w=limit(Number(zoneWidth.value),8,100),h=limit(Number(zoneHeight.value),12,100);
       Object.assign(z,{w,h,x:Math.min(z.x,100-w),y:Math.min(z.y,100-h)});
     }
-    if(zoneList.selectedOptions[0])zoneList.selectedOptions[0].textContent=faceLabel(z.face)+' · '+(z.label||'Lien '+(selected+1));
+    if(zoneList.selectedOptions[0])zoneList.selectedOptions[0].textContent=zoneCaption(z,selected);
     draw();
   }
   const draw=()=>{
@@ -193,11 +238,14 @@ function init(root) {
   };
   const setCard=(card={},saved=false)=>{
     revision++;pending=0;imageJobs={};images={};drag=null;
+    theme=Object.hasOwn(cardTemplates,card.theme)?card.theme:'';
+    root.querySelector('[data-template-status]').textContent='';
     active=saved?card.slug:'';published=saved&&!!card.published;
     zones=(card.zones||[]).map(zone=>({...zone}));
     selected=-1;side='front';placing=false;testLinks.checked=false;cleanPreview.checked=false;
     field('hideHeading').checked=card.hideHeading===true;
     field('hideActions').checked=card.hideActions===true;
+    for(const k of ['blankFront','blankBack'])field(k).checked=card[k]===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
     field('slug').readOnly=!!active;
     for(const key of ['front','back','logo']){images[key]=card[key]||'';field(key).value='';}
@@ -239,24 +287,64 @@ function init(root) {
     ]});
     show('Exemple fictif. Change les couleurs et retourne la carte pour essayer.');
   });
-  form.addEventListener('input',event=>{if(event.target.type!=='file')draw();});
+  form.addEventListener('input',event=>{
+    if(event.target.type==='file')return;
+    if(zones.some(z=>z.source===event.target.name))drawZoneEditor();
+    draw();
+  });
+  const templateStatus=root.querySelector('[data-template-status]');
+  for(const button of root.querySelectorAll('[data-template-key]'))button.addEventListener('click',()=>{
+    const empty=['front','back'].filter(face=>!images[face]);
+    if(!empty.length){templateStatus.textContent='Les deux faces ont déjà une image. Retire l’image de la face que tu veux refaire.';return;}
+    if(zones.some(z=>empty.includes(z.face))&&!confirm('Remplacer les éléments des faces sans image par le modèle?'))return;
+    const t=makeCardTemplate(button.dataset.templateKey,read());
+    const next=[...zones.filter(z=>!empty.includes(z.face)),...t.zones.filter(z=>empty.includes(z.face))];
+    if(next.length>24){templateStatus.textContent='Ce modèle dépasserait la limite de 24 éléments. Retire un élément ou choisis une autre carte.';return;}
+    theme=t.theme;zones=next;
+    field('accent').value=t.accent;field('background').value=t.background;
+    if(empty.length===2){field('hideHeading').checked=true;field('hideActions').checked=true;}
+    for(const face of empty)field(face==='front'?'blankFront':'blankBack').checked=true;
+    side=empty[0];selected=-1;placing=false;cleanPreview.checked=false;testLinks.checked=false;
+    templateStatus.textContent=cardTemplates[theme].label+' appliqué. Glisse les éléments ou choisis-les pour les modifier.';
+    drawZoneEditor();draw();
+  });
   cleanPreview.addEventListener('change',()=>{placing=false;testLinks.checked=cleanPreview.checked;drawZoneEditor();draw();});
   testLinks.addEventListener('change',()=>{placing=false;drawZoneEditor();draw();});
-  for(const button of root.querySelectorAll('[data-zone-add]'))button.addEventListener('click',()=>{
-    if(zones.length>=12)return show('Tu peux créer jusqu’à 12 zones par carte.',true);
-    const face=button.dataset.zoneAdd;
-    zones.push({face,label:'',url:'',x:32,y:39,w:36,h:22});
-    selected=zones.length-1;side=face;placing=false;
-    drawZoneEditor();draw();zoneLabel.focus();
-  });
+  function addLayer(kind,face,options={}){
+    if(zones.length>=24){show('Tu peux ajouter jusqu’à 24 éléments par carte.',true);return false;}
+    const index=zones.filter(z=>z.face===face).length;
+    const layout={hotspot:[36,22,''],text:[55,19,'Ton texte'],icon:[16,24,'Site web'],button:[44,22,'En savoir plus']};
+    const [w,h,label]=layout[kind];
+    const x=Math.round((100-w)/2),y=Math.min(100-h,20+(index%5)*12);
+    zones.push({kind,face,label,url:'',x,y,w,h,icon:'web',color:kind==='button'?'#16110e':'#ffffff',size:16,align:'center',...options});
+    selected=zones.length-1;side=face;placing=false;cleanPreview.checked=false;testLinks.checked=false;
+    drawZoneEditor();draw();zoneLabel.focus();zoneLabel.select();return true;
+  }
+  for(const button of root.querySelectorAll('[data-zone-add]'))button.addEventListener('click',()=>addLayer('hotspot',button.dataset.zoneAdd));
+  for(const button of root.querySelectorAll('[data-add-layer]'))button.addEventListener('click',()=>addLayer(button.dataset.addLayer,side));
+  const quickType=root.querySelector('[data-quick-type]'),quickDisplay=root.querySelector('[data-quick-display]');
+  const quickURL=root.querySelector('[data-quick-url]'),quickStatus=root.querySelector('[data-quick-status]');
+  function addQuickLink(){
+    const raw=quickURL.value.trim();
+    const url=cardLink(raw);
+    if(!url||!/^https?:/.test(url)){quickStatus.textContent='Entre une adresse web complète commençant par https://.';quickURL.focus();return;}
+    const icon=quickType.value;
+    const label=quickType.selectedOptions[0].textContent;
+    if(addLayer(quickDisplay.value,side,{label,url,icon})){
+      quickStatus.textContent=label+' ajouté sur le '+faceLabel(side).toLowerCase()+'.';
+      quickURL.value='';
+    }
+  }
+  root.querySelector('[data-quick-add]').addEventListener('click',addQuickLink);
+  quickURL.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addQuickLink();}});
   zoneList.addEventListener('change',()=>{
     selected=zoneList.value===''?-1:Number(zoneList.value);
     const z=currentZone();
     if(z)side=z.face;
     placing=false;drawZoneEditor();draw();
   });
-  for(const input of [zoneLabel,zoneURL,zoneWidth,zoneHeight])input.addEventListener('input',editZone);
-  for(const input of [zoneWidth,zoneHeight])input.addEventListener('change',drawZoneEditor);
+  for(const input of [zoneLabel,zoneURL,zoneWidth,zoneHeight,zoneIcon,zoneColor,zoneSize,zoneAlign])input.addEventListener('input',editZone);
+  for(const input of [zoneWidth,zoneHeight,zoneSize])input.addEventListener('change',drawZoneEditor);
   zonePlace.addEventListener('click',()=>{
     const z=currentZone();if(!z)return;
     placing=!placing;cleanPreview.checked=false;side=z.face;drawZoneEditor();draw();

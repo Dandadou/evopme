@@ -7,15 +7,24 @@ export function cardLink(value){
     return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.href:'';
   }catch{return '';}
 }
+export const cardIcons=Object.freeze({phone:'☎',email:'✉',web:'↗',location:'⌖',calendar:'▦',star:'★',facebook:'f',linkedin:'in',instagram:'◎'});
 export function cleanCardLinks(value=[]){
-  if(!Array.isArray(value)||value.length>12)throw new Error('Maximum 12 zones cliquables par carte.');
+  if(!Array.isArray(value)||value.length>24)throw new Error('Maximum 24 éléments par carte.');
   return value.map(zone=>{
-    const {face,label,x,y,w,h}=zone||{};
+    const {face,label,x,y,w,h,kind='hotspot',icon='web',color='#ffffff',size=16,align='center',source}=zone||{};
     const url=cardLink(zone?.url);
-    if(!['front','back'].includes(face)||typeof label!=='string'||!label.trim()||label.length>80||/[\x00-\x1f\x7f]/.test(label)||!url)
-      throw new Error('Chaque zone doit avoir un côté, un libellé et un lien valide.');
+    if(!['hotspot','text','icon','button'].includes(kind)||!['front','back'].includes(face)||
+       typeof label!=='string'||!label.trim()||label.length>80||/[\x00-\x1f\x7f]/.test(label)||
+       (['hotspot','button'].includes(kind)&&!url)||(zone?.url&&!url))
+      throw new Error('Chaque élément doit avoir un libellé; les boutons et liens invisibles exigent un lien valide.');
     if(![x,y,w,h].every(Number.isInteger)||x<0||y<0||w<8||h<12||x+w>100||y+h>100)
-      throw new Error('Une zone cliquable dépasse les limites de la carte.');
-    return {face,label:label.trim(),url,x,y,w,h};
+      throw new Error('Un élément dépasse les limites de la carte.');
+    const result={face,label:label.trim(),url,x,y,w,h};
+    if(kind==='hotspot')return result;
+    if(!/^#[a-f0-9]{6}$/i.test(color)||!Number.isInteger(size)||size<8||size>38||
+       !['left','center','right'].includes(align)||(kind==='icon'&&!Object.hasOwn(cardIcons,icon))||
+       (source!==undefined&&(kind!=='text'||!['name','company','title'].includes(source))))
+      throw new Error('Style d’élément invalide.');
+    return {...result,kind,color,size,align,...(kind==='icon'?{icon}:{}),...(source?{source}:{})};
   });
 }
