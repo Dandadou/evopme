@@ -20,3 +20,5 @@ Dans la préversion de la branche, « Enregistrer le brouillon de test » conser
 « Partir d’un modèle » propose Minimal clair, Graphite et Signature. Choisis le modèle après avoir rempli les coordonnées pour générer les boutons de contact. Le nom, l’entreprise et la fonction restent liés aux champs tant que leur texte n’est pas remplacé dans l’élément. Une image déjà importée et ses éléments sont conservés.
 
 « Liens rapides » place un lien Facebook, LinkedIn, Instagram, de rendez-vous, d’itinéraire ou un autre lien web sur la face affichée. Choisis entre icône, bouton et zone invisible, puis repositionne l’élément. Le lien invisible ne montre pas de texte ni de cadre dans la vue visiteur.
+
+Le format horizontal (7:4), vertical (4:7) ou carré (1:1) et les coins droits ou arrondis sont indépendants. Les images importées restent entières si leurs proportions diffèrent, et les zones restent positionnées en pourcentages de la face.

@@ -52,6 +52,11 @@ export function cleanCard(body) {
   }
   if(body.theme!==undefined&&body.theme!==''&&!Object.hasOwn(cardTemplates,body.theme))throw new Error('Modèle inconnu.');
   card.theme=body.theme||'';
+  for(const [key,options] of [['format',['landscape','portrait','square']],['corners',['rounded','square']]]){
+    const value=body[key]??options[0];
+    if(!options.includes(value))throw new Error('Format ou coins de carte invalides.');
+    card[key]=value;
+  }
   card.zones = cleanCardLinks(body.zones);
   return card;
 }

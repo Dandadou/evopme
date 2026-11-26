@@ -162,3 +162,12 @@ test('les modèles créent deux faces éditables et les éléments sont conserv�
   assert.throws(()=>cleanCardLinks([{...data.zones.at(-1),color:'url(https://example.com)'}]));
   assert.throws(()=>cleanCardLinks([{...data.zones.find(z=>z.kind==='button'),url:''}]));
 });
+
+test('format et coins indépendants, avec valeurs historiques par défaut',()=>{
+  assert.equal(cleanCard(base).format,'landscape');
+  assert.equal(cleanCard(base).corners,'rounded');
+  assert.equal(cleanCard({...base,format:'square',corners:'rounded'}).format,'square');
+  assert.equal(cleanCard({...base,format:'portrait',corners:'square'}).corners,'square');
+  assert.throws(()=>cleanCard({...base,format:'1:2'}));
+  assert.throws(()=>cleanCard({...base,corners:'50px'}));
+});

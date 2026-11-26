@@ -82,6 +82,9 @@ function init(root) {
         <label class="dc__wide">Site web<input name="website" type="url" maxlength="250" placeholder="https://"></label>
         <label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label>
         <label>Couleur de fond<input name="background" type="color" value="#202328"></label>
+        <label>Format de la carte<select name="format"><option value="landscape">Horizontale (7:4)</option><option value="portrait">Verticale (4:7)</option><option value="square">Carrée (1:1)</option></select></label>
+        <label>Coins de la carte<select name="corners"><option value="rounded">Arrondis</option><option value="square">Droits</option></select></label>
+        <p class="dc__wide dc__muted">Pour remplir la face, utilise une image du même format. Si ses proportions diffèrent, l’image reste entière.</p>
         <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
         <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
         <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
@@ -127,7 +130,7 @@ function init(root) {
     toggle.hidden=local||!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
   const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
-    theme,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
+    theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
   const faceLabel=face=>face==='front'?'Recto':'Verso';
   const limit=(n,min,max)=>Math.min(max,Math.max(min,Math.round(n)));
   const currentZone=()=>zones[selected];
@@ -244,6 +247,8 @@ function init(root) {
     zones=(card.zones||[]).map(zone=>({...zone}));
     selected=-1;side='front';placing=false;testLinks.checked=false;cleanPreview.checked=false;
     field('hideHeading').checked=card.hideHeading===true;
+    field('format').value=['portrait','square'].includes(card.format)?card.format:'landscape';
+    field('corners').value=card.corners==='square'?'square':'rounded';
     field('hideActions').checked=card.hideActions===true;
     for(const k of ['blankFront','blankBack'])field(k).checked=card[k]===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';

@@ -151,3 +151,9 @@ a.dc__layer {pointer-events:auto;}
   linear-gradient(155deg,transparent 80%,#63e3ed26 80% 81%,transparent 81%),var(--dc-ink);}
 .dc__face[data-template="signature"] {background:radial-gradient(ellipse at 50% -30%,#ac7b6564,transparent 75%),var(--dc-ink);}
 .dc__face[data-template="signature"]::before {content:"";position:absolute;inset:6%;border:1px solid var(--dc-accent);border-radius:inherit;opacity:.6;pointer-events:none;}
+
+.dc__turn[data-format="portrait"] {width:min(100%,18rem);margin-inline:auto;}
+.dc__turn[data-format="portrait"] .dc__flip {aspect-ratio:4 / 7;}
+.dc__turn[data-format="square"] {width:min(100%,27rem);margin-inline:auto;}
+.dc__turn[data-format="square"] .dc__flip {aspect-ratio:1;}
+.dc__turn[data-corners="square"] .dc__face {border-radius:0;}

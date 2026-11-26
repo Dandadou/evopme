@@ -39,6 +39,8 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   root.style.setProperty('--dc-ink',card.background||'#202328');
   root.style.setProperty('--dc-text',lightOrDark(card.background||'#202328'));
   const frame=el('div','dc__turn');
+  frame.dataset.format=['portrait','square'].includes(card.format)?card.format:'landscape';
+  frame.dataset.corners=card.corners==='square'?'square':'rounded';
   const button=el('button','dc__flip-button dc__button');
   button.type='button';
   const flip=el('div','dc__flip');
