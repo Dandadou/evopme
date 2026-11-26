@@ -1,5 +1,26 @@
 import {makeContactDownload} from './digital-card.js?v=20261126-vcard';
 export const maxProfileLinks=6;
+export const pageColorPattern=/^#[0-9a-f]{6}$/i;
+export function pageTextColor(hex){
+  if(typeof hex!=='string'||!pageColorPattern.test(hex))return null;
+  const rgb=hex.slice(1).match(/../g).map(ch=>{
+    const s=parseInt(ch,16)/255;
+    return s<=.04045?s/12.92:((s+.055)/1.055)**2.4;
+  });
+  const luminance=.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];
+  return luminance>=Math.sqrt(.0525)-.05?'#000000':'#ffffff';
+}
+export function applyPageAppearance(element,hex){
+  const ink=pageTextColor(hex);
+  element.classList.toggle('dc__custom-page',Boolean(ink));
+  if(ink){
+    element.style.setProperty('--dc-page-bg',hex);
+    element.style.setProperty('--dc-page-ink',ink);
+  }else{
+    element.style.removeProperty('--dc-page-bg');
+    element.style.removeProperty('--dc-page-ink');
+  }
+}
 function cleanText(value,max){
   const text=value??'';
   if(typeof text!=='string'||text.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(text))throw new Error('Un champ de la fiche est trop long ou invalide.');

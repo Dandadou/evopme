@@ -270,3 +270,23 @@ test('événements distincts par carte, validés et masqués après la date au Q
   assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,published:true,profile:{events:[]}}),env,1)).status,200);
   assert.equal((await (await getDigitalCard(request(publicPath),env,base.slug)).json()).card.profile.events,undefined);
 });
+
+test('fond public facultatif, indépendant du design et contraste lisible',async()=>{
+  const {pageTextColor}=await import('../assets/digital-card-profile.js');
+  assert.equal(pageTextColor('#ffffff'),'#000000');
+  assert.equal(pageTextColor('#000000'),'#ffffff');
+  assert.equal(pageTextColor('#757575'),'#ffffff');
+  assert.equal(pageTextColor('#767676'),'#000000');
+  assert.equal(pageTextColor('url(test)'),null);
+  for(const color of ['red','#abc',false,null,'#ffff0000',' #ffffff'])assert.throws(()=>cleanCard({...base,pageBackground:color}),/fond de page/);
+  assert.equal(cleanCard(base).pageBackground,undefined);
+  const env=environment(), path='/api/cms/digital-cards', edit=path+'?slug='+base.slug, publicPath='/api/cartes/'+base.slug;
+  assert.equal((await handleDigitalCardsAdmin(request(path,'POST',{...base,pageBackground:'#FFEEDD'}),env,1)).status,201);
+  assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,pageBackground:'#FFEEDD',published:true}),env,1)).status,200);
+  const pub=await (await getDigitalCard(request(publicPath),env,base.slug)).json();
+  assert.equal(pub.card.pageBackground,'#ffeedd');
+  assert.equal(pub.card.background,base.background);
+  assert.equal(pub.card.accent,base.accent);
+  assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,pageBackground:'',published:true}),env,1)).status,200);
+  assert.equal((await (await getDigitalCard(request(publicPath),env,base.slug)).json()).card.pageBackground,undefined);
+});

@@ -1,4 +1,4 @@
-import {renderProfile} from './digital-card-profile.js?v=20261126-events';
+import {applyPageAppearance,renderProfile} from './digital-card-profile.js?v=20261126-page-color';
 import {renderCard} from './digital-card.js';
 const name=document.querySelector('#card-name');
 const company=document.querySelector('#card-company');
@@ -10,6 +10,7 @@ try{
   if(!res.ok) throw new Error('offline');
   const {card}=await res.json();
   if(!card?.published) throw new Error('invalid');
+  applyPageAppearance(document.body,card.pageBackground);
   name.textContent=card.name;
   company.textContent=[card.title,card.company].filter(Boolean).join(' · ');
   company.hidden=card.hideHeading||!company.textContent;

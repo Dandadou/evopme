@@ -1,4 +1,4 @@
-import {cleanProfile,maxProfileEvents,maxProfileLinks,renderProfile} from './digital-card-profile.js?v=20261126-events';
+import {applyPageAppearance,cleanProfile,maxProfileEvents,maxProfileLinks,pageColorPattern,renderProfile} from './digital-card-profile.js?v=20261126-page-color';
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
 import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';
@@ -86,7 +86,13 @@ function init(root) {
         <label>Courriel<input name="email" type="email" maxlength="160"></label>
         <label class="dc__wide">Site web<input name="website" type="url" maxlength="250" placeholder="https://"></label>
         <div class="dc__color-pair"><label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label><label>Code HEX de l’accent<input data-hex-for="accent" type="text" value="#fa7824" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #fa7824"></label></div>
-        <div class="dc__color-pair"><label>Couleur de fond<input name="background" type="color" value="#202328"></label><label>Code HEX du fond<input data-hex-for="background" type="text" value="#202328" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #000000"></label></div>
+        <div class="dc__color-pair"><label>Fond de la carte<input name="background" type="color" value="#202328"></label><label>Code HEX du fond de la carte<input data-hex-for="background" type="text" value="#202328" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #000000"></label></div>
+        <fieldset class="dc__wide dc__profile-edit dc__page-options">
+          <legend>Fond de la page publique</legend>
+          <label class="dc__visibility"><input name="customPage" type="checkbox"> Personnaliser le fond de la page</label>
+          <p class="dc__muted">Laisse cette option décochée pour conserver le fond Archétype. La couleur de la carte et celle des boutons ne changent pas.</p>
+          <div class="dc__color-pair"><label>Couleur de fond de la page<input name="pageBackground" type="color" value="#0b1220"></label><label>Code HEX du fond de page<input data-hex-for="pageBackground" type="text" value="#0b1220" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off"></label></div>
+        </fieldset>
         <label>Format de la carte<select name="format"><option value="landscape">Horizontale (7:4)</option><option value="portrait">Verticale (4:7)</option><option value="square">Carrée (1:1)</option><option value="image">Ajuster au visuel importé</option></select></label>
         <label>Coins de la carte<select name="corners"><option value="rounded">Arrondis</option><option value="square">Droits</option></select></label>
         <p class="dc__wide dc__muted">« Ajuster au visuel importé » reprend les proportions du recto (ou du verso si seul). Pour remplir les deux faces sans découpe, utilise des images aux mêmes proportions.</p>
@@ -148,7 +154,7 @@ function init(root) {
   let active='', published=false, busy=false, pending=0, revision=0, images={}, stableURL='', imageJobs={};
   const textKeys=['name','company','title','slug','phone','email','website','accent','background'];
   const blank={accent:'#fa7824',background:'#202328'};
-  const hexFields=['accent','background'].map(key=>[field(key),form.querySelector('[data-hex-for="'+key+'"]')]);
+  const hexFields=['accent','background','pageBackground'].map(key=>[field(key),form.querySelector('[data-hex-for="'+key+'"]')]);
   const syncHex=()=>hexFields.forEach(([picker,entry])=>{entry.value=picker.value;});
   for(const [picker,entry] of hexFields){
     picker.addEventListener('input',()=>{entry.value=picker.value;});
@@ -161,6 +167,10 @@ function init(root) {
     });
     entry.addEventListener('change',()=>{if(entry.validity.valid)entry.value=picker.value;});
   }
+  const customPage=field('customPage'), pagePicker=field('pageBackground'),
+    pageHex=form.querySelector('[data-hex-for="pageBackground"]');
+  const updatePageControls=()=>{pagePicker.disabled=!customPage.checked;pageHex.disabled=!customPage.checked;};
+  customPage.addEventListener('input',updatePageControls);
   const profileList=form.querySelector('[data-profile-links]'),profileAdd=form.querySelector('[data-profile-add]');
   function appendProfileLink(link={}){
     if(profileList.children.length>=maxProfileLinks)return;
@@ -211,7 +221,7 @@ function init(root) {
     toggle.hidden=local||!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
   const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
-    profile:readProfile(),theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
+    pageBackground:customPage.checked?pagePicker.value:'',profile:readProfile(),theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
   const faceLabel=face=>face==='front'?'Recto':'Verso';
   const limit=(n,min,max)=>Math.min(max,Math.max(min,Math.round(n)));
   const currentZone=()=>zones[selected];
@@ -281,6 +291,7 @@ function init(root) {
     const card={...read(),...images,zones};
     if(card.website&&!/^https?:\/\//i.test(card.website)) card.website='';
     stage.classList.toggle('dc__archetype',cleanPreview.checked);
+    applyPageAppearance(stage,card.pageBackground);
     brand.hidden=!cleanPreview.checked;
     heading.hidden=card.hideHeading;
     heading.textContent=[card.name,card.title,card.company].filter(Boolean).join(' · ');
@@ -374,6 +385,9 @@ function init(root) {
     field('hideActions').checked=card.hideActions===true;
     for(const k of ['blankFront','blankBack'])field(k).checked=card[k]===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
+    customPage.checked=typeof card.pageBackground==='string'&&pageColorPattern.test(card.pageBackground);
+    pagePicker.value=customPage.checked?card.pageBackground:'#0b1220';
+    updatePageControls();
     syncHex();fillProfile(card.profile);
     field('slug').readOnly=!!active;
     for(const key of ['front','back','logo']){images[key]=card[key]||'';field(key).value='';}

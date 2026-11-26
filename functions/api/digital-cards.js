@@ -1,4 +1,4 @@
-import { cleanProfile } from '../../assets/digital-card-profile.js';
+import { cleanProfile, pageColorPattern } from '../../assets/digital-card-profile.js';
 import { cardTemplates } from '../../assets/digital-card-templates.js';
 import { cleanCardLinks } from '../../assets/digital-card-links.js';
 const MAX_BODY = 1_100_000;
@@ -32,6 +32,11 @@ export function cleanCard(body) {
   for (const key of ['accent','background']) {
     if (!COLORS.test(body[key])) throw new Error('Couleur invalide.');
     card[key] = body[key];
+  }
+  const pageBackground=body.pageBackground;
+  if(pageBackground!==undefined&&pageBackground!==''){
+    if(typeof pageBackground!=='string'||!pageColorPattern.test(pageBackground))throw new Error('Couleur du fond de page invalide.');
+    card.pageBackground=pageBackground.toLowerCase();
   }
   for (const key of ['front','back','logo']) {
     const value = body[key] ?? '';
