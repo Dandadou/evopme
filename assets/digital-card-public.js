@@ -15,7 +15,23 @@ try{
   name.classList.toggle('dc__sr-only',card.hideHeading===true);
   document.querySelector('.dc__kicker').hidden=card.hideHeading===true;
   document.title=card.name+' | Carte numérique';
-  renderCard(document.querySelector('#public-card'),card,{contact:!card.hideActions});
+  const root=document.querySelector('#public-card');
+  renderCard(root,card,{contact:!card.hideActions});
+  setupLandscape(root);
 }catch(error){
   name.textContent=error.message==='invalid'?'Cette carte n’est pas disponible.':'Impossible de charger la carte.';
+}
+
+function setupLandscape(root){
+  const toggle=document.createElement('button');
+  toggle.type='button';
+  toggle.className='dc__button dc__mobile-view-toggle';
+  toggle.setAttribute('aria-controls','public-card');
+  const setLandscape=enabled=>{
+    document.body.dataset.mobileView=enabled?'landscape':'normal';
+    toggle.textContent=enabled?'Vue normale':'Vue paysage';
+  };
+  toggle.addEventListener('click',()=>setLandscape(document.body.dataset.mobileView!=='landscape'));
+  root.before(toggle);
+  setLandscape(true);
 }
