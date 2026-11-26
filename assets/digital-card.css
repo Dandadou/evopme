@@ -207,7 +207,8 @@ a.dc__layer {pointer-events:auto;}
 .dc__profile .dc__profile-about,.dc__profile-address p {white-space:pre-line;overflow-wrap:anywhere;}
 .dc__profile .dc__profile-about {margin:1rem 0 0;}
 .dc__profile-address,.dc__profile-more {margin-top:1rem;padding-top:.85rem;border-top:1px solid #ffffff28;}
-.dc__profile-address .dc__profile-link {display:flex;align-items:center;justify-content:space-between;gap:.65rem;min-height:44px;padding:.4rem .05rem;color:#fff;border-bottom:1px solid #ffffff20;text-decoration:underline;text-decoration-color:#ffffff64;text-underline-offset:.24em;font-size:.92rem;font-weight:650;overflow-wrap:anywhere;box-sizing:border-box;}
+.dc__profile-grid {display:grid;grid-template-columns:1fr;}
+.dc__profile-link {display:flex;align-items:center;justify-content:space-between;gap:.65rem;min-height:44px;padding:.4rem .05rem;color:#fff;border-bottom:1px solid #ffffff20;text-decoration:underline;text-decoration-color:#ffffff64;text-underline-offset:.24em;font-size:.92rem;font-weight:650;overflow-wrap:anywhere;box-sizing:border-box;}
 .dc__profile-link::after {content:"";flex:none;width:.38rem;height:.38rem;margin-right:.28rem;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);}
 .dc__profile-link:hover {text-decoration-color:currentColor;}
 .dc__profile-link--primary {margin-top:.75rem;color:color-mix(in srgb,var(--dc-accent) 46%,white);font-size:1rem;font-weight:800;}
