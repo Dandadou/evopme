@@ -275,7 +275,8 @@ function init(root) {
     zoneStatus.textContent='Position : '+z.x+' % de la gauche, '+z.y+' % du haut.';
   });
   const makeQR=()=>{
-    stableURL=active&&!local?new URL('/carte/'+active,location.origin).href:'';
+    const publicOrigin=['evolutionpme.ca','www.evolutionpme.ca'].includes(location.hostname)?'https://evolutionpme.ca':location.origin;
+    stableURL=active&&!local?new URL('/carte/'+active,publicOrigin).href:'';
     qr.hidden=!stableURL;
     qrImage.replaceChildren();
     if(!stableURL)return;

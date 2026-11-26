@@ -9,11 +9,11 @@ import { renderCard, toVcard } from '../assets/digital-card.js';
 
 const origin='https://cartes.example';
 const base={name:'Élodie Martin',company:'Atelier, Démo',title:'Design',email:'info@example.com',slug:'atelier-test',accent:'#ff6600',background:'#202328',published:false};
-function environment(){
+function environment(withMigration=true){
   const sqlite=new DatabaseSync(':memory:');
   sqlite.exec('CREATE TABLE organizations(id INTEGER PRIMARY KEY); INSERT INTO organizations VALUES (1),(2);');
   const migration=readFileSync(new URL('../migrations/20261125-digital-business-cards.sql',import.meta.url),'utf8');
-  sqlite.exec(migration);sqlite.exec(migration);
+  if(withMigration){sqlite.exec(migration);sqlite.exec(migration);}
   return {
     CMS_DB:{prepare(sql){return {bind(...args){
       const stmt=sqlite.prepare(sql);
@@ -204,4 +204,20 @@ test('saisie sans préfixe des destinations, collage complet et validation',asyn
   assert.equal(buildDestination('phone','450abc5550100'),'');
   assert.equal(buildDestination('email','nom@exemple.ca?bcc=x@exemple.ca'),'');
   assert.equal(splitDestination('mailto:nom@exemple.ca').type,'email');
+});
+
+test('seule la liste admin initialise le stockage si la table manque',async()=>{
+  const env=environment(false);
+  const api='/api/cms/digital-cards', publicPath='/api/cartes/'+base.slug;
+  assert.equal((await worker.fetch(request(publicPath),env)).status,404);
+  assert.equal((await worker.fetch(request(api),env)).status,401);
+  assert.equal((await handleDigitalCardsAdmin(request(api,'POST',base),env,1)).status,503);
+  const opened=await handleDigitalCardsAdmin(request(api),env,1);
+  assert.equal(opened.status,200);
+  assert.deepEqual(await opened.json(),{cards:[]});
+  assert.equal((await handleDigitalCardsAdmin(request(api,'POST',base),env,1)).status,201);
+  assert.equal((await worker.fetch(request(publicPath),env)).status,404);
+  assert.equal((await handleDigitalCardsAdmin(request(api+'?slug='+base.slug,'PUT',{...base,published:true}),env,1)).status,200);
+  assert.equal((await worker.fetch(request(publicPath),env)).status,200);
+  assert.deepEqual(await (await handleDigitalCardsAdmin(request(api),env,2)).json(),{cards:[]});
 });

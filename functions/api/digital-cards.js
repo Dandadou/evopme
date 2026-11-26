@@ -75,9 +75,28 @@ async function readBody(request) {
   try { return JSON.parse(data+decoder.decode()); } catch { throw new Error('JSON invalide.'); }
 }
 const record = row => ({...JSON.parse(row.payload), slug:row.slug, published:!!row.published});
-const storageError = error => /no such table/i.test(String(error?.message||error))
-  ? json({error:'La migration D1 des cartes numériques doit être appliquée.'},503)
-  : json({error:'Les cartes sont temporairement indisponibles.'},503);
+const missingCardsTable = error => /no such table:\s*(?:main\.)?digital_business_cards\b/i.test(String(error?.message||error));
+const storageError = () => json({error:'Les cartes sont temporairement indisponibles.'},503);
+const listSQL='SELECT slug,name,company,published FROM digital_business_cards WHERE organization_id=? ORDER BY updated_at DESC, slug';
+async function listCards(db,org){
+  try {
+    return await db.prepare(listSQL).bind(org).all();
+  } catch(error){
+    if(!missingCardsTable(error))throw error;
+    // Only reached from the existing authenticated CMS route when its list is opened.
+    await db.prepare(`CREATE TABLE IF NOT EXISTS digital_business_cards (
+      slug TEXT PRIMARY KEY NOT NULL,
+      organization_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      company TEXT NOT NULL DEFAULT '',
+      payload TEXT NOT NULL,
+      published INTEGER NOT NULL DEFAULT 0 CHECK (published IN (0,1)),
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`).bind().run();
+    await db.prepare('CREATE INDEX IF NOT EXISTS idx_digital_business_cards_org ON digital_business_cards(organization_id,updated_at DESC)').bind().run();
+    return await db.prepare(listSQL).bind(org).all();
+  }
+}
 
 export async function handleDigitalCardsAdmin(request, env, org) {
   const db = env.CMS_DB;
@@ -89,7 +108,7 @@ export async function handleDigitalCardsAdmin(request, env, org) {
         const row=await db.prepare('SELECT slug,payload,published FROM digital_business_cards WHERE slug=? AND organization_id=?').bind(slug,org).first();
         return row ? json({card:record(row)}) : json({error:'Carte introuvable.'},404);
       }
-      const {results=[]}=await db.prepare('SELECT slug,name,company,published FROM digital_business_cards WHERE organization_id=? ORDER BY updated_at DESC, slug').bind(org).all();
+      const {results=[]}=await listCards(db,org);
       return json({cards:results});
     }
     if (!['POST','PUT'].includes(request.method)) return json({error:'Méthode non permise.'},405);
@@ -119,5 +138,5 @@ export async function getDigitalCard(request, env, slug) {
   try {
     const row=await env.CMS_DB.prepare('SELECT slug,payload,published FROM digital_business_cards WHERE slug=? AND published=1').bind(slug).first();
     return row ? json({card:record(row)}) : json({error:'Cette carte est introuvable ou non publiée.'},404);
-  } catch { return json({error:'Service indisponible.'},503); }
+  } catch(error) { return missingCardsTable(error) ? json({error:'Cette carte est introuvable ou non publiée.'},404) : json({error:'Service indisponible.'},503); }
 }

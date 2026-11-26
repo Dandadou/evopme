@@ -14,7 +14,7 @@ Dans la préversion de la branche, « Enregistrer le brouillon de test » conser
 
 - Vérifier la branche sur un environnement Cloudflare séparé avec une base CMS de test et la politique Access correspondante. Appliquer `migrations/20261125-digital-business-cards.sql` à cette base. Le module n’exige pas de nouveau secret ni de service QR externe.
 - Tester la démo et ses deux faces, puis la création, l’ouverture du lien sans connexion, le fichier contact et le retrait du public.
-- Sur autorisation de publier, appliquer la migration additive à la base CMS de production, puis déployer la branche validée. Ni migration distante ni déploiement ne sont lancés par le module.
+- En production, la première ouverture authentifiée de la liste initialise la table dédiée si elle n’existe pas, avec la même migration additive. Les routes publiques ne créent aucune table. La préversion publique de la branche reste limitée au brouillon local.
 - Tests locaux : `node --test tests/digital-cards.test.mjs` (Node 22.13 ou plus récent).
 
 « Partir d’un modèle » propose Minimal clair, Graphite et Signature. Choisis le modèle après avoir rempli les coordonnées pour générer les boutons de contact. Le nom, l’entreprise et la fonction restent liés aux champs tant que leur texte n’est pas remplacé dans l’élément. Une image déjà importée et ses éléments sont conservés.
