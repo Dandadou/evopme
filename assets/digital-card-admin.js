@@ -18,8 +18,11 @@ function init(root) {
         <p class="dc__muted" role="status" data-template-status></p>
       </details>
       <label class="dc__visibility dc__note"><input type="checkbox" data-clean-preview> Voir comme un visiteur (sans contours)</label>
-      <div class="dc__public-heading" data-card-heading></div>
-      <div class="dc__stage"><div data-card-preview></div></div>
+      <div class="dc__stage" data-card-stage>
+        <div class="dc__archetype-brand" data-card-brand hidden><img src="/assets/archetype-card-mark.svg" alt="" width="40" height="40"><div><strong>Arch<span>é</span>type</strong><small>Par Évolution PME</small></div></div>
+        <div class="dc__public-heading" data-card-heading></div>
+        <div data-card-preview></div>
+      </div>
       <div class="dc__zone-editor">
         <h3>Éléments de la carte</h3>
         <p class="dc__muted">Ajoute un bloc sur la face affichée, puis glisse-le où tu veux. Pour un lien invisible, tire le coin du cadre pour l’ajuster au texte imprimé. Les visiteurs ne verront pas le cadre.</p>
@@ -104,7 +107,7 @@ function init(root) {
   </div>`;
   const form=root.querySelector('form'), field=key=>form.elements.namedItem(key), list=root.querySelector('select');
   const preview=root.querySelector('[data-card-preview]'), status=root.querySelector('[data-status]');
-  const heading=root.querySelector('[data-card-heading]');
+  const heading=root.querySelector('[data-card-heading]'), stage=root.querySelector('[data-card-stage]'), brand=root.querySelector('[data-card-brand]');
   const zoneEditor=root.querySelector('[data-zone-editor]'), zoneList=root.querySelector('[data-zone-select]');
   const zoneLabel=root.querySelector('[data-zone-label]'), zoneURL=root.querySelector('[data-zone-url]');
   const destinationType=root.querySelector('[data-destination-type]'),destinationPrefix=root.querySelector('[data-destination-prefix]');
@@ -202,6 +205,8 @@ function init(root) {
   const draw=()=>{
     const card={...read(),...images,zones};
     if(card.website&&!/^https?:\/\//i.test(card.website)) card.website='';
+    stage.classList.toggle('dc__archetype',cleanPreview.checked);
+    brand.hidden=!cleanPreview.checked;
     heading.hidden=card.hideHeading;
     heading.textContent=[card.name,card.title,card.company].filter(Boolean).join(' · ');
     renderCard(preview,card,{preview:!cleanPreview.checked,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,editZones:true,

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+          <g class="a-shape">
+            <path d="M100 14 L184 186 H152 L100 72 L48 186 H16 Z" fill="#3F4F66" transform="translate(8 2)"/>
+            <path d="M100 14 L184 186 H152 L100 72 L48 186 H16 Z" fill="#5B6B82" transform="translate(6 1.5)"/>
+            <path d="M100 14 L184 186 H152 L100 72 L48 186 H16 Z" fill="#7A8AA0" transform="translate(4 1)"/>
+            <path d="M100 14 L184 186 H152 L100 72 L48 186 H16 Z" fill="#A8B6C6" transform="translate(2 .5)"/>
+            <path class="a-front" d="M100 14 L184 186 H152 L100 72 L48 186 H16 Z" fill="#F8FAFC"/>
+          </g>
+          <g class="prism">
+            <path class="facet facet-main" d="M100 96 L122 122 L100 148 L78 122 Z" fill="#0F766E"/>
+            <path class="facet facet-light" d="M100 96 L122 122 L100 122 Z" fill="#2DD4BF"/>
+            <path class="facet facet-amber" d="M100 148 L122 122 L100 122 Z" fill="#D97706"/>
+          </g>
+          <circle class="dot" cx="100" cy="14" r="6" fill="#F59E0B"/>
+        </svg>

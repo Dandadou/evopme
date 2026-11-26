@@ -172,3 +172,20 @@ a.dc__layer {pointer-events:auto;}
 [data-digital-cards] .dc__destination input {border-top-left-radius:0;border-bottom-left-radius:0;}
 
 .dc .dc__link-hint {margin:.55rem 0 0;color:#bcc9d8;text-align:center;font-size:.82rem;}
+
+/* Archétype : identité d’interface, jamais intégrée au visuel des deux faces. */
+.dc__archetype {
+  background:
+    radial-gradient(ellipse 70% 54% at 91% 0%,#0f766e6b,transparent 72%),
+    radial-gradient(ellipse 63% 53% at 0% 100%,#d977063b,transparent 73%),
+    #0b1220;
+}
+.dc__archetype-brand {display:flex;align-items:center;gap:.7rem;margin:0 0 1.45rem;color:#f8fafc;}
+.dc__archetype-brand img {display:block;object-fit:contain;flex:none;width:2.5rem;height:2.5rem;}
+.dc__archetype-brand strong {display:block;font:800 1.42rem/1.05 system-ui,sans-serif;letter-spacing:-.045em;}
+.dc__archetype-brand strong span {color:#5eead4;}
+.dc__archetype-brand small {display:block;color:#d3dce8;font:.73rem/1.35 system-ui,sans-serif;margin-top:.16rem;}
+.dc__archetype .dc__kicker {color:#f9c47a;}
+.dc__archetype .dc__button {background:#172638;border-color:#617084;}
+.dc__archetype .dc__button--primary {color:#081e23;background:#5eead4;border-color:#5eead4;}
+.dc__archetype .dc__link-hint {color:#c7d7e5;}

@@ -28,3 +28,5 @@ Pour ajuster un lien invisible à une ligne imprimée, tire sa poignée dans le 
 Dans un élément, choisis Site web, Courriel ou Téléphone, puis saisis seulement l’adresse ou le numéro. Le préfixe apparaît à côté du champ. Un lien complet déjà écrit avec son préfixe reste accepté.
 
 Sous la carte, la vue visiteur affiche un petit rappel seulement lorsque la face courante contient un lien cliquable. Aucun repère n’est superposé au visuel.
+
+L’habillage Archétype (logo et fond de la vitrine) s’affiche autour de la carte dans « Voir comme un visiteur » et sur la page client. L’administration et le recto-verso importé restent inchangés.
