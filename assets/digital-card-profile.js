@@ -52,11 +52,29 @@ export function renderProfile(root,card,{linksActive=true}={}){
   if(data.about)panel.append(node('p','dc__profile-about',data.about));
   const main=profileUrl(data.primary?.url);
   if(main&&data.primary?.label)panel.append(profileLink(data.primary.label,main,'primary'));
-  if(data.address){
+  const phone=(card.phone||'').replace(/[^+\d]/g,'');
+  const site=profileUrl(card.website);
+  const contacts=card.hideActions?[]:[
+    ['Téléphone',card.phone,phone?'tel:'+phone:''],
+    ['Courriel',card.email,card.email?'mailto:'+encodeURIComponent(card.email):''],
+    ['Site web',site?new URL(site).hostname.replace(/^www\./,''):'',site]
+  ].filter(([,label,href])=>label&&href);
+  if(contacts.length||data.address){
     const block=node('div','dc__profile-address');
-    block.append(node('h3','dc__profile-label','Adresse'),node('p','',data.address),
-      profileLink('Itinéraire','https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(data.address)));
-    panel.append(block);
+    block.append(node('h3','dc__profile-label','Coordonnées'));
+    const list=node('dl','dc__profile-contacts');
+    for(const [label,value,href] of contacts){
+      const row=node('div','dc__profile-contact-row'), detail=node('dd','');
+      detail.append(profileLink(value,href,'contact'));
+      row.append(node('dt','',label),detail);list.append(row);
+    }
+    if(data.address){
+      const row=node('div','dc__profile-contact-row'), detail=node('dd','');
+      detail.append(node('span','dc__profile-street',data.address),
+        profileLink('Itinéraire','https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(data.address),'directions'));
+      row.append(node('dt','','Adresse'),detail);list.append(row);
+    }
+    block.append(list);panel.append(block);
   }
   const selected=(data.links||[]).filter(link=>link.label&&profileUrl(link.url));
   if(selected.length){
