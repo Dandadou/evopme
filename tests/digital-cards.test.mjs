@@ -249,3 +249,24 @@ test('préréglage Évolution PME limité à la carte vérifiée et modifiable',
   assert.equal((await read({...payload,name:'Autre personne'})).profile,undefined);
   assert.equal((await read({...payload,profile:{primary:null}})).profile.primary,null);
 });
+
+test('événements distincts par carte, validés et masqués après la date au Québec',async()=>{
+  const {upcomingProfileEvents}=await import('../assets/digital-card-profile.js');
+  const qg={title:'Party de Noël du QG',date:'2026-12-17',place:'Le QG',description:'Venez fêter avec nous!',url:'https://example.com/billetterie?eventid=qg&chapter=montcalm'};
+  for(const change of [{date:'2026-02-30'},{title:''},{url:'javascript:alert(1)'},{url:'https://abc@example.com/'},{url:'http://example.com/'}]){
+    assert.throws(()=>cleanCard({...base,profile:{events:[{...qg,...change}]}}),/événement/i);
+  }
+  assert.throws(()=>cleanCard({...base,profile:{events:[qg,qg,qg,qg]}}),/trois/);
+  assert.equal(cleanCard({...base,profile:{events:[{title:''}]}}).profile.events,undefined);
+  const early={...qg,title:'Plus tôt',date:'2026-12-16'};
+  assert.deepEqual(upcomingProfileEvents([qg,early],new Date('2026-12-16T01:00:00Z')).map(x=>x.title),['Plus tôt',qg.title]);
+  assert.equal(upcomingProfileEvents([qg],new Date('2026-12-18T04:59:59Z')).length,1);
+  assert.equal(upcomingProfileEvents([qg],new Date('2026-12-18T05:00:00Z')).length,0);
+  const env=environment(), path='/api/cms/digital-cards', edit=path+'?slug='+base.slug, publicPath='/api/cartes/'+base.slug;
+  assert.equal((await handleDigitalCardsAdmin(request(path,'POST',{...base,profile:{events:[qg]}}),env,1)).status,201);
+  assert.equal((await getDigitalCard(request(publicPath),env,base.slug)).status,404);
+  assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,published:true,profile:{events:[qg]}}),env,1)).status,200);
+  assert.deepEqual((await (await getDigitalCard(request(publicPath),env,base.slug)).json()).card.profile.events,[qg]);
+  assert.equal((await handleDigitalCardsAdmin(request(edit,'PUT',{...base,published:true,profile:{events:[]}}),env,1)).status,200);
+  assert.equal((await (await getDigitalCard(request(publicPath),env,base.slug)).json()).card.profile.events,undefined);
+});
