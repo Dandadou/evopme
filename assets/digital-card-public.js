@@ -1,4 +1,4 @@
-import {renderProfile} from './digital-card-profile.js?v=20261126-contact';
+import {renderProfile} from './digital-card-profile.js?v=20261126-vcard';
 import {renderCard} from './digital-card.js';
 const name=document.querySelector('#card-name');
 const company=document.querySelector('#card-company');

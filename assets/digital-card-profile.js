@@ -1,3 +1,4 @@
+import {makeContactDownload} from './digital-card.js?v=20261126-vcard';
 export const maxProfileLinks=6;
 function cleanText(value,max){
   const text=value??'';
@@ -85,5 +86,11 @@ export function renderProfile(root,card,{linksActive=true}={}){
     more.append(list);panel.append(more);
   }
   if(!linksActive) for(const a of panel.querySelectorAll('a')){a.removeAttribute('href');a.setAttribute('aria-disabled','true');}
+  if(card.name){
+    const dataForContact=card.hideActions?{...card,phone:'',email:'',website:''}:card;
+    const download=makeContactDownload(dataForContact,'dc__button dc__profile-save');
+    download.disabled=!linksActive;
+    panel.append(download);
+  }
   root.append(panel);
 }

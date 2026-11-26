@@ -1,4 +1,4 @@
-import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js?v=20261126-contact';
+import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js?v=20261126-vcard';
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
 import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';

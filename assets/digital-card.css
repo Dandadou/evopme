@@ -228,3 +228,7 @@ a.dc__layer {pointer-events:auto;}
 .dc__profile-admin-links {display:grid;gap:.65rem;}
 .dc__profile-admin-row {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:.45rem;padding:.55rem;border:1px solid #3f566c;border-radius:.65rem;}
 .dc__profile-admin-row>button {grid-column:1/-1;justify-self:start;}
+
+.dc__profile .dc__profile-save {width:100%;margin-top:1.1rem;background:var(--dc-accent,#5eead4);color:var(--dc-accent-text,#081e23);border-color:transparent;}
+.dc__profile .dc__profile-save:hover:enabled {filter:brightness(1.08);}
+.dc__profile .dc__profile-save:disabled {opacity:.65;}

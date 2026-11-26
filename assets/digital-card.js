@@ -25,6 +25,15 @@ export function toVcard(card){
     card.phone&&'TEL;TYPE=WORK,VOICE:'+esc(card.phone),card.email&&'EMAIL;TYPE=INTERNET,WORK:'+esc(card.email),
     card.website&&'URL:'+esc(card.website),'END:VCARD'].filter(Boolean).map(foldVcard).join('\r\n')+'\r\n';
 }
+export function makeContactDownload(card,className='dc__button dc__button--primary'){
+  const download=el('button',className,'Ajouter à mes contacts');
+  download.type='button';download.addEventListener('click',()=>{
+    const href=URL.createObjectURL(new Blob([toVcard(card)],{type:'text/vcard;charset=utf-8'}));
+    const a=el('a');a.href=href;a.download=(card.slug||'contact')+'.vcf';document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(href),30000);
+  });
+  return download;
+}
 function lightOrDark(hex){
   const rgb=(hex.match(/[0-9a-f]{2}/gi)||[]).map(n=>parseInt(n,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);
   return (rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722)>.179?'#000':'#fff';
@@ -153,13 +162,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   root.replaceChildren(frame,controls,linkHint);
   if(!contact||!card.name) return;
   const actions=el('div','dc__actions');
-  const download=el('button','dc__button dc__button--primary','Ajouter à mes contacts');
-  download.type='button';download.addEventListener('click',()=>{
-    const href=URL.createObjectURL(new Blob([toVcard(card)],{type:'text/vcard;charset=utf-8'}));
-    const a=el('a');a.href=href;a.download=(card.slug||'contact')+'.vcf';document.body.append(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(href),30000);
-  });
-  actions.append(download);
+  actions.append(makeContactDownload(card));
   for(const [label, url] of [['Appeler',card.phone&&'tel:'+card.phone.replace(/[^+\d]/g,'')],['Écrire',card.email&&'mailto:'+encodeURIComponent(card.email)],['Voir le site',card.website]]){
     if(!url)continue;
     const a=el('a','dc__button',label);a.href=url;actions.append(a);
