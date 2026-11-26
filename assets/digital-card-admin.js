@@ -1,4 +1,4 @@
-import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js?v=20261126-vcard';
+import {cleanProfile,maxProfileEvents,maxProfileLinks,renderProfile} from './digital-card-profile.js?v=20261126-events';
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
 import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';
@@ -113,6 +113,12 @@ function init(root) {
           <div class="dc__profile-admin-links" data-profile-links></div>
           <button type="button" class="dc__button" data-profile-add>+ Ajouter un lien à la fiche</button>
         </details>
+        <details class="dc__wide dc__profile-edit" data-events-editor>
+          <summary>Événements à venir</summary>
+          <p class="dc__muted">Annonce jusqu’à trois événements sous la carte. Le bouton « M’inscrire » ouvre la billetterie ou le formulaire que tu indiques. Après la date, l’événement disparaît du public.</p>
+          <div class="dc__profile-admin-links" data-events-list></div>
+          <button type="button" class="dc__button" data-events-add>+ Ajouter un événement</button>
+        </details>
         <div class="dc__wide dc__actions"><button class="dc__button dc__button--primary" type="submit">Enregistrer</button><button class="dc__button" type="button" data-publish hidden></button></div>
       </form>
       <p role="status" class="dc__status" data-status></p>
@@ -168,9 +174,23 @@ function init(root) {
     return row;
   }
   profileAdd.addEventListener('click',()=>appendProfileLink()?.querySelector('input').focus());
+  const eventEditor=form.querySelector('[data-events-editor]'),eventList=form.querySelector('[data-events-list]'),
+    eventAdd=form.querySelector('[data-events-add]'),eventKeys=['title','date','place','description','url'];
+  function appendEvent(data={}){
+    if(eventList.children.length>=maxProfileEvents)return;
+    const row=document.createElement('div');
+    row.className='dc__profile-admin-row dc__event-admin-row';
+    row.innerHTML='<label>Nom de l’événement<input data-event="title" maxlength="100" placeholder="Party de Noël"></label><label>Date<input data-event="date" type="date"></label><label>Lieu (facultatif)<input data-event="place" maxlength="120"></label><label>Lien d’inscription<input data-event="url" type="url" maxlength="1500" placeholder="https://…"></label><label class="dc__event-wide">Invitation (facultative)<textarea data-event="description" maxlength="240" rows="2"></textarea></label><button type="button" class="dc__button">Retirer cet événement</button>';
+    for(const key of eventKeys)row.querySelector('[data-event="'+key+'"]').value=data[key]||'';
+    row.querySelector('button').addEventListener('click',()=>{row.remove();eventAdd.disabled=false;eventAdd.focus();draw();});
+    eventList.append(row);eventAdd.disabled=eventList.children.length>=maxProfileEvents;
+    return row;
+  }
+  eventAdd.addEventListener('click',()=>appendEvent()?.querySelector('input').focus());
   function readProfile(){
     return {about:field('profileAbout').value,address:field('profileAddress').value,
       primary:{label:field('profilePrimaryLabel').value,url:field('profilePrimaryURL').value},
+      events:[...eventList.children].map(row=>Object.fromEntries(eventKeys.map(key=>[key,row.querySelector('[data-event="'+key+'"]').value]))),
       links:[...profileList.children].map(row=>({label:row.querySelector('[data-profile-label]').value,url:row.querySelector('[data-profile-url]').value}))};
   }
   function fillProfile(data={}){
@@ -180,6 +200,8 @@ function init(root) {
     field('profilePrimaryURL').value=data.primary?.url||'';
     profileList.replaceChildren();profileAdd.disabled=false;
     (data.links||[]).forEach(appendProfileLink);
+    eventList.replaceChildren();eventAdd.disabled=false;
+    (data.events||[]).forEach(appendEvent);eventEditor.open=Boolean(data.events?.length);
     profileList.closest('details').open=Boolean(data.about||data.address||data.primary||data.links?.length);
   }
   const api='/api/cms/digital-cards';
@@ -480,9 +502,19 @@ function init(root) {
     });
   }
   async function persist(nextPublished){
-    if(busy||pending||!form.reportValidity())return;
+    if(busy||pending)return;
+    for(const input of form.querySelectorAll('input:invalid, textarea:invalid')){
+      const details=input.closest('details');if(details)details.open=true;
+    }
+    if(!form.reportValidity())return;
     let validZones,profile;
-    try{validZones=cleanCardLinks(zones);profile=cleanProfile(readProfile());}catch(error){show(error.message,true);zoneList.focus();return;}
+    try{validZones=cleanCardLinks(zones);}catch(error){show(error.message,true);zoneList.focus();return;}
+    try{profile=cleanProfile(readProfile());}catch(error){
+      show(error.message,true);
+      if(/événement/i.test(error.message)){eventEditor.open=true;eventEditor.querySelector('summary').focus();}
+      else{profileList.closest('details').open=true;field('profileAbout').focus();}
+      return;
+    }
     busy=true;setButtons();
     try{
       if(local){

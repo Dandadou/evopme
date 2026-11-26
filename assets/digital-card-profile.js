@@ -18,11 +18,44 @@ function cleanLink(label,url){
   if(!label||!profileUrl(url))throw new Error('Chaque lien de la fiche doit avoir un libellé et une adresse web complète.');
   return {label,url:profileUrl(url)};
 }
+export const maxProfileEvents=3;
+const dayKey=new Intl.DateTimeFormat('fr-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'});
+const readableDay=new Intl.DateTimeFormat('fr-CA',{timeZone:'UTC',dateStyle:'long'});
+function cleanEventUrl(raw){
+  try{
+    const u=new URL(raw);
+    return u.protocol==='https:'&&!u.username&&!u.password&&u.href.length<=1500?u.href:'';
+  }catch{return '';}
+}
+function isEventDate(value){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||value.slice(0,4)<'1900')return false;
+  const date=new Date(value+'T12:00:00Z');
+  return !Number.isNaN(+date)&&date.toISOString().startsWith(value+'T');
+}
+export function cleanProfileEvents(raw=[]){
+  if(!Array.isArray(raw)||raw.length>maxProfileEvents)throw new Error('La fiche peut avoir jusqu’à trois événements.');
+  return raw.map(event=>{
+    if(!event||typeof event!=='object'||Array.isArray(event))throw new Error('Événement invalide.');
+    const title=cleanText(event.title,100),date=cleanText(event.date,10),place=cleanText(event.place,120),
+      description=cleanText(event.description,240),url=cleanText(event.url,1500);
+    if(!title&&!date&&!place&&!description&&!url)return null;
+    const safeURL=cleanEventUrl(url);
+    if(!title||!isEventDate(date)||!safeURL)throw new Error('Pour chaque événement, entre un titre, une date valide et un lien d’inscription HTTPS.');
+    return {title,date,place,description,url:safeURL};
+  }).filter(Boolean);
+}
+export function upcomingProfileEvents(raw,now=new Date()){
+  const parts=Object.fromEntries(dayKey.formatToParts(now).map(({type,value})=>[type,value]));
+  const today=parts.year+'-'+parts.month+'-'+parts.day;
+  return (Array.isArray(raw)?raw:[]).filter(event=>event?.title&&isEventDate(event.date)&&event.date>=today&&cleanEventUrl(event.url))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+}
 export function cleanProfile(raw) {
   if(raw===undefined)return {about:'',address:'',primary:null,links:[]};
   if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('Fiche client invalide.');
   if(raw.links!==undefined&&(!Array.isArray(raw.links)||raw.links.length>maxProfileLinks))throw new Error('La fiche peut avoir jusqu’à six liens.');
-  return {about:cleanText(raw.about,420),address:cleanText(raw.address,220),
+  const events=cleanProfileEvents(raw.events);
+  return {...(events.length?{events}:{}),about:cleanText(raw.about,420),address:cleanText(raw.address,220),
     primary:cleanLink(raw.primary?.label,raw.primary?.url),
     links:(raw.links||[]).map(link=>cleanLink(link?.label,link?.url)).filter(Boolean)};
 }
@@ -84,6 +117,23 @@ export function renderProfile(root,card,{linksActive=true}={}){
     const list=node('div','dc__profile-grid');
     for(const link of selected)list.append(profileLink(link.label,profileUrl(link.url)));
     more.append(list);panel.append(more);
+  }
+  const events=upcomingProfileEvents(data.events);
+  if(events.length){
+    const section=node('section','dc__profile-events');
+    section.append(node('h3','dc__profile-label','Événements à venir'));
+    for(const event of events){
+      const article=node('article','dc__profile-event');
+      const time=node('time','dc__profile-event-date',readableDay.format(new Date(event.date+'T12:00:00Z')));
+      time.dateTime=event.date;
+      article.append(time,node('h4','dc__profile-event-title',event.title));
+      if(event.place)article.append(node('p','dc__profile-event-detail',event.place));
+      if(event.description)article.append(node('p','dc__profile-event-detail',event.description));
+      const cta=profileLink('M’inscrire',cleanEventUrl(event.url),'event');
+      cta.setAttribute('aria-label','M’inscrire : '+event.title);
+      article.append(cta);section.append(article);
+    }
+    panel.append(section);
   }
   if(!linksActive) for(const a of panel.querySelectorAll('a')){a.removeAttribute('href');a.setAttribute('aria-disabled','true');}
   if(card.name){
