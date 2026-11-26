@@ -157,3 +157,11 @@ a.dc__layer {pointer-events:auto;}
 .dc__turn[data-format="square"] {width:min(100%,27rem);margin-inline:auto;}
 .dc__turn[data-format="square"] .dc__flip {aspect-ratio:1;}
 .dc__turn[data-corners="square"] .dc__face {border-radius:0;}
+
+.dc__hotspot--demo[data-drag-zone]:has(.dc__resize-grip) {overflow:visible;min-width:0;min-height:0;}
+.dc__hotspot-caption {display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;pointer-events:none;}
+.dc__resize-grip {
+  position:absolute;right:0;bottom:0;width:15px;height:15px;transform:translate(4px,4px);
+  border-radius:3px;border:1px solid #103744;background:#a9ffff;cursor:nwse-resize;touch-action:none;
+}
+.dc__resize-grip::after {content:"";position:absolute;right:2px;bottom:2px;width:6px;height:6px;border-right:2px solid #17646c;border-bottom:2px solid #17646c;}

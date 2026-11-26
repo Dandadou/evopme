@@ -89,6 +89,15 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
       if(draggable){
         zoneNode.type='button';zoneNode.dataset.dragZone=String(index);
         zoneNode.setAttribute('aria-label','Déplacer : '+(label||'zone '+(index+1)));
+        if(!visible&&(zone.w!==100||zone.h!==100)){
+          const caption=el('span','dc__hotspot-caption',zoneNode.textContent);
+          zoneNode.textContent='';
+          const grip=el('span','dc__resize-grip');
+          grip.dataset.resizeZone='';
+          grip.setAttribute('aria-hidden','true');
+          grip.title='Tirer pour redimensionner';
+          zoneNode.append(caption,grip);
+        }
       }else if(link){
         zoneNode.href=url;zoneNode.title=label;zoneNode.setAttribute('aria-label',label);
         if(preview&&/^https?:/.test(url)){zoneNode.target='_blank';zoneNode.rel='noopener noreferrer';}

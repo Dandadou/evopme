@@ -171,3 +171,11 @@ test('format et coins indépendants, avec valeurs historiques par défaut',()=>{
   assert.throws(()=>cleanCard({...base,format:'1:2'}));
   assert.throws(()=>cleanCard({...base,corners:'50px'}));
 });
+
+test('zones invisibles étroites permises, mais bornées à la face',()=>{
+  const line={face:'back',label:'Téléphone',url:'tel:+14505550100',x:87,y:93,w:11,h:4};
+  assert.deepEqual(cleanCardLinks([line]),[line]);
+  assert.throws(()=>cleanCardLinks([{...line,h:2}]));
+  assert.throws(()=>cleanCardLinks([{...line,w:14}]));
+  assert.throws(()=>cleanCardLinks([{...line,kind:'button'}]));
+});

@@ -22,3 +22,5 @@ Dans la préversion de la branche, « Enregistrer le brouillon de test » conser
 « Liens rapides » place un lien Facebook, LinkedIn, Instagram, de rendez-vous, d’itinéraire ou un autre lien web sur la face affichée. Choisis entre icône, bouton et zone invisible, puis repositionne l’élément. Le lien invisible ne montre pas de texte ni de cadre dans la vue visiteur.
 
 Le format horizontal (7:4), vertical (4:7) ou carré (1:1) et les coins droits ou arrondis sont indépendants. Les images importées restent entières si leurs proportions diffèrent, et les zones restent positionnées en pourcentages de la face.
+
+Pour ajuster un lien invisible à une ligne imprimée, tire sa poignée dans le coin inférieur droit ou entre sa largeur et sa hauteur en pourcentages (minimum 3 %). Vérifie les petits liens sur téléphone avant de publier; la poignée n’apparaît jamais pour les visiteurs.

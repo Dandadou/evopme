@@ -1,6 +1,6 @@
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
-import {cardLink,cleanCardLinks} from './digital-card-links.js';
+import {cardLink,cleanCardLinks,hotspotMinSize} from './digital-card-links.js';
 const root=document.querySelector('[data-digital-cards]');
 if(root) init(root);
 function init(root) {
@@ -22,7 +22,7 @@ function init(root) {
       <div class="dc__stage"><div data-card-preview></div></div>
       <div class="dc__zone-editor">
         <h3>Éléments de la carte</h3>
-        <p class="dc__muted">Ajoute un bloc sur la face affichée, puis glisse-le où tu veux. Les liens invisibles ne montrent aucun contour aux visiteurs.</p>
+        <p class="dc__muted">Ajoute un bloc sur la face affichée, puis glisse-le où tu veux. Pour un lien invisible, tire le coin du cadre pour l’ajuster au texte imprimé. Les visiteurs ne verront pas le cadre.</p>
         <div class="dc__actions dc__element-tools" aria-label="Ajouter un élément">
           <button type="button" class="dc__button" data-add-layer="text">+ Texte</button>
           <button type="button" class="dc__button" data-add-layer="icon">+ Icône</button>
@@ -153,6 +153,8 @@ function init(root) {
     for(const label of root.querySelectorAll('[data-style-field]'))label.hidden=!visible;
     zoneIcon.value=z.icon||'web';zoneColor.value=z.color||'#ffffff';
     zoneSize.value=z.size||16;zoneAlign.value=z.align||'center';
+    zoneWidth.min=visible?8:hotspotMinSize;
+    zoneHeight.min=visible?12:hotspotMinSize;
     zoneWidth.value=z.w;zoneHeight.value=z.h;
     zoneFull.checked=z.x===0&&z.y===0&&z.w===100&&z.h===100;
     zoneWidth.disabled=zoneHeight.disabled=zonePlace.disabled=zoneFull.checked;
@@ -166,7 +168,7 @@ function init(root) {
       z.icon=zoneIcon.value;z.color=zoneColor.value;z.size=limit(Number(zoneSize.value),8,38);z.align=zoneAlign.value;
     }
     if(!zoneFull.checked){
-      const w=limit(Number(zoneWidth.value),8,100),h=limit(Number(zoneHeight.value),12,100);
+      const w=limit(Number(zoneWidth.value),Number(zoneWidth.min),100),h=limit(Number(zoneHeight.value),Number(zoneHeight.min),100);
       Object.assign(z,{w,h,x:Math.min(z.x,100-w),y:Math.min(z.y,100-h)});
     }
     if(zoneList.selectedOptions[0])zoneList.selectedOptions[0].textContent=zoneCaption(z,selected);
@@ -194,25 +196,38 @@ function init(root) {
     const frame=handle.closest('.dc__turn')?.getBoundingClientRect();
     if(!z||!frame?.width||!frame.height)return;
     selected=i;drawZoneEditor();
-    drag={id:event.pointerId,handle,z,frame,startX:event.clientX,startY:event.clientY,x:z.x,y:z.y};
+    const resize=Boolean(event.target.closest('[data-resize-zone]'));
+    drag={id:event.pointerId,handle,z,frame,resize,startX:event.clientX,startY:event.clientY,x:z.x,y:z.y,w:z.w,h:z.h};
     handle.setPointerCapture(event.pointerId);
     handle.classList.add('dc__dragging');handle.focus({preventScroll:true});
   });
   preview.addEventListener('pointermove',event=>{
     if(!drag||drag.id!==event.pointerId)return;
-    const {handle,z,frame,x,y,startX,startY}=drag;
-    z.x=limit(x+(event.clientX-startX)*100/frame.width,0,100-z.w);
-    z.y=limit(y+(event.clientY-startY)*100/frame.height,0,100-z.h);
-    handle.style.left=z.x+'%';handle.style.top=z.y+'%';
+    const {handle,z,frame,resize,x,y,w,h,startX,startY}=drag;
+    const dx=(event.clientX-startX)*100/frame.width,dy=(event.clientY-startY)*100/frame.height;
+    if(resize){
+      z.w=limit(w+dx,hotspotMinSize,100-z.x);
+      z.h=limit(h+dy,hotspotMinSize,100-z.y);
+      zoneWidth.value=z.w;zoneHeight.value=z.h;
+      handle.style.width=z.w+'%';handle.style.height=z.h+'%';
+    }else{
+      z.x=limit(x+dx,0,100-z.w);
+      z.y=limit(y+dy,0,100-z.h);
+      handle.style.left=z.x+'%';handle.style.top=z.y+'%';
+    }
   });
   function finishDrag(event){
     if(!drag||drag.id!==event.pointerId)return;
-    const {handle,z,x,y}=drag;
+    const {handle,z,resize,x,y,w,h}=drag;
     drag=null;
-    if(event.type==='pointercancel'){z.x=x;z.y=y;handle.style.left=x+'%';handle.style.top=y+'%';}
+    if(event.type==='pointercancel'){
+      Object.assign(z,{x,y,w,h});
+      Object.assign(handle.style,{left:x+'%',top:y+'%',width:w+'%',height:h+'%'});
+      zoneWidth.value=w;zoneHeight.value=h;
+    }
     handle.classList.remove('dc__dragging');
     if(handle.hasPointerCapture(event.pointerId))handle.releasePointerCapture(event.pointerId);
-    zoneStatus.textContent='Position : '+z.x+' % de la gauche, '+z.y+' % du haut.';
+    zoneStatus.textContent=resize?'Dimensions : '+z.w+' % de large, '+z.h+' % de haut.':'Position : '+z.x+' % de la gauche, '+z.y+' % du haut.';
   }
   for(const type of ['pointerup','pointercancel','lostpointercapture'])preview.addEventListener(type,finishDrag);
   preview.addEventListener('keydown',event=>{
