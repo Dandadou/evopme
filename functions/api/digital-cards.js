@@ -1,3 +1,4 @@
+import { cleanProfile } from '../../assets/digital-card-profile.js';
 import { cardTemplates } from '../../assets/digital-card-templates.js';
 import { cleanCardLinks } from '../../assets/digital-card-links.js';
 const MAX_BODY = 1_100_000;
@@ -58,6 +59,7 @@ export function cleanCard(body) {
     card[key]=value;
   }
   card.zones = cleanCardLinks(body.zones);
+  card.profile = cleanProfile(body.profile);
   return card;
 }
 async function readBody(request) {
@@ -74,7 +76,20 @@ async function readBody(request) {
   }
   try { return JSON.parse(data+decoder.decode()); } catch { throw new Error('JSON invalide.'); }
 }
-const record = row => ({...JSON.parse(row.payload), slug:row.slug, published:!!row.published});
+const record = row => {
+  const card={...JSON.parse(row.payload),slug:row.slug,published:!!row.published};
+  // Seed only the owner's existing, verified public card. Saved values take
+  // precedence; nothing is written on a read.
+  if(!Object.hasOwn(card,'profile')&&card.slug==='evolution-pme'&&
+      card.name==='Daniel Drapeau'&&card.company==='Évolution PME Créateur de marques'){
+    card.profile=cleanProfile({
+      about:'Vêtements corporatifs et produits promotionnels personnalisés pour les petites équipes.',
+      address:'5, rue Industrielle\nSaint-Roch-de-l’Achigan (Québec) J0K 3H0',
+      primary:{label:'Demander une soumission',url:'https://evolutionpme.ca/soumission'},
+      links:[{label:'Voir les catalogues',url:'https://evolutionpme.ca/catalogues'}]});
+  }
+  return card;
+};
 const missingCardsTable = error => /no such table:\s*(?:main\.)?digital_business_cards\b/i.test(String(error?.message||error));
 const storageError = () => json({error:'Les cartes sont temporairement indisponibles.'},503);
 const listSQL='SELECT slug,name,company,published FROM digital_business_cards WHERE organization_id=? ORDER BY updated_at DESC, slug';
@@ -137,6 +152,8 @@ export async function getDigitalCard(request, env, slug) {
   if (!env.CMS_DB) return json({error:'Service indisponible.'},503);
   try {
     const row=await env.CMS_DB.prepare('SELECT slug,payload,published FROM digital_business_cards WHERE slug=? AND published=1').bind(slug).first();
-    return row ? json({card:record(row)}) : json({error:'Cette carte est introuvable ou non publiée.'},404);
+    if(!row)return json({error:'Cette carte est introuvable ou non publiée.'},404);
+    const card=record(row);
+    return json({card});
   } catch(error) { return missingCardsTable(error) ? json({error:'Cette carte est introuvable ou non publiée.'},404) : json({error:'Service indisponible.'},503); }
 }

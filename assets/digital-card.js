@@ -114,11 +114,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
       const ratio=art.naturalWidth/art.naturalHeight;
       const bounded=Math.min(3,Math.max(0.4,ratio));
       flip.style.aspectRatio=String(bounded);
-      if(bounded<1){
-        frame.style.maxWidth='var(--dc-mobile-card-max,var(--dc-image-portrait-max))';
-        frame.style.setProperty('--dc-image-portrait-max',(bounded*26)+'rem');
-        frame.style.setProperty('--dc-reading-max',(bounded*38)+'rem');
-      }
+      if(bounded<1)frame.style.maxWidth=(bounded*26)+'rem';
     };
     if(art.complete)fit();else art.addEventListener('load',fit,{once:true});
   }

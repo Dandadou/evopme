@@ -1,3 +1,4 @@
+import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js';
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
 import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';
@@ -100,6 +101,18 @@ function init(root) {
           <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
           <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
         </fieldset>
+        <details class="dc__wide dc__profile-edit">
+          <summary>Fiche professionnelle sous la carte</summary>
+          <p class="dc__muted">La fiche reprend les couleurs de la carte. Seuls les renseignements remplis sont montrés aux visiteurs.</p>
+          <div class="dc__profile-fields">
+            <label>Courte présentation<textarea name="profileAbout" maxlength="420" rows="3"></textarea></label>
+            <label>Adresse professionnelle publique<textarea name="profileAddress" maxlength="220" rows="2"></textarea></label>
+            <label>Texte du bouton principal<input name="profilePrimaryLabel" maxlength="64" placeholder="Demander une soumission"></label>
+            <label>Lien du bouton principal<input name="profilePrimaryURL" type="url" maxlength="250" placeholder="https://…"></label>
+          </div>
+          <div class="dc__profile-admin-links" data-profile-links></div>
+          <button type="button" class="dc__button" data-profile-add>+ Ajouter un lien à la fiche</button>
+        </details>
         <div class="dc__wide dc__actions"><button class="dc__button dc__button--primary" type="submit">Enregistrer</button><button class="dc__button" type="button" data-publish hidden></button></div>
       </form>
       <p role="status" class="dc__status" data-status></p>
@@ -142,6 +155,33 @@ function init(root) {
     });
     entry.addEventListener('change',()=>{if(entry.validity.valid)entry.value=picker.value;});
   }
+  const profileList=form.querySelector('[data-profile-links]'),profileAdd=form.querySelector('[data-profile-add]');
+  function appendProfileLink(link={}){
+    if(profileList.children.length>=maxProfileLinks)return;
+    const row=document.createElement('div');
+    row.className='dc__profile-admin-row';
+    row.innerHTML='<label>Libellé du lien<input data-profile-label maxlength="64" placeholder="Catalogue"></label><label>Adresse web du lien<input data-profile-url maxlength="250" type="url" placeholder="https://…"></label><button type="button" class="dc__button">Retirer ce lien</button>';
+    row.querySelector('[data-profile-label]').value=link.label||'';
+    row.querySelector('[data-profile-url]').value=link.url||'';
+    row.querySelector('button').addEventListener('click',()=>{row.remove();profileAdd.disabled=false;profileAdd.focus();draw();});
+    profileList.append(row);profileAdd.disabled=profileList.children.length>=maxProfileLinks;
+    return row;
+  }
+  profileAdd.addEventListener('click',()=>appendProfileLink()?.querySelector('input').focus());
+  function readProfile(){
+    return {about:field('profileAbout').value,address:field('profileAddress').value,
+      primary:{label:field('profilePrimaryLabel').value,url:field('profilePrimaryURL').value},
+      links:[...profileList.children].map(row=>({label:row.querySelector('[data-profile-label]').value,url:row.querySelector('[data-profile-url]').value}))};
+  }
+  function fillProfile(data={}){
+    field('profileAbout').value=data.about||'';
+    field('profileAddress').value=data.address||'';
+    field('profilePrimaryLabel').value=data.primary?.label||'';
+    field('profilePrimaryURL').value=data.primary?.url||'';
+    profileList.replaceChildren();profileAdd.disabled=false;
+    (data.links||[]).forEach(appendProfileLink);
+    profileList.closest('details').open=Boolean(data.about||data.address||data.primary||data.links?.length);
+  }
   const api='/api/cms/digital-cards';
   const show=(text,error=false)=>{status.textContent=text;status.dataset.error=String(error);};
   const setButtons=()=>{
@@ -149,7 +189,7 @@ function init(root) {
     toggle.hidden=local||!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
   const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
-    theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
+    profile:readProfile(),theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
   const faceLabel=face=>face==='front'?'Recto':'Verso';
   const limit=(n,min,max)=>Math.min(max,Math.max(min,Math.round(n)));
   const currentZone=()=>zones[selected];
@@ -230,6 +270,7 @@ function init(root) {
         z.x=limit(x-z.w/2,0,100-z.w);z.y=limit(y-z.h/2,0,100-z.h);
         placing=false;drawZoneEditor();draw();zonePlace.focus();
       }:undefined});
+    renderProfile(preview,card,{linksActive:cleanPreview.checked});
   };
   let drag=null;
   preview.addEventListener('pointerdown',event=>{
@@ -311,7 +352,7 @@ function init(root) {
     field('hideActions').checked=card.hideActions===true;
     for(const k of ['blankFront','blankBack'])field(k).checked=card[k]===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
-    syncHex();
+    syncHex();fillProfile(card.profile);
     field('slug').readOnly=!!active;
     for(const key of ['front','back','logo']){images[key]=card[key]||'';field(key).value='';}
     setButtons();drawZoneEditor();draw();makeQR();
@@ -346,7 +387,7 @@ function init(root) {
   list.addEventListener('change',()=>select(list.value));
   demo.addEventListener('click',()=>{
     if(active&&!confirm('Remplacer l’aperçu actuel par une nouvelle démo vierge? Les modifications non enregistrées seront perdues.')) return;
-    list.value='';setCard({name:'Alex Tremblay',company:'Atelier Démo',title:'Création et design',slug:'atelier-demo',phone:'450 555-0100',email:'bonjour@example.com',zones:[
+    list.value='';setCard({name:'Alex Tremblay',company:'Atelier Démo',title:'Création et design',slug:'atelier-demo',phone:'450 555-0100',email:'bonjour@example.com',profile:{about:'Des vêtements personnalisés et des produits promotionnels pour les petites équipes.',primary:{label:'Demander une soumission',url:'https://evolutionpme.ca/soumission.html'},links:[{label:'Voir le site de démonstration',url:'https://example.com/'}]},zones:[
       {face:'front',label:'Site web',url:'https://example.com/',x:59,y:8,w:33,h:20},
       {face:'back',label:'Écrire',url:'mailto:bonjour@example.com',x:54,y:57,w:36,h:22}
     ]});
@@ -440,20 +481,20 @@ function init(root) {
   }
   async function persist(nextPublished){
     if(busy||pending||!form.reportValidity())return;
-    let validZones;
-    try{validZones=cleanCardLinks(zones);}catch(error){show(error.message,true);zoneList.focus();return;}
+    let validZones,profile;
+    try{validZones=cleanCardLinks(zones);profile=cleanProfile(readProfile());}catch(error){show(error.message,true);zoneList.focus();return;}
     busy=true;setButtons();
     try{
       if(local){
         const existing=localDraft();
         if(!active&&existing&&!confirm('Remplacer le brouillon de test enregistré dans ce navigateur?'))return;
-        const card={...read(),...images,zones:validZones,published:false};
+        const card={...read(),...images,profile,zones:validZones,published:false};
         try{localStorage.setItem(draftKey,JSON.stringify(card));}
         catch{throw new Error('Ce navigateur ne permet pas d’enregistrer le brouillon ou son espace est plein.');}
         setCard(card,true);await refresh();show('Brouillon de test enregistré dans ce navigateur.');return;
       }
       const {card}=await request(active?'?slug='+encodeURIComponent(active):'',{
-        method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,zones:validZones,published:nextPublished})
+        method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,profile,zones:validZones,published:nextPublished})
       });
       setCard(card,true);
       try{await refresh();show(published?'Carte publiée. Le lien et le QR sont prêts.':'Brouillon enregistré.');}

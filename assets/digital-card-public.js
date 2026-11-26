@@ -1,3 +1,4 @@
+import {renderProfile} from './digital-card-profile.js';
 import {renderCard} from './digital-card.js';
 const name=document.querySelector('#card-name');
 const company=document.querySelector('#card-company');
@@ -17,21 +18,7 @@ try{
   document.title=card.name+' | Carte numérique';
   const root=document.querySelector('#public-card');
   renderCard(root,card,{contact:!card.hideActions});
-  setupLandscape(root);
+  renderProfile(root,card);
 }catch(error){
   name.textContent=error.message==='invalid'?'Cette carte n’est pas disponible.':'Impossible de charger la carte.';
-}
-
-function setupLandscape(root){
-  const toggle=document.createElement('button');
-  toggle.type='button';
-  toggle.className='dc__button dc__mobile-view-toggle';
-  toggle.setAttribute('aria-controls','public-card');
-  const setLandscape=enabled=>{
-    document.body.dataset.mobileView=enabled?'landscape':'normal';
-    toggle.textContent=enabled?'Vue normale':'Vue paysage';
-  };
-  toggle.addEventListener('click',()=>setLandscape(document.body.dataset.mobileView!=='landscape'));
-  root.before(toggle);
-  setLandscape(true);
 }

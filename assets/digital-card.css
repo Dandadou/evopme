@@ -196,27 +196,26 @@ a.dc__layer {pointer-events:auto;}
 
 
 
-.dc__mobile-view-toggle {display:none;}
-@media (pointer:coarse) {
-  body[data-mobile-view] .dc__public {box-sizing:border-box;padding:.75rem .85rem 1rem;}
-  body[data-mobile-view] .dc__archetype-brand {margin-bottom:.55rem;}
-  body[data-mobile-view="landscape"] #public-card>.dc__turn {width:min(100%,46rem);margin-inline:auto;}
-  body[data-mobile-view="landscape"] #public-card>.dc__turn[data-format="portrait"] {width:min(100%,22rem);}
-  body[data-mobile-view="landscape"] #public-card>.dc__turn[data-format="square"] {width:min(100%,30rem);}
-  body[data-mobile-view="landscape"] #public-card>.dc__turn[data-format="image"] {--dc-mobile-card-max:var(--dc-reading-max,46rem);}
-  body[data-mobile-view] #public-card>.dc__actions {justify-content:center;}
-}
-@media (pointer:coarse) and (orientation:portrait) and (max-width:600px) {
-  body[data-mobile-view] .dc__mobile-view-toggle {display:flex;margin:0 auto .55rem;}
-  body[data-mobile-view="normal"] .dc__public {width:100%;}
-  body[data-mobile-view="landscape"] {position:fixed;inset:0;overflow:hidden;}
-  body[data-mobile-view="landscape"] .dc__public {
-    position:absolute;top:0;left:100%;margin:0;
-    width:100vh;width:100dvh;height:100vw;
-    transform-origin:top left;transform:rotate(90deg);
-    overflow:auto;overscroll-behavior:contain;
-  }
-}
-@media (pointer:coarse) and (orientation:landscape) and (max-height:600px) {
-  body[data-mobile-view] .dc__public {width:100%;}
-}
+/* The profile extends the card without changing its artwork or its link zones. */
+.dc__profile {min-width:0;margin:1.15rem 0 0;padding:clamp(.95rem,4vw,1.55rem);border:1px solid #ffffff2a;border-top:3px solid var(--dc-accent);border-radius:1.2rem;background:#111b2b;background:linear-gradient(146deg,color-mix(in srgb,var(--dc-ink) 67%,#10233a),#101826 82%);box-shadow:0 15px 42px #03070c55;color:#fff;color-scheme:dark;}
+.dc__profile-hero {display:flex;gap:.9rem;align-items:center;min-width:0;}
+.dc__profile-identity,.dc__profile-hero>* {min-width:0;}
+.dc__profile-logo {flex:none;width:3.35rem;height:3.35rem;object-fit:contain;border-radius:.7rem;background:#0b1422;padding:.25rem;box-sizing:border-box;}
+.dc__profile .dc__profile-label {font-size:.69rem;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:#e0e8f6;margin-bottom:.35rem;}
+.dc__profile .dc__profile-name {font-size:clamp(1.33rem,5vw,1.9rem);letter-spacing:-.035em;line-height:1.15;overflow-wrap:anywhere;}
+.dc__profile .dc__profile-subtitle {font-size:.9rem;margin-top:.3rem;color:#e0e8f6;overflow-wrap:anywhere;}
+.dc__profile .dc__profile-about,.dc__profile-address p {white-space:pre-line;overflow-wrap:anywhere;}
+.dc__profile .dc__profile-about {margin:1rem 0 0;}
+.dc__profile-address,.dc__profile-more {margin-top:1rem;padding-top:.85rem;border-top:1px solid #ffffff28;}
+.dc__profile-address .dc__profile-link {margin-top:.55rem;}
+.dc__profile-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(9.5rem,100%),1fr));gap:.5rem;}
+.dc__profile-link {display:flex;align-items:center;justify-content:space-between;gap:.45rem;box-sizing:border-box;min-height:44px;padding:.55rem .75rem;color:#fff;background:#ffffff12;border:1px solid #ffffff36;border-radius:.65rem;text-decoration:none;font-size:.88rem;font-weight:700;overflow-wrap:anywhere;}
+.dc__profile-link::after {content:"";flex:none;width:.48rem;height:.48rem;margin-right:.15rem;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg);}
+.dc__profile-link--primary {margin-top:1rem;background:var(--dc-accent);color:var(--dc-accent-text);border-color:transparent;}
+.dc__profile-edit {min-width:0;border:1px solid #496079;border-radius:.75rem;padding:.65rem;}
+.dc__profile-edit>* {margin-top:.55rem;}
+.dc__profile-edit .dc__profile-fields {display:grid;gap:.6rem;}
+.dc__profile-edit textarea {box-sizing:border-box;width:100%;min-height:5rem;resize:vertical;padding:.5rem;border:1px solid #4c617c;border-radius:.55rem;background:#0c121b;color:#eef7ff;font:inherit;}
+.dc__profile-admin-links {display:grid;gap:.65rem;}
+.dc__profile-admin-row {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:.45rem;padding:.55rem;border:1px solid #3f566c;border-radius:.65rem;}
+.dc__profile-admin-row>button {grid-column:1/-1;justify-self:start;}
