@@ -189,3 +189,7 @@ a.dc__layer {pointer-events:auto;}
 .dc__archetype .dc__button {background:#172638;border-color:#617084;}
 .dc__archetype .dc__button--primary {color:#081e23;background:#5eead4;border-color:#5eead4;}
 .dc__archetype .dc__link-hint {color:#c7d7e5;}
+
+.dc__color-pair {grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.65rem;}
+.dc__turn[data-format="image"] .dc__face:has(> .dc__art) {border:0;}
+.dc__turn[data-format="image"] .dc__face:has(> .dc__art)::after {box-shadow:none;}

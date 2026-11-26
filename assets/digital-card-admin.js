@@ -84,11 +84,11 @@ function init(root) {
         <label>Téléphone<input name="phone" type="tel" maxlength="40"></label>
         <label>Courriel<input name="email" type="email" maxlength="160"></label>
         <label class="dc__wide">Site web<input name="website" type="url" maxlength="250" placeholder="https://"></label>
-        <label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label>
-        <label>Couleur de fond<input name="background" type="color" value="#202328"></label>
-        <label>Format de la carte<select name="format"><option value="landscape">Horizontale (7:4)</option><option value="portrait">Verticale (4:7)</option><option value="square">Carrée (1:1)</option></select></label>
+        <div class="dc__color-pair"><label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label><label>Code HEX de l’accent<input data-hex-for="accent" type="text" value="#fa7824" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #fa7824"></label></div>
+        <div class="dc__color-pair"><label>Couleur de fond<input name="background" type="color" value="#202328"></label><label>Code HEX du fond<input data-hex-for="background" type="text" value="#202328" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #000000"></label></div>
+        <label>Format de la carte<select name="format"><option value="landscape">Horizontale (7:4)</option><option value="portrait">Verticale (4:7)</option><option value="square">Carrée (1:1)</option><option value="image">Ajuster au visuel importé</option></select></label>
         <label>Coins de la carte<select name="corners"><option value="rounded">Arrondis</option><option value="square">Droits</option></select></label>
-        <p class="dc__wide dc__muted">Pour remplir la face, utilise une image du même format. Si ses proportions diffèrent, l’image reste entière.</p>
+        <p class="dc__wide dc__muted">« Ajuster au visuel importé » reprend les proportions du recto (ou du verso si seul). Pour remplir les deux faces sans découpe, utilise des images aux mêmes proportions.</p>
         <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
         <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
         <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
@@ -119,7 +119,7 @@ function init(root) {
   const testLinks=root.querySelector('[data-test-links]');
   const cleanPreview=root.querySelector('[data-clean-preview]');
   const localNote=root.querySelector('[data-local-note]');
-  const branchPreview=location.hostname==='hubert-cartes-numeriques-evopme.dadou195.workers.dev';
+  const branchPreview=['hubert-cartes-numeriques-evopme.dadou195.workers.dev','hubert-archetype-couleurs-evopme.dadou195.workers.dev'].includes(location.hostname);
   const previewHost=location.hostname.endsWith('.workers.dev')||['localhost','127.0.0.1'].includes(location.hostname);
   const draftKey='evopme.digital-card.test-draft.v1';
   let local=false;
@@ -129,6 +129,19 @@ function init(root) {
   let active='', published=false, busy=false, pending=0, revision=0, images={}, stableURL='', imageJobs={};
   const textKeys=['name','company','title','slug','phone','email','website','accent','background'];
   const blank={accent:'#fa7824',background:'#202328'};
+  const hexFields=['accent','background'].map(key=>[field(key),form.querySelector('[data-hex-for="'+key+'"]')]);
+  const syncHex=()=>hexFields.forEach(([picker,entry])=>{entry.value=picker.value;});
+  for(const [picker,entry] of hexFields){
+    picker.addEventListener('input',()=>{entry.value=picker.value;});
+    entry.addEventListener('input',()=>{
+      const value=entry.value.trim();
+      if(/^#?[0-9a-f]{6}$/i.test(value)){
+        picker.value='#'+value.replace(/^#/,'').toLowerCase();
+        if(!value.startsWith('#')||value!==entry.value)entry.value=picker.value;
+      }
+    });
+    entry.addEventListener('change',()=>{if(entry.validity.valid)entry.value=picker.value;});
+  }
   const api='/api/cms/digital-cards';
   const show=(text,error=false)=>{status.textContent=text;status.dataset.error=String(error);};
   const setButtons=()=>{
@@ -293,11 +306,12 @@ function init(root) {
     zones=(card.zones||[]).map(zone=>({...zone}));
     selected=-1;side='front';placing=false;testLinks.checked=false;cleanPreview.checked=false;
     field('hideHeading').checked=card.hideHeading===true;
-    field('format').value=['portrait','square'].includes(card.format)?card.format:'landscape';
+    field('format').value=['landscape','portrait','square','image'].includes(card.format)?card.format:(saved?'landscape':'image');
     field('corners').value=card.corners==='square'?'square':'rounded';
     field('hideActions').checked=card.hideActions===true;
     for(const k of ['blankFront','blankBack'])field(k).checked=card[k]===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
+    syncHex();
     field('slug').readOnly=!!active;
     for(const key of ['front','back','logo']){images[key]=card[key]||'';field(key).value='';}
     setButtons();drawZoneEditor();draw();makeQR();
@@ -352,7 +366,7 @@ function init(root) {
     const next=[...zones.filter(z=>!empty.includes(z.face)),...t.zones.filter(z=>empty.includes(z.face))];
     if(next.length>24){templateStatus.textContent='Ce modèle dépasserait la limite de 24 éléments. Retire un élément ou choisis une autre carte.';return;}
     theme=t.theme;zones=next;
-    field('accent').value=t.accent;field('background').value=t.background;
+    field('accent').value=t.accent;field('background').value=t.background;syncHex();
     if(empty.length===2){field('hideHeading').checked=true;field('hideActions').checked=true;}
     for(const face of empty)field(face==='front'?'blankFront':'blankBack').checked=true;
     side=empty[0];selected=-1;placing=false;cleanPreview.checked=false;testLinks.checked=false;

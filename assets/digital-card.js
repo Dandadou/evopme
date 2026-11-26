@@ -39,7 +39,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   root.style.setProperty('--dc-ink',card.background||'#202328');
   root.style.setProperty('--dc-text',lightOrDark(card.background||'#202328'));
   const frame=el('div','dc__turn');
-  frame.dataset.format=['portrait','square'].includes(card.format)?card.format:'landscape';
+  frame.dataset.format=['portrait','square','image'].includes(card.format)?card.format:'landscape';
   frame.dataset.corners=card.corners==='square'?'square':'rounded';
   const button=el('button','dc__flip-button dc__button');
   button.type='button';
@@ -106,6 +106,17 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
       }else if(!visible)zoneNode.setAttribute('aria-hidden','true');
       faceNode.append(zoneNode);
     }
+  }
+  if(frame.dataset.format==='image'&&(card.front||card.back)){
+    const art=(card.front?front:back).firstElementChild;
+    const fit=()=>{
+      if(!art.naturalWidth||!art.naturalHeight)return;
+      const ratio=art.naturalWidth/art.naturalHeight;
+      const bounded=Math.min(3,Math.max(0.4,ratio));
+      flip.style.aspectRatio=String(bounded);
+      if(bounded<1)frame.style.maxWidth=(bounded*26)+'rem';
+    };
+    if(art.complete)fit();else art.addEventListener('load',fit,{once:true});
   }
   flip.append(front,back);
   for(const className of ['dc__edge dc__edge--left','dc__edge dc__edge--right']){

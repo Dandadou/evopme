@@ -9,7 +9,7 @@ import { handleLogoAnalyse } from './functions/api/logo.js';
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.hostname==='hubert-cartes-numeriques-evopme.dadou195.workers.dev'){
+    if (['hubert-cartes-numeriques-evopme.dadou195.workers.dev','hubert-archetype-couleurs-evopme.dadou195.workers.dev'].includes(url.hostname)){
       if (url.pathname==='/api/cms/digital-cards') return Response.json({error:'Enregistre le brouillon de test dans ton navigateur.'},{status:401,headers:{'cache-control':'no-store'}});
       if (url.pathname.startsWith('/api/cartes/')||url.pathname.startsWith('/carte/')) return new Response('Les cartes de test ne sont pas publiées.',{status:404,headers:{'cache-control':'no-store'}});
     }

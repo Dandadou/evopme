@@ -178,6 +178,7 @@ test('les modèles créent deux faces éditables et les éléments sont conserv�
 
 test('format et coins indépendants, avec valeurs historiques par défaut',()=>{
   assert.equal(cleanCard(base).format,'landscape');
+  assert.equal(cleanCard({...base,format:'image'}).format,'image');
   assert.equal(cleanCard(base).corners,'rounded');
   assert.equal(cleanCard({...base,format:'square',corners:'rounded'}).format,'square');
   assert.equal(cleanCard({...base,format:'portrait',corners:'square'}).corners,'square');
