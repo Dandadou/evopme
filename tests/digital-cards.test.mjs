@@ -179,3 +179,16 @@ test('zones invisibles étroites permises, mais bornées à la face',()=>{
   assert.throws(()=>cleanCardLinks([{...line,w:14}]));
   assert.throws(()=>cleanCardLinks([{...line,kind:'button'}]));
 });
+
+test('saisie sans préfixe des destinations, collage complet et validation',async()=>{
+  const {buildDestination,splitDestination}=await import('../assets/digital-card-links.js');
+  assert.equal(buildDestination('email','nom@exemple.ca'),'mailto:nom@exemple.ca');
+  assert.equal(buildDestination('phone','+1 (450) 555-0100'),'tel:+14505550100');
+  assert.equal(buildDestination('web','exemple.ca'),'https://exemple.ca/');
+  assert.equal(buildDestination('web','http://exemple.ca'),'http://exemple.ca/');
+  assert.equal(buildDestination('phone','tel:4505550100'),'tel:4505550100');
+  assert.equal(buildDestination('web','javascript:alert(1)'),'');
+  assert.equal(buildDestination('phone','450abc5550100'),'');
+  assert.equal(buildDestination('email','nom@exemple.ca?bcc=x@exemple.ca'),'');
+  assert.equal(splitDestination('mailto:nom@exemple.ca').type,'email');
+});

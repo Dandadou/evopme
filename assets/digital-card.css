@@ -165,3 +165,8 @@ a.dc__layer {pointer-events:auto;}
   border-radius:3px;border:1px solid #103744;background:#a9ffff;cursor:nwse-resize;touch-action:none;
 }
 .dc__resize-grip::after {content:"";position:absolute;right:2px;bottom:2px;width:6px;height:6px;border-right:2px solid #17646c;border-bottom:2px solid #17646c;}
+
+.dc__destination {display:flex;align-items:stretch;min-width:0;}
+.dc__destination code {display:flex;align-items:center;padding:0 .35rem;background:#26394b;border:1px solid #4c617c;
+  border-right:0;border-radius:.55rem 0 0 .55rem;font-size:.72rem;color:#a9f3f7;}
+[data-digital-cards] .dc__destination input {border-top-left-radius:0;border-bottom-left-radius:0;}

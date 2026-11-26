@@ -1,6 +1,6 @@
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
-import {cardLink,cleanCardLinks,hotspotMinSize} from './digital-card-links.js';
+import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';
 const root=document.querySelector('[data-digital-cards]');
 if(root) init(root);
 function init(root) {
@@ -46,7 +46,8 @@ function init(root) {
         <label class="dc__note">Élément à modifier<select data-zone-select><option value="">Aucun élément sélectionné</option></select></label>
         <div class="dc__form" data-zone-editor hidden>
           <label class="dc__wide"><span data-label-title>Libellé du lien</span><input data-zone-label maxlength="80" placeholder="Ex. Visiter le site"></label>
-          <label class="dc__wide"><span data-link-title>Lien de destination</span><input data-zone-url maxlength="250" placeholder="https://… ou tel:… ou mailto:…"></label>
+          <label>Type de destination<select data-destination-type><option value="web">Site web</option><option value="email">Courriel</option><option value="phone">Téléphone</option></select></label>
+          <label><span data-link-title>Lien de destination</span><span class="dc__destination"><code aria-hidden="true" data-destination-prefix>https://</code><input data-zone-url maxlength="250" placeholder="exemple.ca"></span></label>
           <label class="dc__wide" data-icon-field hidden>Icône<select data-zone-icon><option value="web">↗ Site web</option><option value="phone">☎ Téléphone</option><option value="email">✉ Courriel</option><option value="location">⌖ Adresse</option><option value="calendar">▦ Rendez-vous</option><option value="star">★ Étoile</option><option value="facebook">f Facebook</option><option value="linkedin">in LinkedIn</option><option value="instagram">◎ Instagram</option></select></label>
           <label data-style-field hidden>Couleur du texte ou de l’icône<input type="color" data-zone-color value="#ffffff"></label>
           <label data-style-field hidden>Taille du texte ou de l’icône<input type="number" data-zone-size min="8" max="38" step="1"></label>
@@ -106,6 +107,8 @@ function init(root) {
   const heading=root.querySelector('[data-card-heading]');
   const zoneEditor=root.querySelector('[data-zone-editor]'), zoneList=root.querySelector('[data-zone-select]');
   const zoneLabel=root.querySelector('[data-zone-label]'), zoneURL=root.querySelector('[data-zone-url]');
+  const destinationType=root.querySelector('[data-destination-type]'),destinationPrefix=root.querySelector('[data-destination-prefix]');
+  let webPrefix='https://';
   const zoneFull=root.querySelector('[data-zone-full]'), zoneWidth=root.querySelector('[data-zone-width]'), zoneHeight=root.querySelector('[data-zone-height]');
   const zonePlace=root.querySelector('[data-zone-place]'), zoneStatus=root.querySelector('[data-zone-status]');
   const zoneIcon=root.querySelector('[data-zone-icon]'),zoneColor=root.querySelector('[data-zone-color]');
@@ -145,7 +148,12 @@ function init(root) {
     zoneStatus.textContent=placing?'Clique à l’endroit voulu sur la carte pour placer la zone.':'';
     if(!z)return;
     const kind=z.kind||'hotspot',visible=kind!=='hotspot';
-    zoneLabel.value=layerLabel(z);zoneURL.value=z.url;
+    zoneLabel.value=layerLabel(z);
+    const destination=splitDestination(z.url);
+    destinationType.value=destination.type;
+    webPrefix=destination.type==='web'?destination.prefix:'https://';
+    zoneURL.value=destination.value.trimStart();
+    drawDestination();
     root.querySelector('[data-label-title]').textContent=kind==='text'?'Texte à afficher':kind==='button'?'Texte du bouton':'Libellé accessible';
     root.querySelector('[data-link-title]').textContent=['text','icon'].includes(kind)?'Lien de destination (facultatif)':'Lien de destination';
     root.querySelector('[data-icon-field]').hidden=kind!=='icon';
@@ -159,11 +167,28 @@ function init(root) {
     zoneFull.checked=z.x===0&&z.y===0&&z.w===100&&z.h===100;
     zoneWidth.disabled=zoneHeight.disabled=zonePlace.disabled=zoneFull.checked;
   }
+  function drawDestination(){
+    const kind=destinationType.value;
+    destinationPrefix.textContent=kind==='web'?webPrefix:destinationPrefixes[kind];
+    zoneURL.placeholder={web:'exemple.ca',email:'nom@exemple.ca',phone:'450 555-0100'}[kind];
+    zoneURL.inputMode={web:'url',email:'email',phone:'tel'}[kind];
+  }
   function editZone(event){
     const z=currentZone();
     if(!z)return;
     if(event.target===zoneLabel){z.label=zoneLabel.value;delete z.source;}
-    z.url=zoneURL.value.trim();
+    if(event.target===zoneURL||event.target===destinationType){
+      const parsed=splitDestination(zoneURL.value);
+      if(event.target===zoneURL&&parsed.explicit){
+        destinationType.value=parsed.type;
+        webPrefix=parsed.type==='web'?parsed.prefix:'https://';
+        zoneURL.value=parsed.value;
+      }
+      const kind=destinationType.value, prefix=kind==='web'?webPrefix:destinationPrefixes[kind];
+      const raw=zoneURL.value.trim();
+      z.url=raw?(buildDestination(kind,raw,prefix)||prefix+' '+raw):'';
+      drawDestination();
+    }
     if(z.kind&&z.kind!=='hotspot'){
       z.icon=zoneIcon.value;z.color=zoneColor.value;z.size=limit(Number(zoneSize.value),8,38);z.align=zoneAlign.value;
     }
@@ -346,7 +371,7 @@ function init(root) {
   const quickURL=root.querySelector('[data-quick-url]'),quickStatus=root.querySelector('[data-quick-status]');
   function addQuickLink(){
     const raw=quickURL.value.trim();
-    const url=cardLink(raw);
+    const url=buildDestination('web',raw);
     if(!url||!/^https?:/.test(url)){quickStatus.textContent='Entre une adresse web complète commençant par https://.';quickURL.focus();return;}
     const icon=quickType.value;
     const label=quickType.selectedOptions[0].textContent;
@@ -363,6 +388,7 @@ function init(root) {
     if(z)side=z.face;
     placing=false;drawZoneEditor();draw();
   });
+  destinationType.addEventListener('change',editZone);
   for(const input of [zoneLabel,zoneURL,zoneWidth,zoneHeight,zoneIcon,zoneColor,zoneSize,zoneAlign])input.addEventListener('input',editZone);
   for(const input of [zoneWidth,zoneHeight,zoneSize])input.addEventListener('change',drawZoneEditor);
   zonePlace.addEventListener('click',()=>{

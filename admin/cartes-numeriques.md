@@ -24,3 +24,5 @@ Dans la préversion de la branche, « Enregistrer le brouillon de test » conser
 Le format horizontal (7:4), vertical (4:7) ou carré (1:1) et les coins droits ou arrondis sont indépendants. Les images importées restent entières si leurs proportions diffèrent, et les zones restent positionnées en pourcentages de la face.
 
 Pour ajuster un lien invisible à une ligne imprimée, tire sa poignée dans le coin inférieur droit ou entre sa largeur et sa hauteur en pourcentages (minimum 3 %). Vérifie les petits liens sur téléphone avant de publier; la poignée n’apparaît jamais pour les visiteurs.
+
+Dans un élément, choisis Site web, Courriel ou Téléphone, puis saisis seulement l’adresse ou le numéro. Le préfixe apparaît à côté du champ. Un lien complet déjà écrit avec son préfixe reste accepté.

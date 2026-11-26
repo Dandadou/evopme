@@ -7,6 +7,28 @@ export function cardLink(value){
     return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.href:'';
   }catch{return '';}
 }
+export const destinationPrefixes=Object.freeze({email:'mailto:',phone:'tel:',web:'https://'});
+export function splitDestination(value=''){
+  const raw=String(value).trim();
+  const lead=/^(mailto:|tel:|https?:\/\/)/i.exec(raw)?.[0];
+  const prefix=lead?.toLowerCase()||'';
+  return {type:prefix==='mailto:'?'email':prefix==='tel:'?'phone':'web',prefix:prefix||'https://',value:lead?raw.slice(lead.length):raw,explicit:Boolean(lead)};
+}
+export function buildDestination(type,value,prefix){
+  if(!Object.hasOwn(destinationPrefixes,type)||typeof value!=='string'||!value.trim())return '';
+  const raw=value.trim();
+  const parsed=splitDestination(raw);
+  if(parsed.explicit&&parsed.type!==type)return '';
+  if(type==='phone'){
+    const phone=parsed.value;
+    if(!/^\+?[0-9(). -]+$/.test(phone))return '';
+    const digits=phone.replace(/[^+0-9]/g,'');
+    return /^\+?\d{5,15}$/.test(digits)?'tel:'+digits:'';
+  }
+  if(type==='email')return cardLink('mailto:'+parsed.value);
+  if(!parsed.explicit&&/^[a-z][a-z\d+.-]*:/i.test(raw)&&!/^[^\s/:]+\.[^\s/:]+:\d+(?:[/?#]|$)/.test(raw))return '';
+  return cardLink((parsed.explicit?parsed.prefix:prefix==='http://'?'http://':'https://')+parsed.value);
+}
 export const cardIcons=Object.freeze({phone:'☎',email:'✉',web:'↗',location:'⌖',calendar:'▦',star:'★',facebook:'f',linkedin:'in',instagram:'◎'});
 export const hotspotMinSize=3;
 export function cleanCardLinks(value=[]){
