@@ -242,3 +242,14 @@ a.dc__layer {pointer-events:auto;}
 .dc__profile-link--event:hover {filter:brightness(1.08);}
 .dc__event-wide {grid-column:1/-1;}
 @media (max-width:490px) {.dc__event-admin-row {grid-template-columns:minmax(0,1fr);}}
+
+/* Optional page color is independent from the card face and its accent. */
+.dc__page-options {margin:0;}
+.dc__page-options .dc__color-pair {gap:.65rem;}
+.dc__page-options input:disabled {opacity:.6;}
+.dc__custom-page {background:var(--dc-page-bg);color:var(--dc-page-ink);}
+.dc__custom-page :is(.dc__public,h1,.dc__kicker,.dc__public .dc__company,.dc__public-heading,.dc__archetype-brand,.dc__archetype-brand small,.dc__archetype-brand strong span,.dc .dc__link-hint) {color:var(--dc-page-ink);}
+.dc__custom-page .dc__archetype-brand img {padding:.2rem;background:#0b1220;border-radius:.55rem;}
+.dc__custom-page .dc__button:focus-visible,.dc__custom-page a:focus-visible {outline:2px solid var(--dc-page-ink);outline-offset:3px;}
+.dc__custom-page .dc__profile :is(a,button):focus-visible {outline-color:white;}
+.dc__stage.dc__custom-page {color:var(--dc-page-ink);border-color:var(--dc-page-ink);}
