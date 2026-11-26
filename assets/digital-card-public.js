@@ -1,3 +1,4 @@
+import {renderProfile} from './digital-card-profile.js';
 import {renderCard} from './digital-card.js';
 const name=document.querySelector('#card-name');
 const company=document.querySelector('#card-company');
@@ -15,7 +16,9 @@ try{
   name.classList.toggle('dc__sr-only',card.hideHeading===true);
   document.querySelector('.dc__kicker').hidden=card.hideHeading===true;
   document.title=card.name+' | Carte numérique';
-  renderCard(document.querySelector('#public-card'),card,{contact:!card.hideActions});
+  const root=document.querySelector('#public-card');
+  renderCard(root,card,{contact:!card.hideActions});
+  renderProfile(root,card);
 }catch(error){
   name.textContent=error.message==='invalid'?'Cette carte n’est pas disponible.':'Impossible de charger la carte.';
 }

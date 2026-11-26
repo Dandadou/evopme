@@ -178,6 +178,7 @@ test('les modèles créent deux faces éditables et les éléments sont conserv�
 
 test('format et coins indépendants, avec valeurs historiques par défaut',()=>{
   assert.equal(cleanCard(base).format,'landscape');
+  assert.equal(cleanCard({...base,format:'image'}).format,'image');
   assert.equal(cleanCard(base).corners,'rounded');
   assert.equal(cleanCard({...base,format:'square',corners:'rounded'}).format,'square');
   assert.equal(cleanCard({...base,format:'portrait',corners:'square'}).corners,'square');
@@ -220,4 +221,31 @@ test('seule la liste admin initialise le stockage si la table manque',async()=>{
   assert.equal((await handleDigitalCardsAdmin(request(api+'?slug='+base.slug,'PUT',{...base,published:true}),env,1)).status,200);
   assert.equal((await worker.fetch(request(publicPath),env)).status,200);
   assert.deepEqual(await (await handleDigitalCardsAdmin(request(api),env,2)).json(),{cards:[]});
+});
+
+
+test('fiche : validation et renseignements facultatifs',async()=>{
+  const env=environment();
+  const admin='/api/cms/digital-cards', key=base.slug, publicPath='/api/cartes/'+key;
+  const profile={about:'À propos\nDeuxième ligne',address:'Adresse publique',primary:{label:'Soumission',url:'https://example.com/soumission'},links:[{label:'Catalogue',url:'https://example.com/catalogue'}]};
+  assert.throws(()=>cleanCard({...base,profile:{...profile,primary:{label:'Invalide',url:'javascript:untrusted'}}}));
+  assert.throws(()=>cleanCard({...base,profile:{...profile,links:Array(7).fill(profile.links[0])}}));
+  assert.equal((await handleDigitalCardsAdmin(request(admin,'POST',{...base,profile}),env,1)).status,201);
+  assert.equal((await getDigitalCard(request(publicPath),env,key)).status,404);
+  assert.equal((await handleDigitalCardsAdmin(request(admin+'?slug='+key,'PUT',{...base,published:true,profile}),env,1)).status,200);
+  assert.deepEqual((await (await getDigitalCard(request(publicPath),env,key)).json()).card.profile,profile);
+  assert.equal((await handleDigitalCardsAdmin(request(admin+'?slug='+key,'PUT',{...base,published:true,profile:{}}),env,1)).status,200);
+  assert.deepEqual((await (await getDigitalCard(request(publicPath),env,key)).json()).card.profile,{about:'',address:'',primary:null,links:[]});
+});
+
+test('préréglage Évolution PME limité à la carte vérifiée et modifiable',async()=>{
+  const path='/api/cartes/evolution-pme';
+  const payload={name:'Daniel Drapeau',company:'Évolution PME Créateur de marques'};
+  const read=async data=>{
+    const env={CMS_DB:{prepare:()=>({bind:()=>({first:async()=>({slug:'evolution-pme',payload:JSON.stringify(data),published:1})})})}};
+    return (await(await getDigitalCard(request(path),env,'evolution-pme')).json()).card;
+  };
+  assert.equal((await read(payload)).profile.primary.url,'https://evolutionpme.ca/soumission');
+  assert.equal((await read({...payload,name:'Autre personne'})).profile,undefined);
+  assert.equal((await read({...payload,profile:{primary:null}})).profile.primary,null);
 });

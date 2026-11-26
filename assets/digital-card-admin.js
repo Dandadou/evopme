@@ -1,3 +1,4 @@
+import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js';
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
 import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';
@@ -84,11 +85,11 @@ function init(root) {
         <label>Téléphone<input name="phone" type="tel" maxlength="40"></label>
         <label>Courriel<input name="email" type="email" maxlength="160"></label>
         <label class="dc__wide">Site web<input name="website" type="url" maxlength="250" placeholder="https://"></label>
-        <label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label>
-        <label>Couleur de fond<input name="background" type="color" value="#202328"></label>
-        <label>Format de la carte<select name="format"><option value="landscape">Horizontale (7:4)</option><option value="portrait">Verticale (4:7)</option><option value="square">Carrée (1:1)</option></select></label>
+        <div class="dc__color-pair"><label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label><label>Code HEX de l’accent<input data-hex-for="accent" type="text" value="#fa7824" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #fa7824"></label></div>
+        <div class="dc__color-pair"><label>Couleur de fond<input name="background" type="color" value="#202328"></label><label>Code HEX du fond<input data-hex-for="background" type="text" value="#202328" pattern="#[0-9a-fA-F]{6}" required spellcheck="false" autocomplete="off" title="Exemple : #000000"></label></div>
+        <label>Format de la carte<select name="format"><option value="landscape">Horizontale (7:4)</option><option value="portrait">Verticale (4:7)</option><option value="square">Carrée (1:1)</option><option value="image">Ajuster au visuel importé</option></select></label>
         <label>Coins de la carte<select name="corners"><option value="rounded">Arrondis</option><option value="square">Droits</option></select></label>
-        <p class="dc__wide dc__muted">Pour remplir la face, utilise une image du même format. Si ses proportions diffèrent, l’image reste entière.</p>
+        <p class="dc__wide dc__muted">« Ajuster au visuel importé » reprend les proportions du recto (ou du verso si seul). Pour remplir les deux faces sans découpe, utilise des images aux mêmes proportions.</p>
         <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
         <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
         <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
@@ -100,6 +101,18 @@ function init(root) {
           <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
           <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
         </fieldset>
+        <details class="dc__wide dc__profile-edit">
+          <summary>Fiche professionnelle sous la carte</summary>
+          <p class="dc__muted">La fiche reprend les couleurs de la carte. Seuls les renseignements remplis sont montrés aux visiteurs.</p>
+          <div class="dc__profile-fields">
+            <label>Courte présentation<textarea name="profileAbout" maxlength="420" rows="3"></textarea></label>
+            <label>Adresse professionnelle publique<textarea name="profileAddress" maxlength="220" rows="2"></textarea></label>
+            <label>Texte du bouton principal<input name="profilePrimaryLabel" maxlength="64" placeholder="Demander une soumission"></label>
+            <label>Lien du bouton principal<input name="profilePrimaryURL" type="url" maxlength="250" placeholder="https://…"></label>
+          </div>
+          <div class="dc__profile-admin-links" data-profile-links></div>
+          <button type="button" class="dc__button" data-profile-add>+ Ajouter un lien à la fiche</button>
+        </details>
         <div class="dc__wide dc__actions"><button class="dc__button dc__button--primary" type="submit">Enregistrer</button><button class="dc__button" type="button" data-publish hidden></button></div>
       </form>
       <p role="status" class="dc__status" data-status></p>
@@ -119,7 +132,7 @@ function init(root) {
   const testLinks=root.querySelector('[data-test-links]');
   const cleanPreview=root.querySelector('[data-clean-preview]');
   const localNote=root.querySelector('[data-local-note]');
-  const branchPreview=location.hostname==='hubert-cartes-numeriques-evopme.dadou195.workers.dev';
+  const branchPreview=['hubert-cartes-numeriques-evopme.dadou195.workers.dev','hubert-archetype-couleurs-evopme.dadou195.workers.dev'].includes(location.hostname);
   const previewHost=location.hostname.endsWith('.workers.dev')||['localhost','127.0.0.1'].includes(location.hostname);
   const draftKey='evopme.digital-card.test-draft.v1';
   let local=false;
@@ -129,6 +142,46 @@ function init(root) {
   let active='', published=false, busy=false, pending=0, revision=0, images={}, stableURL='', imageJobs={};
   const textKeys=['name','company','title','slug','phone','email','website','accent','background'];
   const blank={accent:'#fa7824',background:'#202328'};
+  const hexFields=['accent','background'].map(key=>[field(key),form.querySelector('[data-hex-for="'+key+'"]')]);
+  const syncHex=()=>hexFields.forEach(([picker,entry])=>{entry.value=picker.value;});
+  for(const [picker,entry] of hexFields){
+    picker.addEventListener('input',()=>{entry.value=picker.value;});
+    entry.addEventListener('input',()=>{
+      const value=entry.value.trim();
+      if(/^#?[0-9a-f]{6}$/i.test(value)){
+        picker.value='#'+value.replace(/^#/,'').toLowerCase();
+        if(!value.startsWith('#')||value!==entry.value)entry.value=picker.value;
+      }
+    });
+    entry.addEventListener('change',()=>{if(entry.validity.valid)entry.value=picker.value;});
+  }
+  const profileList=form.querySelector('[data-profile-links]'),profileAdd=form.querySelector('[data-profile-add]');
+  function appendProfileLink(link={}){
+    if(profileList.children.length>=maxProfileLinks)return;
+    const row=document.createElement('div');
+    row.className='dc__profile-admin-row';
+    row.innerHTML='<label>Libellé du lien<input data-profile-label maxlength="64" placeholder="Catalogue"></label><label>Adresse web du lien<input data-profile-url maxlength="250" type="url" placeholder="https://…"></label><button type="button" class="dc__button">Retirer ce lien</button>';
+    row.querySelector('[data-profile-label]').value=link.label||'';
+    row.querySelector('[data-profile-url]').value=link.url||'';
+    row.querySelector('button').addEventListener('click',()=>{row.remove();profileAdd.disabled=false;profileAdd.focus();draw();});
+    profileList.append(row);profileAdd.disabled=profileList.children.length>=maxProfileLinks;
+    return row;
+  }
+  profileAdd.addEventListener('click',()=>appendProfileLink()?.querySelector('input').focus());
+  function readProfile(){
+    return {about:field('profileAbout').value,address:field('profileAddress').value,
+      primary:{label:field('profilePrimaryLabel').value,url:field('profilePrimaryURL').value},
+      links:[...profileList.children].map(row=>({label:row.querySelector('[data-profile-label]').value,url:row.querySelector('[data-profile-url]').value}))};
+  }
+  function fillProfile(data={}){
+    field('profileAbout').value=data.about||'';
+    field('profileAddress').value=data.address||'';
+    field('profilePrimaryLabel').value=data.primary?.label||'';
+    field('profilePrimaryURL').value=data.primary?.url||'';
+    profileList.replaceChildren();profileAdd.disabled=false;
+    (data.links||[]).forEach(appendProfileLink);
+    profileList.closest('details').open=Boolean(data.about||data.address||data.primary||data.links?.length);
+  }
   const api='/api/cms/digital-cards';
   const show=(text,error=false)=>{status.textContent=text;status.dataset.error=String(error);};
   const setButtons=()=>{
@@ -136,7 +189,7 @@ function init(root) {
     toggle.hidden=local||!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
   const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
-    theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
+    profile:readProfile(),theme,format:field('format').value,corners:field('corners').value,hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked,blankFront:field('blankFront').checked,blankBack:field('blankBack').checked});
   const faceLabel=face=>face==='front'?'Recto':'Verso';
   const limit=(n,min,max)=>Math.min(max,Math.max(min,Math.round(n)));
   const currentZone=()=>zones[selected];
@@ -217,6 +270,7 @@ function init(root) {
         z.x=limit(x-z.w/2,0,100-z.w);z.y=limit(y-z.h/2,0,100-z.h);
         placing=false;drawZoneEditor();draw();zonePlace.focus();
       }:undefined});
+    renderProfile(preview,card,{linksActive:cleanPreview.checked});
   };
   let drag=null;
   preview.addEventListener('pointerdown',event=>{
@@ -293,11 +347,12 @@ function init(root) {
     zones=(card.zones||[]).map(zone=>({...zone}));
     selected=-1;side='front';placing=false;testLinks.checked=false;cleanPreview.checked=false;
     field('hideHeading').checked=card.hideHeading===true;
-    field('format').value=['portrait','square'].includes(card.format)?card.format:'landscape';
+    field('format').value=['landscape','portrait','square','image'].includes(card.format)?card.format:(saved?'landscape':'image');
     field('corners').value=card.corners==='square'?'square':'rounded';
     field('hideActions').checked=card.hideActions===true;
     for(const k of ['blankFront','blankBack'])field(k).checked=card[k]===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
+    syncHex();fillProfile(card.profile);
     field('slug').readOnly=!!active;
     for(const key of ['front','back','logo']){images[key]=card[key]||'';field(key).value='';}
     setButtons();drawZoneEditor();draw();makeQR();
@@ -332,7 +387,7 @@ function init(root) {
   list.addEventListener('change',()=>select(list.value));
   demo.addEventListener('click',()=>{
     if(active&&!confirm('Remplacer l’aperçu actuel par une nouvelle démo vierge? Les modifications non enregistrées seront perdues.')) return;
-    list.value='';setCard({name:'Alex Tremblay',company:'Atelier Démo',title:'Création et design',slug:'atelier-demo',phone:'450 555-0100',email:'bonjour@example.com',zones:[
+    list.value='';setCard({name:'Alex Tremblay',company:'Atelier Démo',title:'Création et design',slug:'atelier-demo',phone:'450 555-0100',email:'bonjour@example.com',profile:{about:'Des vêtements personnalisés et des produits promotionnels pour les petites équipes.',primary:{label:'Demander une soumission',url:'https://evolutionpme.ca/soumission.html'},links:[{label:'Voir le site de démonstration',url:'https://example.com/'}]},zones:[
       {face:'front',label:'Site web',url:'https://example.com/',x:59,y:8,w:33,h:20},
       {face:'back',label:'Écrire',url:'mailto:bonjour@example.com',x:54,y:57,w:36,h:22}
     ]});
@@ -352,7 +407,7 @@ function init(root) {
     const next=[...zones.filter(z=>!empty.includes(z.face)),...t.zones.filter(z=>empty.includes(z.face))];
     if(next.length>24){templateStatus.textContent='Ce modèle dépasserait la limite de 24 éléments. Retire un élément ou choisis une autre carte.';return;}
     theme=t.theme;zones=next;
-    field('accent').value=t.accent;field('background').value=t.background;
+    field('accent').value=t.accent;field('background').value=t.background;syncHex();
     if(empty.length===2){field('hideHeading').checked=true;field('hideActions').checked=true;}
     for(const face of empty)field(face==='front'?'blankFront':'blankBack').checked=true;
     side=empty[0];selected=-1;placing=false;cleanPreview.checked=false;testLinks.checked=false;
@@ -426,20 +481,20 @@ function init(root) {
   }
   async function persist(nextPublished){
     if(busy||pending||!form.reportValidity())return;
-    let validZones;
-    try{validZones=cleanCardLinks(zones);}catch(error){show(error.message,true);zoneList.focus();return;}
+    let validZones,profile;
+    try{validZones=cleanCardLinks(zones);profile=cleanProfile(readProfile());}catch(error){show(error.message,true);zoneList.focus();return;}
     busy=true;setButtons();
     try{
       if(local){
         const existing=localDraft();
         if(!active&&existing&&!confirm('Remplacer le brouillon de test enregistré dans ce navigateur?'))return;
-        const card={...read(),...images,zones:validZones,published:false};
+        const card={...read(),...images,profile,zones:validZones,published:false};
         try{localStorage.setItem(draftKey,JSON.stringify(card));}
         catch{throw new Error('Ce navigateur ne permet pas d’enregistrer le brouillon ou son espace est plein.');}
         setCard(card,true);await refresh();show('Brouillon de test enregistré dans ce navigateur.');return;
       }
       const {card}=await request(active?'?slug='+encodeURIComponent(active):'',{
-        method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,zones:validZones,published:nextPublished})
+        method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,profile,zones:validZones,published:nextPublished})
       });
       setCard(card,true);
       try{await refresh();show(published?'Carte publiée. Le lien et le QR sont prêts.':'Brouillon enregistré.');}
