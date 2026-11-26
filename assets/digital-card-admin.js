@@ -1,4 +1,4 @@
-import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js';
+import {cleanProfile,maxProfileLinks,renderProfile} from './digital-card-profile.js?v=20261126-contact';
 import { cardTemplates, makeCardTemplate } from './digital-card-templates.js';
 import {renderCard} from './digital-card.js';
 import {buildDestination,cleanCardLinks,destinationPrefixes,hotspotMinSize,splitDestination} from './digital-card-links.js';
@@ -99,7 +99,7 @@ function init(root) {
         </fieldset>
         <fieldset class="dc__wide dc__visibility"><legend>Texte autour de la carte</legend>
           <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
-          <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
+          <label><input name="hideActions" type="checkbox"> Masquer le téléphone, le courriel et le site dans la fiche</label>
         </fieldset>
         <details class="dc__wide dc__profile-edit">
           <summary>Fiche professionnelle sous la carte</summary>
@@ -262,7 +262,7 @@ function init(root) {
     brand.hidden=!cleanPreview.checked;
     heading.hidden=card.hideHeading;
     heading.textContent=[card.name,card.title,card.company].filter(Boolean).join(' · ');
-    renderCard(preview,card,{preview:!cleanPreview.checked,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,editZones:true,
+    renderCard(preview,card,{preview:!cleanPreview.checked,testLinks:testLinks.checked&&!placing,contact:false,side,editZones:true,
       onSide:face=>{side=face;},
       onPlace:placing?(x,y)=>{
         const z=currentZone();
