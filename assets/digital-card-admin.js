@@ -102,10 +102,10 @@ function init(root) {
           <label><input name="hideActions" type="checkbox"> Masquer le téléphone, le courriel et le site dans la fiche</label>
         </fieldset>
         <details class="dc__wide dc__profile-edit">
-          <summary>Fiche professionnelle sous la carte</summary>
-          <p class="dc__muted">La fiche reprend les couleurs de la carte. Seuls les renseignements remplis sont montrés aux visiteurs.</p>
+          <summary>Bio et liens du client</summary>
+          <p class="dc__muted">Cette section apparaît sous la carte publique. Les champs facultatifs laissés vides sont masqués.</p>
           <div class="dc__profile-fields">
-            <label>Courte présentation<textarea name="profileAbout" maxlength="420" rows="3"></textarea></label>
+            <label>Bio / présentation<textarea name="profileAbout" maxlength="420" rows="4" placeholder="Présentez votre entreprise ou votre activité en quelques phrases…"></textarea></label>
             <label>Adresse professionnelle publique<textarea name="profileAddress" maxlength="220" rows="2"></textarea></label>
             <label>Texte du bouton principal<input name="profilePrimaryLabel" maxlength="64" placeholder="Demander une soumission"></label>
             <label>Lien du bouton principal<input name="profilePrimaryURL" type="url" maxlength="250" placeholder="https://…"></label>
