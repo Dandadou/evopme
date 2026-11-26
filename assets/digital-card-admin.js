@@ -4,6 +4,7 @@ const root=document.querySelector('[data-digital-cards]');
 if(root) init(root);
 function init(root) {
   root.innerHTML=`
+  <p class="dc__muted" data-local-note hidden></p>
   <div class="dc__list"><select aria-label="Choisir une carte existante"><option value="">Nouvelle carte</option></select><button type="button" class="dc__button" data-demo>Essayer la démo</button></div>
   <div class="dc__admin">
     <div class="dc__box">
@@ -32,6 +33,7 @@ function init(root) {
     </div>
     <div class="dc__box">
       <h2>Aperçu recto-verso</h2>
+      <label class="dc__visibility dc__note"><input type="checkbox" data-clean-preview> Voir comme un visiteur (sans contours)</label>
       <div class="dc__public-heading" data-card-heading></div>
       <div data-card-preview></div>
       <div class="dc__zone-editor">
@@ -72,6 +74,12 @@ function init(root) {
   const zoneFull=root.querySelector('[data-zone-full]'), zoneWidth=root.querySelector('[data-zone-width]'), zoneHeight=root.querySelector('[data-zone-height]');
   const zonePlace=root.querySelector('[data-zone-place]'), zoneStatus=root.querySelector('[data-zone-status]');
   const testLinks=root.querySelector('[data-test-links]');
+  const cleanPreview=root.querySelector('[data-clean-preview]');
+  const localNote=root.querySelector('[data-local-note]');
+  const branchPreview=location.hostname==='hubert-cartes-numeriques-evopme.dadou195.workers.dev';
+  const previewHost=location.hostname.endsWith('.workers.dev')||['localhost','127.0.0.1'].includes(location.hostname);
+  const draftKey='evopme.digital-card.test-draft.v1';
+  let local=false;
   let zones=[], selected=-1, side='front', placing=false;
   const toggle=root.querySelector('[data-publish]'), save=form.querySelector('[type=submit]'), demo=root.querySelector('[data-demo]');
   const qr=root.querySelector('[data-qrcode]'), qrImage=root.querySelector('[data-qr-image]'), link=root.querySelector('[data-public-link]');
@@ -82,7 +90,7 @@ function init(root) {
   const show=(text,error=false)=>{status.textContent=text;status.dataset.error=String(error);};
   const setButtons=()=>{
     save.disabled=busy||pending>0;toggle.disabled=save.disabled;list.disabled=busy;demo.disabled=busy;
-    toggle.hidden=!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
+    toggle.hidden=local||!active;toggle.textContent=published?'Retirer du public':'Publier la carte';
   };
   const read=()=>({...Object.fromEntries(textKeys.map(k=>[k,field(k).value.trim()])),
     hideHeading:field('hideHeading').checked,hideActions:field('hideActions').checked});
@@ -118,7 +126,7 @@ function init(root) {
     if(card.website&&!/^https?:\/\//i.test(card.website)) card.website='';
     heading.hidden=card.hideHeading;
     heading.textContent=[card.name,card.title,card.company].filter(Boolean).join(' · ');
-    renderCard(preview,card,{preview:true,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,
+    renderCard(preview,card,{preview:!cleanPreview.checked,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,
       onSide:face=>{side=face;},
       onPlace:placing?(x,y)=>{
         const z=currentZone();
@@ -128,7 +136,7 @@ function init(root) {
       }:undefined});
   };
   const makeQR=()=>{
-    stableURL=active?new URL('/carte/'+active,location.origin).href:'';
+    stableURL=active&&!local?new URL('/carte/'+active,location.origin).href:'';
     qr.hidden=!stableURL;
     qrImage.replaceChildren();
     if(!stableURL)return;
@@ -141,7 +149,7 @@ function init(root) {
     revision++;pending=0;imageJobs={};images={};
     active=saved?card.slug:'';published=saved&&!!card.published;
     zones=(card.zones||[]).map(zone=>({...zone}));
-    selected=-1;side='front';placing=false;testLinks.checked=false;
+    selected=-1;side='front';placing=false;testLinks.checked=false;cleanPreview.checked=false;
     field('hideHeading').checked=card.hideHeading===true;
     field('hideActions').checked=card.hideActions===true;
     for(const key of textKeys) field(key).value=card[key]||blank[key]||'';
@@ -152,18 +160,25 @@ function init(root) {
   const request=async(path,options)=>{
     const res=await fetch(api+path,{...options,credentials:'same-origin',cache:'no-store'});
     let data;try{data=await res.json();}catch{throw new Error('Reconnecte-toi à l’administration, puis réessaie.');}
-    if(!res.ok)throw new Error(data.error||'Impossible de charger les cartes.');
+    if(!res.ok){
+      const error=new Error(data.error||'Impossible de charger les cartes.');
+      error.status=res.status;throw error;
+    }
     return data;
   };
+  const localDraft=()=>{
+    try{return JSON.parse(localStorage.getItem(draftKey)||'null');}catch{return null;}
+  };
   const refresh=async()=>{
-    const {cards}=await request('');
+    const saved=local?localDraft():null;
+    const {cards}=local?{cards:saved?[saved]:[]}:await request('');
     list.replaceChildren(new Option('Nouvelle carte',''),...cards.map(c=>new Option(c.name+(c.company?' · '+c.company:'')+(c.published?' · Publiée':' · Brouillon'),c.slug)));
     list.value=active;
   };
   async function select(slug){
     busy=true;setButtons();
     try{
-      if(slug){const {card}=await request('?slug='+encodeURIComponent(slug));setCard(card,true);}
+      if(slug){const card=local?localDraft():(await request('?slug='+encodeURIComponent(slug))).card;if(!card)throw new Error('Brouillon introuvable.');setCard(card,true);}
       else setCard();
       show('');
     }catch(error){list.value=active;show(error.message,true);}
@@ -179,6 +194,7 @@ function init(root) {
     show('Exemple fictif. Change les couleurs et retourne la carte pour essayer.');
   });
   form.addEventListener('input',event=>{if(event.target.type!=='file')draw();});
+  cleanPreview.addEventListener('change',()=>{placing=false;testLinks.checked=cleanPreview.checked;drawZoneEditor();draw();});
   testLinks.addEventListener('change',()=>{placing=false;drawZoneEditor();draw();});
   for(const button of root.querySelectorAll('[data-zone-add]'))button.addEventListener('click',()=>{
     if(zones.length>=12)return show('Tu peux créer jusqu’à 12 zones par carte.',true);
@@ -197,7 +213,7 @@ function init(root) {
   for(const input of [zoneWidth,zoneHeight])input.addEventListener('change',drawZoneEditor);
   zonePlace.addEventListener('click',()=>{
     const z=currentZone();if(!z)return;
-    placing=!placing;side=z.face;drawZoneEditor();draw();
+    placing=!placing;cleanPreview.checked=false;side=z.face;drawZoneEditor();draw();
   });
   zoneFull.addEventListener('change',()=>{
     const z=currentZone();if(!z)return;
@@ -228,6 +244,14 @@ function init(root) {
     try{validZones=cleanCardLinks(zones);}catch(error){show(error.message,true);zoneList.focus();return;}
     busy=true;setButtons();
     try{
+      if(local){
+        const existing=localDraft();
+        if(!active&&existing&&!confirm('Remplacer le brouillon de test enregistré dans ce navigateur?'))return;
+        const card={...read(),...images,zones:validZones,published:false};
+        try{localStorage.setItem(draftKey,JSON.stringify(card));}
+        catch{throw new Error('Ce navigateur ne permet pas d’enregistrer le brouillon ou son espace est plein.');}
+        setCard(card,true);await refresh();show('Brouillon de test enregistré dans ce navigateur.');return;
+      }
       const {card}=await request(active?'?slug='+encodeURIComponent(active):'',{
         method:active?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...read(),...images,zones:validZones,published:nextPublished})
       });
@@ -260,7 +284,22 @@ function init(root) {
   setCard();
   const panel=root.closest('.cms-panel');
   let loaded=false;
-  const load=()=>{if(!loaded&&panel?.classList.contains('active')){loaded=true;refresh().catch(e=>{loaded=false;show(e.message,true);});}};
+  const load=()=>{
+    if(loaded||!panel?.classList.contains('active'))return;
+    loaded=true;
+    async function enableLocal(){
+      local=true;localNote.hidden=false;
+      localNote.textContent='Mode test : un seul brouillon, gardé dans ce navigateur. Aucune donnée de la carte envoyée au serveur.';
+      save.textContent='Enregistrer le brouillon de test';
+      setButtons();makeQR();await refresh();
+      const saved=localDraft();if(saved&&!active&&!field('name').value)setCard(saved,true);
+    }
+    if(branchPreview){enableLocal();return;}
+    refresh().catch(e=>{
+      if(previewHost&&[401,403,503].includes(e.status))enableLocal();
+      else{loaded=false;show(e.message,true);}
+    });
+  };
   new MutationObserver(load).observe(panel,{attributes:true,attributeFilter:['class']});
   load();
 }

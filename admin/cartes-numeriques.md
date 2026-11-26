@@ -6,6 +6,8 @@ Ajoute une ou plusieurs zones cliquables sur le recto ou le verso : choisis leur
 
 La première sauvegarde est toujours un brouillon. « Publier la carte » rend le lien `/carte/identifiant` accessible à toute personne qui le possède, sans connexion. Ne publier que des visuels et coordonnées prévus pour le public. « Retirer du public » rend le même lien inaccessible sans effacer la carte. Le lien et le QR restent identiques après modification. Imprimer le QR seulement après avoir testé l’URL finale sur le bon domaine.
 
+Dans la préversion de la branche, « Enregistrer le brouillon de test » conserve une seule carte dans ce navigateur. Elle ne part pas au serveur et ne peut pas être publiée. « Voir comme un visiteur » affiche la carte sans les contours des zones, avec les vrais liens.
+
 ## Mise en service
 
 - Vérifier la branche sur un environnement Cloudflare séparé avec une base CMS de test et la politique Access correspondante. Appliquer `migrations/20261125-digital-business-cards.sql` à cette base. Le module n’exige pas de nouveau secret ni de service QR externe.

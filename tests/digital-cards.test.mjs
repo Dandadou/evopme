@@ -125,3 +125,14 @@ test('zones recto-verso validées et présentation sans texte facultative',()=>{
   }
   assert.throws(()=>cleanCardLinks([{...back,x:60}]));
 });
+
+test('la préversion de branche ne lit ni ne modifie les cartes en D1',async()=>{
+  const origin='https://hubert-cartes-numeriques-evopme.dadou195.workers.dev';
+  const env={get CMS_DB(){throw new Error('Le D1 ne doit pas être consulté.');}};
+  for(const method of ['GET','POST','PUT']) {
+    assert.equal((await worker.fetch(new Request(origin+'/api/cms/digital-cards',{method}),env)).status,401);
+  }
+  for(const route of ['/carte/atelier-test','/api/cartes/atelier-test']){
+    assert.equal((await worker.fetch(new Request(origin+route),env)).status,404);
+  }
+});
