@@ -31,7 +31,7 @@ function lightOrDark(hex){
 function image(url,alt,className){
   const img=el('img',className);img.src=url;img.alt=alt;return img;
 }
-export function renderCard(root, card = {}, { contact = true, preview = false, testLinks = false, side = 'front', onSide, onPlace } = {}) {
+export function renderCard(root, card = {}, { contact = true, preview = false, testLinks = false, side = 'front', onSide, onPlace, editZones = false } = {}) {
   root.classList.add('dc');
   root.style.setProperty('--dc-accent',card.accent||'#fa7824');
   root.style.setProperty('--dc-accent-text',lightOrDark(card.accent||'#fa7824'));
@@ -63,12 +63,16 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
       const url=cardLink(zone.url);
       if(!preview&&!url)continue;
       const fake=preview&&(!testLinks||!url);
-      const zoneNode=el(fake?'span':'a','dc__hotspot'+(preview?' dc__hotspot--demo':'')+(fake?'':' dc__hotspot--live'));
+      const draggable=fake&&editZones&&!onPlace;
+      const zoneNode=el(fake?(draggable?'button':'span'):'a','dc__hotspot'+(preview?' dc__hotspot--demo':'')+(fake?'':' dc__hotspot--live'));
       zoneNode.style.left=zone.x+'%';zoneNode.style.top=zone.y+'%';
       zoneNode.style.width=zone.w+'%';zoneNode.style.height=zone.h+'%';
       if(fake){
         zoneNode.textContent=zone.label||String(index+1);
-        zoneNode.setAttribute('aria-hidden','true');
+        if(draggable){
+          zoneNode.type='button';zoneNode.dataset.dragZone=String(index);
+          zoneNode.setAttribute('aria-label','Déplacer : '+(zone.label||'zone '+(index+1)));
+        }else zoneNode.setAttribute('aria-hidden','true');
       }else{
         zoneNode.href=url;zoneNode.title=zone.label;zoneNode.setAttribute('aria-label',zone.label);
         if(preview){zoneNode.textContent=zone.label;if(/^https?:/.test(url)){zoneNode.target='_blank';zoneNode.rel='noopener noreferrer';}}
@@ -77,6 +81,9 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
     }
   }
   flip.append(front,back);
+  for(const className of ['dc__edge dc__edge--left','dc__edge dc__edge--right']){
+    const edge=el('span',className);edge.setAttribute('aria-hidden','true');flip.append(edge);
+  }
   const hint=el('span','dc__hint');
   const setSide=isBack=>{
     flip.dataset.back=String(isBack);
@@ -94,7 +101,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   setSide(side==='back');
   button.addEventListener('click',turn);
   frame.addEventListener('click',event=>{
-    if(event.target.closest('a'))return;
+    if(event.target.closest('a,[data-drag-zone]'))return;
     if(onPlace){
       const bounds=frame.getBoundingClientRect();
       onPlace((event.clientX-bounds.left)*100/bounds.width,(event.clientY-bounds.top)*100/bounds.height);

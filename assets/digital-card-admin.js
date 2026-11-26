@@ -4,41 +4,19 @@ const root=document.querySelector('[data-digital-cards]');
 if(root) init(root);
 function init(root) {
   root.innerHTML=`
-  <p class="dc__muted" data-local-note hidden></p>
+  <div class="dc__studio-banner"><div><span>ÉVOLUTION PME / STUDIO NUMÉRIQUE</span><strong>Studio de cartes</strong><p>Compose le recto et le verso, place tes liens et vérifie le résultat.</p></div><span class="dc__studio-chip">RECTO / VERSO</span></div>
+  <p class="dc__muted dc__studio-local" data-local-note hidden></p>
   <div class="dc__list"><select aria-label="Choisir une carte existante"><option value="">Nouvelle carte</option></select><button type="button" class="dc__button" data-demo>Essayer la démo</button></div>
   <div class="dc__admin">
-    <div class="dc__box">
-      <h2>Personnalisation</h2>
-      <p class="dc__muted">Les images intégrales conservent leur design. Sans image, la carte utilise le logo et les couleurs ci-dessous.</p>
-      <form class="dc__form">
-        <label>Nom à afficher<input name="name" maxlength="100" required></label>
-        <label>Entreprise<input name="company" maxlength="100"></label>
-        <label>Fonction<input name="title" maxlength="100"></label>
-        <label>Identifiant du lien<input name="slug" maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="nom-de-la-cliente" required></label>
-        <label>Téléphone<input name="phone" type="tel" maxlength="40"></label>
-        <label>Courriel<input name="email" type="email" maxlength="160"></label>
-        <label class="dc__wide">Site web<input name="website" type="url" maxlength="250" placeholder="https://"></label>
-        <label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label>
-        <label>Couleur de fond<input name="background" type="color" value="#202328"></label>
-        <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
-        <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
-        <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
-        <fieldset class="dc__wide dc__visibility"><legend>Texte autour de la carte</legend>
-          <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
-          <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
-        </fieldset>
-        <div class="dc__wide dc__actions"><button class="dc__button dc__button--primary" type="submit">Enregistrer</button><button class="dc__button" type="button" data-publish hidden></button></div>
-      </form>
-      <p role="status" class="dc__status" data-status></p>
-    </div>
-    <div class="dc__box">
+    <div class="dc__box dc__box--canvas">
+      <span class="dc__section-id">01 / PLAN DE TRAVAIL</span>
       <h2>Aperçu recto-verso</h2>
       <label class="dc__visibility dc__note"><input type="checkbox" data-clean-preview> Voir comme un visiteur (sans contours)</label>
       <div class="dc__public-heading" data-card-heading></div>
-      <div data-card-preview></div>
+      <div class="dc__stage"><div data-card-preview></div></div>
       <div class="dc__zone-editor">
         <h3>Zones cliquables</h3>
-        <p class="dc__muted">Les contours sont visibles seulement ici. Ajoute un lien sur une partie de l’image ou sur tout un côté.</p>
+        <p class="dc__muted">Glisse une zone directement sur l’image. Au clavier, sélectionne-la avec Tab et déplace-la avec les flèches. Les contours restent dans l’éditeur.</p>
         <div class="dc__actions">
           <button type="button" class="dc__button" data-zone-add="front">Ajouter sur le recto</button>
           <button type="button" class="dc__button" data-zone-add="back">Ajouter sur le verso</button>
@@ -64,6 +42,31 @@ function init(root) {
         <a data-public-link class="dc__url" target="_blank" rel="noopener"></a>
         <div class="dc__actions"><button class="dc__button" type="button" data-copy>Copier le lien</button><button class="dc__button" type="button" data-qr-download>Télécharger le QR</button></div>
       </div>
+    </div>
+    <div class="dc__box dc__box--settings">
+      <span class="dc__section-id">02 / RÉGLAGES</span>
+      <h2>Personnalisation</h2>
+      <p class="dc__muted">Les images intégrales conservent leur design. Sans image, la carte utilise le logo et les couleurs ci-dessous.</p>
+      <form class="dc__form">
+        <label>Nom à afficher<input name="name" maxlength="100" required></label>
+        <label>Entreprise<input name="company" maxlength="100"></label>
+        <label>Fonction<input name="title" maxlength="100"></label>
+        <label>Identifiant du lien<input name="slug" maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="nom-de-la-cliente" required></label>
+        <label>Téléphone<input name="phone" type="tel" maxlength="40"></label>
+        <label>Courriel<input name="email" type="email" maxlength="160"></label>
+        <label class="dc__wide">Site web<input name="website" type="url" maxlength="250" placeholder="https://"></label>
+        <label>Couleur d’accent<input name="accent" type="color" value="#fa7824"></label>
+        <label>Couleur de fond<input name="background" type="color" value="#202328"></label>
+        <div><label>Image du recto<input name="front" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="front">Retirer le recto</button></div>
+        <div><label>Image du verso<input name="back" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="back">Retirer le verso</button></div>
+        <div class="dc__wide"><label>Logo facultatif<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"></label><button type="button" class="dc__button" data-clear="logo">Retirer le logo</button></div>
+        <fieldset class="dc__wide dc__visibility"><legend>Texte autour de la carte</legend>
+          <label><input name="hideHeading" type="checkbox"> Masquer l’en-tête au-dessus</label>
+          <label><input name="hideActions" type="checkbox"> Masquer les boutons de contact en dessous</label>
+        </fieldset>
+        <div class="dc__wide dc__actions"><button class="dc__button dc__button--primary" type="submit">Enregistrer</button><button class="dc__button" type="button" data-publish hidden></button></div>
+      </form>
+      <p role="status" class="dc__status" data-status></p>
     </div>
   </div>`;
   const form=root.querySelector('form'), field=key=>form.elements.namedItem(key), list=root.querySelector('select');
@@ -126,7 +129,7 @@ function init(root) {
     if(card.website&&!/^https?:\/\//i.test(card.website)) card.website='';
     heading.hidden=card.hideHeading;
     heading.textContent=[card.name,card.title,card.company].filter(Boolean).join(' · ');
-    renderCard(preview,card,{preview:!cleanPreview.checked,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,
+    renderCard(preview,card,{preview:!cleanPreview.checked,testLinks:testLinks.checked&&!placing,contact:!card.hideActions,side,editZones:true,
       onSide:face=>{side=face;},
       onPlace:placing?(x,y)=>{
         const z=currentZone();
@@ -135,6 +138,49 @@ function init(root) {
         placing=false;drawZoneEditor();draw();zonePlace.focus();
       }:undefined});
   };
+  let drag=null;
+  preview.addEventListener('pointerdown',event=>{
+    const handle=event.target.closest('[data-drag-zone]');
+    if(!handle||event.button!==0||!event.isPrimary)return;
+    const i=Number(handle.dataset.dragZone), z=zones[i];
+    const frame=handle.closest('.dc__turn')?.getBoundingClientRect();
+    if(!z||!frame?.width||!frame.height)return;
+    selected=i;drawZoneEditor();
+    drag={id:event.pointerId,handle,z,frame,startX:event.clientX,startY:event.clientY,x:z.x,y:z.y};
+    handle.setPointerCapture(event.pointerId);
+    handle.classList.add('dc__dragging');handle.focus({preventScroll:true});
+  });
+  preview.addEventListener('pointermove',event=>{
+    if(!drag||drag.id!==event.pointerId)return;
+    const {handle,z,frame,x,y,startX,startY}=drag;
+    z.x=limit(x+(event.clientX-startX)*100/frame.width,0,100-z.w);
+    z.y=limit(y+(event.clientY-startY)*100/frame.height,0,100-z.h);
+    handle.style.left=z.x+'%';handle.style.top=z.y+'%';
+  });
+  function finishDrag(event){
+    if(!drag||drag.id!==event.pointerId)return;
+    const {handle,z,x,y}=drag;
+    drag=null;
+    if(event.type==='pointercancel'){z.x=x;z.y=y;handle.style.left=x+'%';handle.style.top=y+'%';}
+    handle.classList.remove('dc__dragging');
+    if(handle.hasPointerCapture(event.pointerId))handle.releasePointerCapture(event.pointerId);
+    zoneStatus.textContent='Position : '+z.x+' % de la gauche, '+z.y+' % du haut.';
+  }
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])preview.addEventListener(type,finishDrag);
+  preview.addEventListener('keydown',event=>{
+    const handle=event.target.closest('[data-drag-zone]');
+    if(!handle)return;
+    const i=Number(handle.dataset.dragZone), z=zones[i];
+    const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[event.key];
+    if(!z||(!delta&&!['Enter',' '].includes(event.key)))return;
+    event.preventDefault();selected=i;drawZoneEditor();
+    if(!delta)return;
+    const step=event.shiftKey?5:1;
+    z.x=limit(z.x+delta[0]*step,0,100-z.w);
+    z.y=limit(z.y+delta[1]*step,0,100-z.h);
+    handle.style.left=z.x+'%';handle.style.top=z.y+'%';
+    zoneStatus.textContent='Position : '+z.x+' % de la gauche, '+z.y+' % du haut.';
+  });
   const makeQR=()=>{
     stableURL=active&&!local?new URL('/carte/'+active,location.origin).href:'';
     qr.hidden=!stableURL;
@@ -146,7 +192,7 @@ function init(root) {
     catch{qrImage.textContent='QR indisponible';}
   };
   const setCard=(card={},saved=false)=>{
-    revision++;pending=0;imageJobs={};images={};
+    revision++;pending=0;imageJobs={};images={};drag=null;
     active=saved?card.slug:'';published=saved&&!!card.published;
     zones=(card.zones||[]).map(zone=>({...zone}));
     selected=-1;side='front';placing=false;testLinks.checked=false;cleanPreview.checked=false;
