@@ -26,3 +26,5 @@ Le format horizontal (7:4), vertical (4:7) ou carré (1:1) et les coins droits o
 Pour ajuster un lien invisible à une ligne imprimée, tire sa poignée dans le coin inférieur droit ou entre sa largeur et sa hauteur en pourcentages (minimum 3 %). Vérifie les petits liens sur téléphone avant de publier; la poignée n’apparaît jamais pour les visiteurs.
 
 Dans un élément, choisis Site web, Courriel ou Téléphone, puis saisis seulement l’adresse ou le numéro. Le préfixe apparaît à côté du champ. Un lien complet déjà écrit avec son préfixe reste accepté.
+
+Sous la carte, la vue visiteur affiche un petit rappel seulement lorsque la face courante contient un lien cliquable. Aucun repère n’est superposé au visuel.

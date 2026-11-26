@@ -170,3 +170,5 @@ a.dc__layer {pointer-events:auto;}
 .dc__destination code {display:flex;align-items:center;padding:0 .35rem;background:#26394b;border:1px solid #4c617c;
   border-right:0;border-radius:.55rem 0 0 .55rem;font-size:.72rem;color:#a9f3f7;}
 [data-digital-cards] .dc__destination input {border-top-left-radius:0;border-bottom-left-radius:0;}
+
+.dc .dc__link-hint {margin:.55rem 0 0;color:#bcc9d8;text-align:center;font-size:.82rem;}

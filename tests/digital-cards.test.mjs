@@ -106,8 +106,21 @@ test('le recto et le verso sont rendus et le bouton inverse la face accessible',
     assert.equal(front.inert,true);
     assert.equal(back.inert,false);
     assert.match(hint.textContent,/^Verso/);
+    const linkHint=root.children[2];
+    assert.equal(linkHint.hidden,false);
     button.click();
     assert.equal(flip.dataset.back,'false');
+    renderCard(root,{...base,zones:[zones[1]]},{contact:false});
+    const newHint=root.children[2];
+    assert.equal(newHint.hidden,true);
+    root.children[1].children[1].click();
+    assert.equal(newHint.hidden,false);
+    root.children[1].children[1].click();
+    assert.equal(newHint.hidden,true);
+    renderCard(root,{...base,zones:[zones[0]]},{contact:false,preview:true});
+    assert.equal(root.children[2].hidden,true);
+    renderCard(root,{...base,zones:[zones[0]]},{contact:false,preview:true,testLinks:true});
+    assert.equal(root.children[2].hidden,false);
   }finally{globalThis.document=before;}
 });
 

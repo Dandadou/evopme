@@ -64,6 +64,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
     if(card.blankFront&&!card.front)front.dataset.template=card.theme;
     if(card.blankBack&&!card.back)back.dataset.template=card.theme;
   }
+  const linkedFaces=new Set();
   for(const [face,faceNode] of [['front',front],['back',back]]){
     for(const [index,zone] of (card.zones||[]).entries()){
       if(zone.face!==face)continue;
@@ -72,6 +73,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
       if(!preview&&!visible&&!url)continue;
       const editing=preview&&!testLinks, draggable=editing&&editZones&&!onPlace;
       const link=Boolean(url&&(!preview||testLinks)&&!onPlace);
+      if(link)linkedFaces.add(face);
       const classes='dc__hotspot'+(visible?' dc__layer dc__layer--'+kind:'')+
         (editing&&!visible?' dc__hotspot--demo':'')+(link?' dc__hotspot--live':'');
       const zoneNode=el(draggable?'button':link?'a':'span',classes);
@@ -110,6 +112,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
     const edge=el('span',className);edge.setAttribute('aria-hidden','true');flip.append(edge);
   }
   const hint=el('span','dc__hint');
+  const linkHint=el('p','dc__link-hint','Touchez les liens directement sur la carte.');
   const setSide=isBack=>{
     flip.dataset.back=String(isBack);
     front.setAttribute('aria-hidden',String(isBack));front.inert=isBack;
@@ -117,6 +120,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
     button.textContent=isBack?'Voir le recto':'Voir le verso';
     button.setAttribute('aria-label','Retourner la carte : voir le '+(isBack?'recto':'verso'));
     hint.textContent=isBack?'Verso':'Recto';
+    linkHint.hidden=!linkedFaces.has(isBack?'back':'front');
   };
   const turn=()=>{
     const isBack=flip.dataset.back!=='true';
@@ -135,7 +139,7 @@ export function renderCard(root, card = {}, { contact = true, preview = false, t
   frame.append(flip);
   const controls=el('div','dc__flip-controls');
   controls.append(hint,button);
-  root.replaceChildren(frame,controls);
+  root.replaceChildren(frame,controls,linkHint);
   if(!contact||!card.name) return;
   const actions=el('div','dc__actions');
   const download=el('button','dc__button dc__button--primary','Ajouter à mes contacts');
